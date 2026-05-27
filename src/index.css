@@ -1,0 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light dark;
+}
+
+/* Modo oscuro por defecto (panel); el bloque media light lo sobreescribe. */
+:root {
+  --bg-base: #0a0a0a;
+  --bg-surface: #111111;
+  --bg-card: #161616;
+  --bg-hover: #1c1c1c;
+  --bg-input: #0f0f0f;
+  --border: #242424;
+  --border-hover: #333333;
+  --border-focus: #2b8fd4;
+  --text-primary: #f2f2f2;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --text-link: #5aaee0;
+  --sidebar-width: 240px;
+  --header-height: 64px;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg-base: #f5f7fa;
+    --bg-surface: #ffffff;
+    --bg-card: #ffffff;
+    --bg-hover: #f0f4f8;
+    --bg-input: #ffffff;
+    --border: #e2e8f0;
+    --border-hover: #cbd5e1;
+    --border-focus: #2b8fd4;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --text-link: #1a3f7a;
+  }
+}
+
+body {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family:
+    Inter,
+    system-ui,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+}

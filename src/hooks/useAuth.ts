@@ -1,0 +1,11 @@
+import { useContext } from 'react';
+
+import { AuthContext } from '../contexts/AuthContext';
+
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (ctx === undefined) {
+    throw new Error('useAuth debe usarse dentro de un AuthProvider.');
+  }
+  return ctx;
+}

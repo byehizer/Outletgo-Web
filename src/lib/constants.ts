@@ -1,0 +1,104 @@
+/** Claves de localStorage (briefing). */
+export const STORAGE_KEYS = {
+  TOKEN: 'outletgo_token',
+  USER: 'outletgo_user',
+} as const;
+
+/**
+ * Rutas base. Se ampliarán en el Paso 5 (router).
+ */
+export const ROUTES = {
+  login: '/login',
+  recover: '/recover',
+  authCallback: '/auth/callback',
+  sellerRoot: '/seller',
+  sellerProducts: '/seller/products',
+  /** Pedidos del vendedor (Paso 15). */
+  sellerOrders: '/seller/orders',
+  /** Perfil de tienda (Paso 16). */
+  sellerStore: '/seller/store',
+  /** Reseñas recibidas (Paso 17). */
+  sellerReviews: '/seller/reviews',
+  /** Chat con compradores (Paso 18). */
+  sellerChats: '/seller/chats',
+  /** Soporte técnico con Admin (Paso 19). */
+  sellerSupport: '/seller/support',
+  /** Alta de producto (Paso 13). */
+  sellerProductNew: '/seller/products/new',
+  /** Paso 11 — página de prueba `ImageDropzone`; no está en sidebar. */
+  sellerUploadDemo: '/seller/upload-demo',
+  adminRoot: '/admin',
+  adminSellers: '/admin/sellers',
+  forbidden: '/forbidden',
+} as const;
+
+/** Fotos máximas por producto en el panel vendedor (staging / formulario Paso 13). */
+export const PRODUCT_IMAGE_MAX_COUNT = 4;
+
+/** Listado paginado seller (Paso 12). */
+export const SELLER_PRODUCTS_PAGE_SIZE = 10;
+
+/**
+ * Listado / CRUD seller (Paso 12–13). Cambiá sólo si el backend usa otra ruta.
+ */
+export const SELLER_PRODUCTS_API_PATH = '/api/seller/products' as const;
+
+/**
+ * PATCH `{ status }` — Pausar/reactivar (Paso 14, contrato plan / Spring).
+ * Ajustá si tu backend agrupa rutas bajo `/api/seller/...`.
+ */
+export function sellerProductStatusApiPath(productId: string): string {
+  const id = productId.trim();
+  return `/api/products/${encodeURIComponent(id)}/status`;
+}
+
+/**
+ * Baja lógica — Paso 14. `DELETE` idempotente; el backend marca `deleted`/similar.
+ */
+export function sellerProductLogicalDeleteApiPath(productId: string): string {
+  const id = productId.trim();
+  return `/api/products/${encodeURIComponent(id)}`;
+}
+
+/** Ruta absoluta para editar un producto (segmento `id` codificado). */
+export function sellerProductEditPath(productId: string): string {
+  return `/seller/products/${encodeURIComponent(productId)}/edit`;
+}
+
+/** Listado paginado de pedidos seller (Paso 15). */
+export const SELLER_ORDERS_PAGE_SIZE = 10;
+
+/** Pedidos seller (GET listado/detalle). Ajustá si tu backend usa otra convención. */
+export const SELLER_ORDERS_API_PATH = '/api/seller/orders' as const;
+
+/** Detalle `/seller/orders/:orderId`. */
+export function sellerOrderDetailPath(orderId: string): string {
+  return `${ROUTES.sellerOrders}/${encodeURIComponent(orderId)}`;
+}
+
+/** Perfil de tienda seller (Paso 16). */
+export const SELLER_STORE_API_PATH = '/api/seller/store' as const;
+
+/** Listado paginado de reseñas seller (Paso 17). */
+export const SELLER_REVIEWS_PAGE_SIZE = 5;
+
+/** Reseñas sobre la tienda seller (Paso 17). */
+export const SELLER_STORE_REVIEWS_API_PATH = '/api/seller/reviews/store' as const;
+
+/** Reseñas sobre productos seller (Paso 17). */
+export const SELLER_PRODUCT_REVIEWS_API_PATH = '/api/seller/reviews/products' as const;
+
+/** Detalle de chat seller: `/seller/chats/:conversationId`. */
+export function sellerChatRoomPath(conversationId: string): string {
+  return `${ROUTES.sellerChats}/${encodeURIComponent(conversationId)}`;
+}
+
+/** Listado y mensajes de chat seller (Paso 18). Ajustá si el backend usa otra convención. */
+export const SELLER_CHATS_API_PATH = '/api/seller/chats' as const;
+
+/** Mensajes del canal seller ↔ admin (Paso 19). */
+export const SUPPORT_MESSAGES_API_PATH = '/api/support/messages' as const;
+
+/** Paginado GET soporte (supuesto Spring `Page`). */
+export const SUPPORT_MESSAGES_PAGE_SIZE = 20;
+

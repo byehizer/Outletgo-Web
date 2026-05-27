@@ -1,0 +1,437 @@
+# OutletGo Web — Sistema de Diseño
+> Archivo: `.cursor/rules/frontend-design.mdc`
+> Leer este archivo antes de crear cualquier componente visual.
+
+---
+
+## IDENTIDAD DE MARCA
+
+**Nombre:** Outletgo (con la t minúscula en el logo, pero el proyecto se llama OutletGo)
+**Concepto visual:** Moderno, dinámico, geométrico. El rayo en el isotipo
+transmite velocidad y eficiencia. La estética es limpia y profesional,
+orientada a vendedores y administradores, no a consumidores.
+
+**Archivos de logo disponibles:**
+- `Isotipo_Blanco.png` → usar en sidebar modo dark
+- `Logotipo_blanco.png` → usar en header/login modo dark
+- `Logotipo.png` → usar en header/login modo light (versión azul)
+
+---
+
+## MODO CLARO / OSCURO
+
+El panel detecta el modo del sistema operativo automáticamente usando
+`prefers-color-scheme`. No hay toggle manual en la UI.
+
+Implementación en `tailwind.config.js`:
+```javascript
+darkMode: 'media', // respeta el OS automáticamente
+```
+
+Implementación en CSS (variables):
+```css
+:root {
+  color-scheme: light dark;
+}
+```
+
+---
+
+## PALETA DE COLORES
+
+### Colores de marca (invariantes — iguales en ambos modos)
+```
+Azul primario:      #2B8FD4   (del logo, color principal de acento)
+Azul oscuro:        #1A3F7A   (del logo, hover y variantes)
+Azul claro:         #5AAEE0   (estados hover en modo light)
+Azul bg (dark):     #0D1F3C   (fondo de badges azules en modo dark)
+Azul bg (light):    #E8F4FD   (fondo de badges azules en modo light)
+```
+
+### Colores de estado (invariantes)
+```
+Success:            #22c55e
+Success bg dark:    #052e16
+Success bg light:   #f0fdf4
+
+Warning:            #f59e0b
+Warning bg dark:    #451a03
+Warning bg light:   #fffbeb
+
+Danger:             #ef4444
+Danger bg dark:     #450a0a
+Danger bg light:    #fef2f2
+
+Info:               #2B8FD4   (mismo que el azul primario de la marca)
+Info bg dark:       #0D1F3C
+Info bg light:      #E8F4FD
+```
+
+### Modo DARK (fondo oscuro — logo blanco)
+```
+bg-base:            #0a0a0a   (fondo general de la app)
+bg-surface:         #111111   (sidebar)
+bg-card:            #161616   (cards, modales, formularios)
+bg-hover:           #1c1c1c   (hover sobre filas de tabla)
+bg-input:           #0f0f0f   (fondo de inputs)
+
+border:             #242424   (bordes generales)
+border-hover:       #333333   (bordes en hover)
+border-focus:       #2B8FD4   (borde de input al hacer focus)
+
+text-primary:       #f2f2f2   (texto principal)
+text-secondary:     #9ca3af   (texto secundario, labels)
+text-muted:         #6b7280   (placeholders, texto apagado)
+text-link:          #5AAEE0   (links)
+```
+
+### Modo LIGHT (fondo claro — logo azul)
+```
+bg-base:            #f5f7fa   (fondo general de la app)
+bg-surface:         #ffffff   (sidebar)
+bg-card:            #ffffff   (cards, modales, formularios)
+bg-hover:           #f0f4f8   (hover sobre filas de tabla)
+bg-input:           #ffffff   (fondo de inputs)
+
+border:             #e2e8f0   (bordes generales)
+border-hover:       #cbd5e1   (bordes en hover)
+border-focus:       #2B8FD4   (borde de input al hacer focus)
+
+text-primary:       #0f172a   (texto principal)
+text-secondary:     #475569   (texto secundario, labels)
+text-muted:         #94a3b8   (placeholders, texto apagado)
+text-link:          #1A3F7A   (links)
+```
+
+---
+
+## IMPLEMENTACIÓN EN TAILWIND
+
+### tailwind.config.js completo
+```javascript
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./index.html', './src/**/*.{ts,tsx}'],
+  darkMode: 'media',
+  theme: {
+    extend: {
+      colors: {
+        brand: {
+          DEFAULT:  '#2B8FD4',
+          dark:     '#1A3F7A',
+          light:    '#5AAEE0',
+          'bg-dark':  '#0D1F3C',
+          'bg-light': '#E8F4FD',
+        },
+        success: {
+          DEFAULT:    '#22c55e',
+          'bg-dark':  '#052e16',
+          'bg-light': '#f0fdf4',
+        },
+        warning: {
+          DEFAULT:    '#f59e0b',
+          'bg-dark':  '#451a03',
+          'bg-light': '#fffbeb',
+        },
+        danger: {
+          DEFAULT:    '#ef4444',
+          'bg-dark':  '#450a0a',
+          'bg-light': '#fef2f2',
+        },
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Sora', 'system-ui', 'sans-serif'],
+      },
+      fontSize: {
+        'display-lg': ['2rem',    { lineHeight: '2.5rem',  fontWeight: '700' }],
+        'display-md': ['1.5rem',  { lineHeight: '2rem',    fontWeight: '700' }],
+        'display-sm': ['1.25rem', { lineHeight: '1.75rem', fontWeight: '600' }],
+      },
+    },
+  },
+  plugins: [],
+}
+```
+
+### Variables CSS en src/index.css
+```css
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Modo DARK — por defecto */
+:root {
+  --bg-base:          #0a0a0a;
+  --bg-surface:       #111111;
+  --bg-card:          #161616;
+  --bg-hover:         #1c1c1c;
+  --bg-input:         #0f0f0f;
+  --border:           #242424;
+  --border-hover:     #333333;
+  --border-focus:     #2B8FD4;
+  --text-primary:     #f2f2f2;
+  --text-secondary:   #9ca3af;
+  --text-muted:       #6b7280;
+  --text-link:        #5AAEE0;
+  --sidebar-width:    240px;
+  --header-height:    64px;
+}
+
+/* Modo LIGHT — cuando el OS lo pide */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg-base:          #f5f7fa;
+    --bg-surface:       #ffffff;
+    --bg-card:          #ffffff;
+    --bg-hover:         #f0f4f8;
+    --bg-input:         #ffffff;
+    --border:           #e2e8f0;
+    --border-hover:     #cbd5e1;
+    --border-focus:     #2B8FD4;
+    --text-primary:     #0f172a;
+    --text-secondary:   #475569;
+    --text-muted:       #94a3b8;
+    --text-link:        #1A3F7A;
+  }
+}
+
+body {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+```
+
+---
+
+## TIPOGRAFÍA
+
+### Fuentes
+- **Display / Títulos de página:** `Sora` — weight 700 y 600
+- **Body / UI / Labels:** `Inter` — weight 400 y 500
+- Importar ambas desde Google Fonts en `src/index.css`
+
+### Escala tipográfica
+```
+Título de página (h1):   Sora 700 — 2rem    (text-3xl)
+Título de sección (h2):  Sora 600 — 1.5rem  (text-2xl)
+Título de card (h3):     Sora 600 — 1.25rem (text-xl)
+Body normal:             Inter 400 — 0.875rem (text-sm)
+Body destacado:          Inter 500 — 0.875rem (text-sm font-medium)
+Label de input:          Inter 500 — 0.75rem  (text-xs font-medium)
+Texto muted:             Inter 400 — 0.75rem  (text-xs)
+```
+
+### Por qué estas fuentes
+- **Sora** tiene carácter geométrico y moderno que va con el isotipo del logo.
+  Es distintiva sin ser agresiva — ideal para títulos de un panel profesional.
+- **Inter** es la fuente de referencia para interfaces de gestión.
+  Máxima legibilidad en tamaños pequeños (tablas, labels, formularios).
+
+---
+
+## DIMENSIONES Y ESPACIADO
+
+### Layout base
+```
+Sidebar ancho:      240px (desktop) — drawer full en mobile (<768px)
+Header alto:        64px
+Padding de página:  p-6 (24px)
+Gap entre secciones: gap-6 (24px)
+```
+
+### Componentes
+```
+Border radius cards/modales:  rounded-xl  (12px)
+Border radius inputs/botones: rounded-lg  (8px)
+Border radius badges:         rounded-full
+Border radius avatares:       rounded-full
+Padding de cards:             p-6
+Padding de inputs:            px-3 py-2
+Alto de inputs:               h-10 (40px)
+Alto de botones md:           h-10 (40px)
+Alto de botones sm:           h-8  (32px)
+Alto de botones lg:           h-12 (48px)
+```
+
+---
+
+## COMPONENTES — ESTILOS BASE
+
+### Sidebar
+```
+Dark:  bg #111111, borde derecho 1px #242424
+Light: bg #ffffff, borde derecho 1px #e2e8f0
+Ancho: 240px fijo en desktop
+
+Link activo:
+  Dark:  bg #0D1F3C, texto #2B8FD4, borde izq 3px #2B8FD4
+  Light: bg #E8F4FD, texto #1A3F7A, borde izq 3px #1A3F7A
+
+Link inactivo:
+  Dark:  texto #9ca3af, hover bg #1c1c1c texto #f2f2f2
+  Light: texto #475569, hover bg #f0f4f8 texto #0f172a
+```
+
+### Cards
+```
+Dark:  bg #161616, borde 1px #242424, rounded-xl
+Light: bg #ffffff, borde 1px #e2e8f0, rounded-xl, shadow-sm
+```
+
+### Inputs
+```
+Dark:  bg #0f0f0f, borde #242424, texto #f2f2f2, placeholder #6b7280
+Light: bg #ffffff, borde #e2e8f0, texto #0f172a, placeholder #94a3b8
+Focus (ambos): borde #2B8FD4, ring 2px #2B8FD4 con opacidad 20%
+Error (ambos): borde #ef4444, ring 2px #ef4444 con opacidad 20%
+```
+
+### Botones
+```
+Primary:
+  bg #2B8FD4, texto blanco, hover bg #1A3F7A
+  (mismo en dark y light — el azul de marca no cambia)
+
+Secondary:
+  Dark:  bg #242424, texto #f2f2f2, hover bg #333333
+  Light: bg #f0f4f8, texto #0f172a, hover bg #e2e8f0
+
+Danger:
+  bg #ef4444, texto blanco, hover bg #dc2626
+  (mismo en dark y light)
+
+Ghost:
+  Dark:  sin bg, texto #9ca3af, hover texto #f2f2f2
+  Light: sin bg, texto #475569, hover texto #0f172a
+```
+
+### Tablas
+```
+Dark:
+  Header: bg #111111, texto #9ca3af, text-xs uppercase
+  Filas:  alternando #161616 y #0f0f0f, hover #1c1c1c
+  Bordes: #1f1f1f
+
+Light:
+  Header: bg #f8fafc, texto #475569, text-xs uppercase
+  Filas:  bg #ffffff, hover #f8fafc
+  Bordes: #e2e8f0
+```
+
+---
+
+## BADGES DE ESTADO — MAPEO COMPLETO
+
+Usar este mapeo exacto. No inventar variantes nuevas.
+
+```
+OrderStatus:
+  PENDING          → warning  → "Pendiente"
+  PREPARING        → info     → "Preparando"
+  READY_FOR_PICKUP → info     → "Listo"
+  DELIVERED        → success  → "Entregado"
+  CANCELED         → danger   → "Cancelado"
+
+ProductStatus:
+  ACTIVE             → success → "Activo"
+  PAUSED_BY_SELLER   → warning → "Pausado"
+  DISABLED_BY_ADMIN  → danger  → "Inhabilitado"
+
+ReportStatus:
+  PENDING   → warning → "Pendiente"
+  DISMISSED → neutral → "Desestimado"
+  RESOLVED  → success → "Resuelto"
+
+isVisible (reviews):
+  true  → success → "Visible"
+  false → neutral → "Oculta"
+
+isActive (usuarios):
+  true  → success → "Activo"
+  false → danger  → "Inactivo"
+```
+
+### Estilos de badge por variante
+```
+success:
+  Dark:  bg #052e16, texto #22c55e
+  Light: bg #f0fdf4, texto #16a34a
+
+warning:
+  Dark:  bg #451a03, texto #f59e0b
+  Light: bg #fffbeb, texto #d97706
+
+danger:
+  Dark:  bg #450a0a, texto #ef4444
+  Light: bg #fef2f2, texto #dc2626
+
+info:
+  Dark:  bg #0D1F3C, texto #5AAEE0
+  Light: bg #E8F4FD, texto #1A3F7A
+
+neutral:
+  Dark:  bg #1f1f1f, texto #9ca3af
+  Light: bg #f1f5f9, texto #64748b
+```
+
+---
+
+## LOGO EN EL SIDEBAR
+
+```
+Modo dark:
+  Usar Logotipo_blanco.png
+  Alto: 32px, ancho automático
+  Padding: px-4 py-5
+
+Modo light:
+  Usar Logotipo.png (versión azul)
+  Alto: 32px, ancho automático
+  Padding: px-4 py-5
+```
+
+Implementación en React:
+```tsx
+const logoSrc = window.matchMedia('(prefers-color-scheme: dark)').matches
+  ? '/logos/logotipo-blanco.png'
+  : '/logos/logotipo.png'
+```
+
+Los archivos de logo van en `public/logos/`.
+
+---
+
+## ANIMACIONES
+
+Usar solo lo necesario. Nada de animaciones decorativas excesivas.
+
+```
+Transición de hover:     transition-colors duration-150
+Transición de botones:   transition-all duration-200
+Fade de modales:         transition-opacity duration-200
+Slide de sidebar mobile: transition-transform duration-300
+Toasts:                  slide-in desde la derecha, duration-300
+```
+
+---
+
+## LO QUE NO SE HACE — NUNCA
+
+- No usar `purple` en ninguna variante (no es parte de la marca)
+- No mezclar el azul de marca con verde como acento
+- No usar fondos blancos puros en modo dark
+- No usar `Inter` para títulos de página (usar `Sora`)
+- No inventar colores fuera de esta paleta
+- No usar `shadow-lg` o sombras grandes en modo dark
+  (las sombras no se ven sobre fondos oscuros — usar bordes)
+- No cambiar el color primario de botones entre dark y light
+  (el azul de marca `#2B8FD4` es constante en ambos modos)
+
+---
+
+*Versión 1.0 — OutletGo Avellaneda — Sistema de Diseño*
