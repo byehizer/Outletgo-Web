@@ -106,7 +106,7 @@ export const SELLER_PRODUCTS_API_PATH = '/api/seller/products' as const;
  */
 export function sellerProductStatusApiPath(productId: string): string {
   const id = productId.trim();
-  return `/api/products/${encodeURIComponent(id)}/status`;
+  return `${SELLER_PRODUCTS_API_PATH}/${encodeURIComponent(id)}/status`;
 }
 
 /**
@@ -114,7 +114,7 @@ export function sellerProductStatusApiPath(productId: string): string {
  */
 export function sellerProductLogicalDeleteApiPath(productId: string): string {
   const id = productId.trim();
-  return `/api/products/${encodeURIComponent(id)}`;
+  return `${SELLER_PRODUCTS_API_PATH}/${encodeURIComponent(id)}`;
 }
 
 /** Ruta absoluta para editar un producto (segmento `id` codificado). */
@@ -153,6 +153,12 @@ export function sellerChatRoomPath(conversationId: string): string {
 /** Listado y mensajes de chat seller (Paso 18). Ajustá si el backend usa otra convención. */
 export const SELLER_CHATS_API_PATH = '/api/seller/chats' as const;
 
+/** Paginado GET conversaciones de chat seller (Spring `Page`). */
+export const SELLER_CHATS_CONVERSATIONS_PAGE_SIZE = 20;
+
+/** Paginado GET mensajes de chat seller (Spring `Page`). */
+export const SELLER_CHAT_MESSAGES_PAGE_SIZE = 100;
+
 /** Resumen del panel seller — home `/seller` (Paso 20). */
 export const SELLER_DASHBOARD_API_PATH = '/api/seller/dashboard' as const;
 
@@ -161,6 +167,9 @@ export const SUPPORT_MESSAGES_API_PATH = '/api/support/messages' as const;
 
 /** Bandeja de soporte Admin (Paso 27). */
 export const ADMIN_SUPPORT_API_PATH = '/api/admin/support' as const;
+
+/** Paginado GET conversaciones de soporte Admin (Spring `Page`). */
+export const ADMIN_SUPPORT_CONVERSATIONS_PAGE_SIZE = 50;
 
 /** Paginado GET soporte (supuesto Spring `Page`). */
 export const SUPPORT_MESSAGES_PAGE_SIZE = 20;

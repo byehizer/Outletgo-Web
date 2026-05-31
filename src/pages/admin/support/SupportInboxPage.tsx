@@ -21,6 +21,7 @@ import {
 import { adminSupportChatTransport } from '../../../features/chat/chatTransport';
 import { NewConversationModal } from '../../../features/admin/NewConversationModal';
 import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
+import { ADMIN_SUPPORT_CONVERSATIONS_PAGE_SIZE } from '../../../lib/constants';
 import { cn } from '../../../lib/cn';
 import { formatDateTime } from '../../../lib/format';
 import { ApiError } from '../../../lib/http/apiClient';
@@ -267,8 +268,8 @@ export function SupportInboxPage() {
 
   const loadConversations = useCallback(() => {
     dispatch({ type: 'CONVERSATIONS_BEGIN' });
-    void fetchSupportConversations()
-      .then((list) => dispatch({ type: 'CONVERSATIONS_OK', payload: list }))
+    void fetchSupportConversations({ page: 0, size: ADMIN_SUPPORT_CONVERSATIONS_PAGE_SIZE })
+      .then((page) => dispatch({ type: 'CONVERSATIONS_OK', payload: page.content }))
       .catch((err: unknown) => {
         dispatch({
           type: 'CONVERSATIONS_ERR',
@@ -395,8 +396,11 @@ export function SupportInboxPage() {
           dispatch({ type: 'OUTBOX_REMOVE', localId });
           dispatch({ type: 'UPSERT_MESSAGE', payload: sent });
           dispatch({ type: 'STAGING_REGENERATE' });
-          const convs = await fetchSupportConversations();
-          dispatch({ type: 'CONVERSATIONS_OK', payload: convs });
+          const page = await fetchSupportConversations({
+            page: 0,
+            size: ADMIN_SUPPORT_CONVERSATIONS_PAGE_SIZE,
+          });
+          dispatch({ type: 'CONVERSATIONS_OK', payload: page.content });
         } catch (err: unknown) {
           const message =
             err instanceof ApiError ? err.message

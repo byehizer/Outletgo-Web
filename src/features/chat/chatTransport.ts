@@ -1,4 +1,5 @@
 import { fetchAdminSupportMessages, fetchMessages, fetchSupportConversations, fetchSupportMessages } from './chatApi';
+import { ADMIN_SUPPORT_CONVERSATIONS_PAGE_SIZE, SELLER_CHAT_MESSAGES_PAGE_SIZE } from '../../lib/constants';
 
 import type { SellerChatMessage } from '../../types/chat';
 import type { SupportConversation, SupportMessage } from '../../types/support';
@@ -56,11 +57,11 @@ export class SellerChatTransport {
           return;
         }
         try {
-          const list = await fetchMessages(cid);
+          const page = await fetchMessages(cid, { page: 0, size: SELLER_CHAT_MESSAGES_PAGE_SIZE });
           if (myGen !== this.gen) {
             return;
           }
-          const sorted = [...list].sort(sortAsc);
+          const sorted = [...page.content].sort(sortAsc);
           for (const msg of sorted) {
             if (this.seenMessageIds.has(msg.id)) {
               continue;
@@ -76,11 +77,11 @@ export class SellerChatTransport {
 
     void (async () => {
       try {
-        const initial = await fetchMessages(cid);
+        const initial = await fetchMessages(cid, { page: 0, size: SELLER_CHAT_MESSAGES_PAGE_SIZE });
         if (myGen !== this.gen) {
           return;
         }
-        for (const m of initial) {
+        for (const m of initial.content) {
           this.seenMessageIds.add(m.id);
         }
       } catch {
@@ -250,9 +251,12 @@ export class AdminSupportChatTransport {
             onMessageReceived(msg);
           }
           if (onConversationsRefresh) {
-            const convs = await fetchSupportConversations();
+            const page = await fetchSupportConversations({
+              page: 0,
+              size: ADMIN_SUPPORT_CONVERSATIONS_PAGE_SIZE,
+            });
             if (myGen === this.gen) {
-              onConversationsRefresh(convs);
+              onConversationsRefresh(page.content);
             }
           }
         } catch {

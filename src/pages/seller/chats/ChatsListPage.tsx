@@ -7,7 +7,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Skeleton } from '../../../components/Skeleton';
 import { findConversationForBuyer, fetchConversations } from '../../../features/chat/chatApi';
 import { fetchSellerOrderDetail } from '../../../features/orders/ordersApi';
-import { ROUTES, sellerChatRoomPath } from '../../../lib/constants';
+import { ROUTES, sellerChatRoomPath, SELLER_CHATS_CONVERSATIONS_PAGE_SIZE } from '../../../lib/constants';
 import { cn } from '../../../lib/cn';
 import { ApiError } from '../../../lib/http/apiClient';
 import { buildStockIssueChatMessage, findStockIssueForItem } from '../../../types/order';
@@ -53,13 +53,14 @@ export function ChatsListPage() {
 
     void (async () => {
       try {
-        const [order, convs] = await Promise.all([
+        const [order, convsPage] = await Promise.all([
           fetchSellerOrderDetail(contextSliceId),
-          fetchConversations(),
+          fetchConversations({ page: 0, size: SELLER_CHATS_CONVERSATIONS_PAGE_SIZE }),
         ]);
         if (cancelled) {
           return;
         }
+        const convs = convsPage.content ?? [];
         const issue = findStockIssueForItem(order, contextItemId);
         if (!issue) {
           setErrorMessage('No hay un problema de stock activo para ese ítem.');
@@ -109,9 +110,9 @@ export function ChatsListPage() {
     setErrorMessage(null);
     void (async () => {
       try {
-        const list = await fetchConversations();
+        const page = await fetchConversations({ page: 0, size: SELLER_CHATS_CONVERSATIONS_PAGE_SIZE });
         if (!cancelled) {
-          setRows(list);
+          setRows(page.content ?? []);
         }
       } catch (err: unknown) {
         if (cancelled) {

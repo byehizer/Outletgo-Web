@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
-import { X, Zap } from 'lucide-react';
+import { X } from 'lucide-react';
 
+import { OutletGoLogo } from '../components/OutletGoLogo';
 import { cn } from '../lib/cn';
 import { ROUTES } from '../lib/constants';
 
@@ -20,17 +21,11 @@ export function Sidebar({ navItems, mobileOpen, onCloseMobile }: SidebarProps) {
 
   return (
     <aside className={mobilePanelClasses} aria-label="Navegación principal">
-      <div className="flex h-[var(--header-height)] shrink-0 items-center justify-between border-b border-[var(--border)] px-4">
-        <div className="flex min-w-0 items-center gap-2">
-          <Zap className="size-7 shrink-0 text-brand" aria-hidden />
-          <div className="min-w-0">
-            <p className="font-display truncate text-sm font-semibold tracking-tight">OutletGo</p>
-            <p className="truncate text-xs text-[var(--text-muted)]">Panel</p>
-          </div>
-        </div>
+      <div className="relative flex h-[var(--header-height)] shrink-0 items-center justify-center border-b border-[var(--border)] px-4">
+        <OutletGoLogo variant="isotype" className="size-12 shrink-0" />
         <button
           type="button"
-          className="rounded-lg p-2 text-[var(--text-muted)] hover:bg-[var(--bg-hover)] md:hidden"
+          className="absolute right-4 rounded-lg p-2 text-[var(--text-muted)] hover:bg-[var(--bg-hover)] md:hidden"
           aria-label="Cerrar menú"
           onClick={onCloseMobile}
         >

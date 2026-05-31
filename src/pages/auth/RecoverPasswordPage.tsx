@@ -3,8 +3,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, Navigate } from 'react-router-dom';
 
-import { Mail } from 'lucide-react';
-
+import { OutletGoLogo } from '../../components/OutletGoLogo';
 import { requestPasswordRecovery } from '../../features/auth/authApi';
 import { recoverSchema, type RecoverFormValues } from '../../features/auth/recoverSchema';
 import { resolvePostLoginRedirect } from '../../features/auth/postLoginRedirect';
@@ -49,10 +48,8 @@ export function RecoverPasswordPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--bg-base)] px-4 py-10">
       <div className="w-full max-w-md rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-8 shadow-lg">
-        <div className="mb-8 flex flex-col items-center gap-2 text-center">
-          <div className="flex size-12 items-center justify-center rounded-xl bg-brand/15">
-            <Mail className="size-7 text-brand" aria-hidden />
-          </div>
+        <div className="mb-8 flex flex-col items-center gap-3 text-center">
+          <OutletGoLogo className="h-10 sm:h-12" />
           <h1 className="font-display text-display-md text-[var(--text-primary)]">Recuperar contraseña</h1>
           <p className="text-sm text-[var(--text-muted)]">
             Te enviaremos un enlace si hay una cuenta asociada a ese correo.

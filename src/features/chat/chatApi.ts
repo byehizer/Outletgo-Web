@@ -1,8 +1,11 @@
 import {
   ADMIN_SUPPORT_API_PATH,
+  ADMIN_SUPPORT_CONVERSATIONS_PAGE_SIZE,
   SUPPORT_MESSAGES_API_PATH,
   SUPPORT_MESSAGES_PAGE_SIZE,
   SELLER_CHATS_API_PATH,
+  SELLER_CHATS_CONVERSATIONS_PAGE_SIZE,
+  SELLER_CHAT_MESSAGES_PAGE_SIZE,
 } from '../../lib/constants';
 import { apiClient } from '../../lib/http/apiClient';
 
@@ -184,82 +187,152 @@ export function findConversationForBuyer(
   });
 }
 
-export async function fetchConversations(): Promise<SellerChatConversation[]> {
+export type FetchSellerChatConversationsParams = {
+  page?: number;
+  size?: number;
+};
+
+function parseSellerChatConversationRow(row: unknown): SellerChatConversation | undefined {
+  const o =
+    typeof row === 'object' && row !== null ?
+      row as Record<string, unknown>
+    : null;
+  if (!o) {
+    return undefined;
+  }
+  const id = typeof o.id === 'string' ? o.id : '';
+  const buyerName =
+    typeof o.buyerName === 'string'
+      ? o.buyerName
+      : typeof o.buyer_name === 'string'
+        ? o.buyer_name
+        : '';
+  const last =
+    typeof o.lastMessageContent === 'string'
+      ? o.lastMessageContent
+      : typeof o.last_message_content === 'string'
+        ? o.last_message_content
+        : '';
+  const lastAt =
+    typeof o.lastMessageAt === 'string'
+      ? o.lastMessageAt
+      : typeof o.last_message_at === 'string'
+        ? o.last_message_at
+        : '';
+  const unread =
+    typeof o.unreadCount === 'number'
+      ? o.unreadCount
+      : typeof o.unread_count === 'number'
+        ? o.unread_count
+        : 0;
+
+  if (!id || !buyerName) {
+    return undefined;
+  }
+  return {
+    id,
+    buyerName,
+    lastMessageContent: last,
+    lastMessageAt: lastAt,
+    unreadCount: Math.max(0, Math.floor(Number.isFinite(unread) ? unread : 0)),
+  };
+}
+
+export async function fetchConversations(
+  params?: FetchSellerChatConversationsParams,
+): Promise<Page<SellerChatConversation>> {
+  const pageZero = Math.max(0, params?.page ?? 0);
+  const size = Math.max(1, params?.size ?? SELLER_CHATS_CONVERSATIONS_PAGE_SIZE);
+
   if (import.meta.env.DEV) {
     await devDelay(undefined);
-    return devState.conversations.map((c) => ({ ...c }));
+    const sorted = [...devState.conversations]
+      .map((c) => ({ ...c }))
+      .sort(
+        (a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime(),
+      );
+    const start = pageZero * size;
+    const slice = sorted.slice(start, start + size);
+    return {
+      content: slice,
+      totalElements: sorted.length,
+      number: pageZero,
+      size,
+    };
   }
 
-  const raw = await apiClient.get<unknown>(SELLER_CHATS_API_PATH);
-  if (!Array.isArray(raw)) {
-    return [];
+  const qs = new URLSearchParams({
+    page: String(pageZero),
+    size: String(size),
+  });
+  const raw = await apiClient.get<unknown>(`${SELLER_CHATS_API_PATH}?${qs.toString()}`);
+  if (typeof raw !== 'object' || raw === null) {
+    return { content: [], totalElements: 0, number: pageZero, size };
   }
+  const root = raw as Record<string, unknown>;
+  const contentRaw = Array.isArray(root.content) ? root.content : [];
   const out: SellerChatConversation[] = [];
-  for (const row of raw) {
-    const o =
-      typeof row === 'object' && row !== null ?
-        row as Record<string, unknown>
-      : null;
-    if (!o) {
-      continue;
-    }
-    const id = typeof o.id === 'string' ? o.id : '';
-    const buyerName =
-      typeof o.buyerName === 'string'
-        ? o.buyerName
-        : typeof o.buyer_name === 'string'
-          ? o.buyer_name
-          : '';
-    const last =
-      typeof o.lastMessageContent === 'string'
-        ? o.lastMessageContent
-        : typeof o.last_message_content === 'string'
-          ? o.last_message_content
-          : '';
-    const lastAt =
-      typeof o.lastMessageAt === 'string'
-        ? o.lastMessageAt
-        : typeof o.last_message_at === 'string'
-          ? o.last_message_at
-          : '';
-    const unread =
-      typeof o.unreadCount === 'number'
-        ? o.unreadCount
-        : typeof o.unread_count === 'number'
-          ? o.unread_count
-          : 0;
-
-    if (id && buyerName) {
-      out.push({
-        id,
-        buyerName,
-        lastMessageContent: last,
-        lastMessageAt: lastAt,
-        unreadCount: Math.max(0, Math.floor(Number.isFinite(unread) ? unread : 0)),
-      });
+  for (const row of contentRaw) {
+    const conv = parseSellerChatConversationRow(row);
+    if (conv) {
+      out.push(conv);
     }
   }
   out.sort((a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime());
-  return out;
+
+  const totalElements =
+    typeof root.totalElements === 'number' ? root.totalElements
+    : typeof root.total_elements === 'number' ? root.total_elements
+    : out.length;
+
+  return {
+    content: out,
+    totalElements: Number.isFinite(totalElements) ? totalElements : out.length,
+    number: typeof root.number === 'number' ? root.number : pageZero,
+    size: typeof root.size === 'number' ? root.size : size,
+  };
 }
 
-export async function fetchMessages(conversationId: string): Promise<SellerChatMessage[]> {
+export async function fetchMessages(
+  conversationId: string,
+  options?: { page?: number; size?: number },
+): Promise<Page<SellerChatMessage>> {
   const cid = conversationId.trim();
+  const pageZero = Math.max(0, options?.page ?? 0);
+  const size = Math.max(1, options?.size ?? SELLER_CHAT_MESSAGES_PAGE_SIZE);
+
   if (cid === '') {
-    return [];
+    return { content: [], totalElements: 0, number: pageZero, size };
   }
+
   if (import.meta.env.DEV) {
     await devDelay(undefined);
     const list = devState.messages.get(cid);
-    return list ? sortMessagesBySentAtAsc(list.map((m) => ({ ...m }))) : [];
+    const sorted = list ? sortMessagesBySentAtAsc(list.map((m) => ({ ...m }))) : [];
+    const start = pageZero * size;
+    const slice = sorted.slice(start, start + size);
+    return {
+      content: slice,
+      totalElements: sorted.length,
+      number: pageZero,
+      size,
+    };
   }
 
-  const raw = await apiClient.get<unknown>(sellerChatsConversationMessagesPath(cid));
-  if (!Array.isArray(raw)) {
-    return [];
+  const qs = new URLSearchParams({
+    page: String(pageZero),
+    size: String(size),
+  });
+  const raw = await apiClient.get<unknown>(
+    `${sellerChatsConversationMessagesPath(cid)}?${qs.toString()}`,
+  );
+  if (typeof raw !== 'object' || raw === null) {
+    return { content: [], totalElements: 0, number: pageZero, size };
   }
+  const root = raw as Record<string, unknown>;
+  const contentRaw = Array.isArray(root.content) ? root.content : [];
   const out: SellerChatMessage[] = [];
-  for (const row of raw) {
+  for (const row of contentRaw) {
     const o =
       typeof row === 'object' && row !== null ?
         row as Record<string, unknown>
@@ -295,7 +368,19 @@ export async function fetchMessages(conversationId: string): Promise<SellerChatM
       });
     }
   }
-  return sortMessagesBySentAtAsc(out);
+  out.sort((a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime());
+
+  const totalElements =
+    typeof root.totalElements === 'number' ? root.totalElements
+    : typeof root.total_elements === 'number' ? root.total_elements
+    : out.length;
+
+  return {
+    content: out,
+    totalElements: Number.isFinite(totalElements) ? totalElements : out.length,
+    number: typeof root.number === 'number' ? root.number : pageZero,
+    size: typeof root.size === 'number' ? root.size : size,
+  };
 }
 
 export async function sendChatMessage(
@@ -375,7 +460,7 @@ function getDevSupportPdfSeedUrl(): string {
   return devSupportPdfObjectUrl;
 }
 
-const DEV_SUPPORT_IMAGE_SEED_PATH = '/vite.svg';
+const DEV_SUPPORT_IMAGE_SEED_PATH = '/Isotipewhitemode.png';
 
 function createStore001SeedMessages(): SupportMessage[] {
   return sortSupportBySentAt([
@@ -805,24 +890,59 @@ export async function sendSupportMessage(payload: SendSupportPayload): Promise<S
 
 // ---- Soporte Admin (Paso 27) ----
 
-export async function fetchSupportConversations(): Promise<SupportConversation[]> {
+export type FetchSupportConversationsParams = {
+  page?: number;
+  size?: number;
+};
+
+export async function fetchSupportConversations(
+  params?: FetchSupportConversationsParams,
+): Promise<Page<SupportConversation>> {
+  const pageZero = Math.max(0, params?.page ?? 0);
+  const size = Math.max(1, params?.size ?? ADMIN_SUPPORT_CONVERSATIONS_PAGE_SIZE);
+
   if (import.meta.env.DEV) {
     await devDelay(undefined);
-    return sortSupportConversations(devSupportConversations.map((c) => ({ ...c })));
+    const sorted = sortSupportConversations(devSupportConversations.map((c) => ({ ...c })));
+    const start = pageZero * size;
+    const slice = sorted.slice(start, start + size);
+    return {
+      content: slice,
+      totalElements: sorted.length,
+      number: pageZero,
+      size,
+    };
   }
 
-  const raw = await apiClient.get<unknown>(`${ADMIN_SUPPORT_API_PATH}/conversations`);
-  if (!Array.isArray(raw)) {
-    return [];
+  const qs = new URLSearchParams({
+    page: String(pageZero),
+    size: String(size),
+  });
+  const raw = await apiClient.get<unknown>(
+    `${ADMIN_SUPPORT_API_PATH}/conversations?${qs.toString()}`,
+  );
+  if (typeof raw !== 'object' || raw === null) {
+    return { content: [], totalElements: 0, number: pageZero, size };
   }
+  const root = raw as Record<string, unknown>;
+  const contentRaw = Array.isArray(root.content) ? root.content : [];
   const out: SupportConversation[] = [];
-  for (const row of raw) {
+  for (const row of contentRaw) {
     const conv = parseSupportConversationRow(row);
     if (conv) {
       out.push(conv);
     }
   }
-  return sortSupportConversations(out);
+  const totalElements =
+    typeof root.totalElements === 'number' ? root.totalElements
+    : typeof root.total_elements === 'number' ? root.total_elements
+    : out.length;
+  return {
+    content: sortSupportConversations(out),
+    totalElements: Number.isFinite(totalElements) ? totalElements : out.length,
+    number: typeof root.number === 'number' ? root.number : pageZero,
+    size: typeof root.size === 'number' ? root.size : size,
+  };
 }
 
 export async function fetchAdminSupportMessages(

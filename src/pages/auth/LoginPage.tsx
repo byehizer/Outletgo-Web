@@ -3,8 +3,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 
-import { Zap } from 'lucide-react';
-
+import { OutletGoLogo } from '../../components/OutletGoLogo';
 import { loginWithEmailPassword } from '../../features/auth/authApi';
 import { startGoogleOAuth } from '../../features/auth/googleAuth';
 import { loginSchema, type LoginFormValues } from '../../features/auth/loginSchema';
@@ -106,11 +105,8 @@ export function LoginPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--bg-base)] px-4 py-10">
       <div className="w-full max-w-md rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-8 shadow-lg">
-        <div className="mb-8 flex flex-col items-center gap-2 text-center">
-          <div className="flex size-12 items-center justify-center rounded-xl bg-brand/15">
-            <Zap className="size-7 text-brand" aria-hidden />
-          </div>
-          <h1 className="font-display text-display-md text-[var(--text-primary)]">OutletGo</h1>
+        <div className="mb-8 flex flex-col items-center gap-3 text-center">
+          <OutletGoLogo className="h-10 sm:h-12" />
           <p className="text-sm text-[var(--text-muted)]">Acceso al panel de vendedores y administración</p>
         </div>
 

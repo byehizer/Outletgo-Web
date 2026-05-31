@@ -1,3 +1,5 @@
+import type { Page } from './api';
+
 /**
  * Conversación en panel seller ↔ compradores (Paso 18).
  */
@@ -20,3 +22,9 @@ export interface SellerChatMessage {
   content: string;
   sentAt: string;
 }
+
+/** Hilo de mensajes paginado (Spring `Page<SellerChatMessage>`). */
+export type SellerChatMessagesPage = Page<SellerChatMessage>;
+
+/** Listado de conversaciones paginado (Spring `Page<SellerChatConversation>`). */
+export type SellerChatConversationsPage = Page<SellerChatConversation>;

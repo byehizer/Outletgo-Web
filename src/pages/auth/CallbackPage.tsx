@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
+import { OutletGoLogo } from '../../components/OutletGoLogo';
 import { fetchCurrentUser } from '../../features/auth/authApi';
 import {
   getPanelLoginBlockReason,
@@ -122,6 +123,9 @@ export function CallbackPage() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--bg-base)] px-4 py-10">
         <div className="w-full max-w-md rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-8 text-center shadow-lg">
+          <div className="mb-6 flex justify-center">
+            <OutletGoLogo className="h-10" />
+          </div>
           <p className="text-sm text-[var(--text-primary)]">
             Tu cuenta está desactivada. Contactá al administrador.
           </p>
@@ -142,7 +146,10 @@ export function CallbackPage() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--bg-base)] px-4 py-10">
         <div className="w-full max-w-md rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-8 shadow-lg">
-          <p role="alert" className="text-sm text-danger">
+          <div className="mb-6 flex justify-center">
+            <OutletGoLogo className="h-10" />
+          </div>
+          <p role="alert" className="text-center text-sm text-danger">
             {uiState.message}
           </p>
           <Link
@@ -159,6 +166,7 @@ export function CallbackPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--bg-base)] px-4 py-10">
       <div className="flex flex-col items-center gap-4 text-[var(--text-muted)]">
+        <OutletGoLogo className="h-10" />
         <output className="h-10 w-10 animate-spin rounded-full border-2 border-brand border-t-transparent motion-reduce:animate-none" />
         <p className="text-sm">Completando acceso…</p>
       </div>

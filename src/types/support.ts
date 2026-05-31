@@ -1,3 +1,5 @@
+import type { Page } from './api';
+
 /** Rol del autor en el hilo seller ↔ admin (Paso 19). */
 export type SupportSenderRole = 'SELLER' | 'ADMIN';
 
@@ -36,3 +38,6 @@ export type SupportConversation = {
   /** Mensajes del seller no leídos por el Admin. */
   unreadCount: number;
 };
+
+/** Bandeja de conversaciones de soporte paginada (Spring `Page<SupportConversation>`). */
+export type SupportConversationsPage = Page<SupportConversation>;

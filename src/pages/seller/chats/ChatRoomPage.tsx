@@ -6,7 +6,7 @@ import { ChatComposer } from '../../../features/chat/ChatComposer';
 import { fetchConversations, fetchMessages, sendChatMessage } from '../../../features/chat/chatApi';
 import { sellerChatTransport } from '../../../features/chat/chatTransport';
 import { MessageBubble } from '../../../features/chat/MessageBubble';
-import { ROUTES } from '../../../lib/constants';
+import { ROUTES, SELLER_CHATS_CONVERSATIONS_PAGE_SIZE, SELLER_CHAT_MESSAGES_PAGE_SIZE } from '../../../lib/constants';
 import { ApiError } from '../../../lib/http/apiClient';
 import type { SellerChatMessage } from '../../../types/chat';
 
@@ -68,10 +68,13 @@ export function ChatRoomPage() {
     setLoading(true);
     setErrorMessage(null);
     try {
-      const [convs, msgs] = await Promise.all([fetchConversations(), fetchMessages(conversationId)]);
-      const match = convs.find((c) => c.id === conversationId);
+      const [convsPage, msgsPage] = await Promise.all([
+        fetchConversations({ page: 0, size: SELLER_CHATS_CONVERSATIONS_PAGE_SIZE }),
+        fetchMessages(conversationId, { page: 0, size: SELLER_CHAT_MESSAGES_PAGE_SIZE }),
+      ]);
+      const match = convsPage.content.find((c) => c.id === conversationId);
       setBuyerName(match?.buyerName ?? 'Comprador');
-      setMessages(sortBySentAtAsc(msgs));
+      setMessages(sortBySentAtAsc(msgsPage.content ?? []));
     } catch (err: unknown) {
       setMessages([]);
       setBuyerName(null);
