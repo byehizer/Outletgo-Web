@@ -1,4 +1,5 @@
 import {
+  ADMIN_SUPPORT_API_PATH,
   SUPPORT_MESSAGES_API_PATH,
   SUPPORT_MESSAGES_PAGE_SIZE,
   SELLER_CHATS_API_PATH,
@@ -7,7 +8,11 @@ import { apiClient } from '../../lib/http/apiClient';
 
 import type { Page } from '../../types/api';
 import type { SellerChatConversation, SellerChatMessage } from '../../types/chat';
-import type { SupportMessage } from '../../types/support';
+import type {
+  SupportConversation,
+  SupportConversationLastMessage,
+  SupportMessage,
+} from '../../types/support';
 
 export function sellerChatsConversationMessagesPath(conversationId: string): string {
   return `${SELLER_CHATS_API_PATH}/${encodeURIComponent(conversationId.trim())}/messages`;
@@ -141,6 +146,42 @@ function devUpsertConversationPreview(conversationId: string): void {
     (a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime(),
   );
   devState.conversations = nextConv;
+}
+
+function normalizeBuyerName(name: string): string {
+  return name
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '');
+}
+
+/** Busca conversación por nombre del comprador (tolerante a acentos y apellido). */
+export function findConversationForBuyer(
+  conversations: SellerChatConversation[],
+  buyerDisplayName: string | null,
+): SellerChatConversation | undefined {
+  const target = buyerDisplayName?.trim();
+  if (!target) {
+    return undefined;
+  }
+  const normalizedTarget = normalizeBuyerName(target);
+  const exact = conversations.find((c) => normalizeBuyerName(c.buyerName) === normalizedTarget);
+  if (exact) {
+    return exact;
+  }
+  const firstToken = normalizedTarget.split(/\s+/)[0] ?? '';
+  if (!firstToken) {
+    return undefined;
+  }
+  return conversations.find((c) => {
+    const normalizedConv = normalizeBuyerName(c.buyerName);
+    return (
+      normalizedConv === firstToken ||
+      normalizedConv.startsWith(`${firstToken} `) ||
+      normalizedTarget.startsWith(`${normalizedConv.split(/\s+/)[0] ?? ''} `)
+    );
+  });
 }
 
 export async function fetchConversations(): Promise<SellerChatConversation[]> {
@@ -321,7 +362,10 @@ export async function sendChatMessage(
   };
 }
 
-// ---- Soporte técnico seller ↔ admin (Paso 19) ----
+// ---- Soporte técnico seller ↔ admin (Pasos 19 + 27) ----
+
+/** Tienda del seller autenticado en DEV (mismo hilo que /seller/support). */
+const DEV_SELLER_SUPPORT_STORE_ID = 'store-001';
 
 /** URL de objeto local DEV (no hardcodear CDN de producción). */
 let devSupportPdfObjectUrl: string | undefined;
@@ -333,11 +377,11 @@ function getDevSupportPdfSeedUrl(): string {
 
 const DEV_SUPPORT_IMAGE_SEED_PATH = '/vite.svg';
 
-function createSupportDevSeedMessages(): SupportMessage[] {
+function createStore001SeedMessages(): SupportMessage[] {
   return sortSupportBySentAt([
     {
       id: 'support-dev-1',
-      senderId: 'seller-dev',
+      senderId: 'seller-001',
       senderRole: 'SELLER',
       content: 'Hola, tengo un problema al subir las fotos del catálogo desde el panel.',
       attachmentUrl: null,
@@ -356,7 +400,7 @@ function createSupportDevSeedMessages(): SupportMessage[] {
     },
     {
       id: 'support-dev-3',
-      senderId: 'seller-dev',
+      senderId: 'seller-001',
       senderRole: 'SELLER',
       content: 'Te mando captura del error.',
       attachmentUrl: DEV_SUPPORT_IMAGE_SEED_PATH,
@@ -365,7 +409,7 @@ function createSupportDevSeedMessages(): SupportMessage[] {
     },
     {
       id: 'support-dev-4',
-      senderId: 'seller-dev',
+      senderId: 'seller-001',
       senderRole: 'SELLER',
       content: 'Adjunto también el PDF con el detalle.',
       attachmentUrl: getDevSupportPdfSeedUrl(),
@@ -375,11 +419,217 @@ function createSupportDevSeedMessages(): SupportMessage[] {
   ]);
 }
 
-let devSupportMessages: SupportMessage[] = createSupportDevSeedMessages();
-let devSupportSendCounter = devSupportMessages.length;
+function lastMessageFromThread(messages: SupportMessage[]): SupportConversationLastMessage | null {
+  if (messages.length === 0) {
+    return null;
+  }
+  const sorted = sortSupportBySentAt(messages);
+  const last = sorted[sorted.length - 1];
+  if (!last) {
+    return null;
+  }
+  const trimmed = last.content.trim();
+  return {
+    content: trimmed.length > 0 ? trimmed : null,
+    attachmentType: last.attachmentType,
+    sentAt: last.sentAt,
+    senderRole: last.senderRole,
+  };
+}
+
+function sortSupportConversations(list: SupportConversation[]): SupportConversation[] {
+  return [...list].sort((a, b) => {
+    const ta = a.lastMessage?.sentAt ? Date.parse(a.lastMessage.sentAt) : NaN;
+    const tb = b.lastMessage?.sentAt ? Date.parse(b.lastMessage.sentAt) : NaN;
+    const aHas = Number.isFinite(ta);
+    const bHas = Number.isFinite(tb);
+    if (aHas && bHas) {
+      return tb - ta;
+    }
+    if (aHas && !bHas) {
+      return -1;
+    }
+    if (!aHas && bHas) {
+      return 1;
+    }
+    return a.businessName.localeCompare(b.businessName, 'es');
+  });
+}
+
+function ensureDevConversation(storeId: string): SupportConversation {
+  const existing = devSupportConversations.find((c) => c.storeId === storeId);
+  if (existing) {
+    return existing;
+  }
+  const created: SupportConversation = {
+    storeId,
+    businessName: `Tienda ${storeId}`,
+    sellerEmail: 'vendedor@ejemplo.ar',
+    sellerName: null,
+    lastMessage: null,
+    unreadCount: 0,
+  };
+  devSupportConversations.push(created);
+  return created;
+}
+
+function devApplySupportMessage(storeId: string, msg: SupportMessage, incrementUnread: boolean): void {
+  const list = devSupportMessagesByStore[storeId] ?? [];
+  devSupportMessagesByStore[storeId] = sortSupportBySentAt([...list, msg]);
+  const conv = ensureDevConversation(storeId);
+  conv.lastMessage = lastMessageFromThread(devSupportMessagesByStore[storeId] ?? []);
+  if (incrementUnread && msg.senderRole === 'SELLER') {
+    conv.unreadCount += 1;
+  }
+}
+
+let devSupportMessagesByStore: Record<string, SupportMessage[]> = {
+  'store-001': createStore001SeedMessages(),
+  'store-002': sortSupportBySentAt([
+    {
+      id: 'support-s2-1',
+      senderId: 'seller-002',
+      senderRole: 'SELLER',
+      content: '¿Cuándo habilitan pagos con tarjeta en el panel?',
+      attachmentUrl: null,
+      attachmentType: null,
+      sentAt: devIso(-120),
+    },
+  ]),
+  'store-005': sortSupportBySentAt([
+    {
+      id: 'support-s5-1',
+      senderId: 'seller-005',
+      senderRole: 'SELLER',
+      content: 'Consulta sobre stock mínimo.',
+      attachmentUrl: null,
+      attachmentType: null,
+      sentAt: devIso(-500),
+    },
+    {
+      id: 'support-s5-2',
+      senderId: 'admin-dev',
+      senderRole: 'ADMIN',
+      content: 'Te confirmamos que el mínimo es 3 unidades por variación.',
+      attachmentUrl: null,
+      attachmentType: null,
+      sentAt: devIso(-90),
+    },
+    {
+      id: 'support-s5-3',
+      senderId: 'seller-005',
+      senderRole: 'SELLER',
+      content: '',
+      attachmentUrl: DEV_SUPPORT_IMAGE_SEED_PATH,
+      attachmentType: 'image',
+      sentAt: devIso(-40),
+    },
+  ]),
+};
+
+let devSupportConversations: SupportConversation[] = sortSupportConversations([
+  {
+    storeId: 'store-001',
+    businessName: 'Outlet Avellaneda Norte',
+    sellerEmail: 'mariana.lopez@outletgo.demo',
+    sellerName: 'Mariana López',
+    lastMessage: lastMessageFromThread(devSupportMessagesByStore['store-001'] ?? []),
+    unreadCount: 2,
+  },
+  {
+    storeId: 'store-002',
+    businessName: 'Moda Flores Local',
+    sellerEmail: 'carlos.benitez@outletgo.demo',
+    sellerName: 'Carlos Benítez',
+    lastMessage: lastMessageFromThread(devSupportMessagesByStore['store-002'] ?? []),
+    unreadCount: 1,
+  },
+  {
+    storeId: 'store-004',
+    businessName: 'Nuevo Local Palermo',
+    sellerEmail: 'nueva.cuenta@outletgo.demo',
+    sellerName: null,
+    lastMessage: null,
+    unreadCount: 0,
+  },
+  {
+    storeId: 'store-005',
+    businessName: 'Jean & Remera Outlet',
+    sellerEmail: 'lucia.herrera@outletgo.demo',
+    sellerName: 'Lucía Herrera',
+    lastMessage: lastMessageFromThread(devSupportMessagesByStore['store-005'] ?? []),
+    unreadCount: 0,
+  },
+  {
+    storeId: 'store-003',
+    businessName: 'Tienda Pausada Demo',
+    sellerEmail: 'inactivo.demo@outletgo.com',
+    sellerName: null,
+    lastMessage: lastMessageFromThread([]),
+    unreadCount: 0,
+  },
+]);
+
+let devSupportSendCounter = 20;
 
 function sortSupportBySentAt(list: SupportMessage[]): SupportMessage[] {
   return [...list].sort((a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime());
+}
+
+function parseSupportConversationRow(row: unknown): SupportConversation | null {
+  const o = typeof row === 'object' && row !== null ? (row as Record<string, unknown>) : null;
+  if (!o) {
+    return null;
+  }
+  const storeId = typeof o.storeId === 'string' ? o.storeId : typeof o.store_id === 'string' ? o.store_id : '';
+  const businessName =
+    typeof o.businessName === 'string' ? o.businessName
+    : typeof o.business_name === 'string' ? o.business_name
+    : '';
+  const sellerEmail =
+    typeof o.sellerEmail === 'string' ? o.sellerEmail
+    : typeof o.seller_email === 'string' ? o.seller_email
+    : '';
+  const sellerNameRaw = o.sellerName ?? o.seller_name;
+  const sellerName =
+    typeof sellerNameRaw === 'string' && sellerNameRaw.trim() !== '' ? sellerNameRaw.trim() : null;
+  const unreadCount =
+    typeof o.unreadCount === 'number' ? Math.max(0, Math.floor(o.unreadCount))
+    : typeof o.unread_count === 'number' ? Math.max(0, Math.floor(o.unread_count))
+    : 0;
+  const lastRaw = o.lastMessage ?? o.last_message;
+  let lastMessage: SupportConversationLastMessage | null = null;
+  if (typeof lastRaw === 'object' && lastRaw !== null) {
+    const lm = lastRaw as Record<string, unknown>;
+    const sentAt =
+      typeof lm.sentAt === 'string' ? lm.sentAt
+      : typeof lm.sent_at === 'string' ? lm.sent_at
+      : '';
+    const roleRaw =
+      typeof lm.senderRole === 'string' ? lm.senderRole.toUpperCase()
+      : typeof lm.sender_role === 'string' ? lm.sender_role.toUpperCase()
+      : '';
+    const senderRole = roleRaw === 'ADMIN' ? 'ADMIN' : roleRaw === 'SELLER' ? 'SELLER' : null;
+    if (sentAt && senderRole) {
+      const contentRaw = lm.content;
+      const content =
+        contentRaw === null || contentRaw === undefined
+          ? null
+          : typeof contentRaw === 'string' && contentRaw.trim() !== ''
+            ? contentRaw.trim()
+            : null;
+      const attRaw =
+        typeof lm.attachmentType === 'string' ? lm.attachmentType.toLowerCase()
+        : typeof lm.attachment_type === 'string' ? lm.attachment_type.toLowerCase()
+        : null;
+      const attachmentType = attRaw === 'pdf' ? 'pdf' : attRaw === 'image' ? 'image' : null;
+      lastMessage = { content, attachmentType, sentAt, senderRole };
+    }
+  }
+  if (!storeId || !businessName || !sellerEmail) {
+    return null;
+  }
+  return { storeId, businessName, sellerEmail, sellerName, lastMessage, unreadCount };
 }
 
 function parseSupportMessageRow(row: unknown): SupportMessage | null {
@@ -449,7 +699,7 @@ export async function fetchSupportMessages(params: FetchSupportMessagesParams): 
 
   if (import.meta.env.DEV) {
     await devDelay(undefined);
-    const sorted = sortSupportBySentAt(devSupportMessages);
+    const sorted = sortSupportBySentAt(devSupportMessagesByStore[DEV_SELLER_SUPPORT_STORE_ID] ?? []);
     const totalElements = sorted.length;
     const start = pageZero * size;
     const slice = sorted.slice(start, start + size);
@@ -532,7 +782,7 @@ export async function sendSupportMessage(payload: SendSupportPayload): Promise<S
       attachmentType: hasAttach && kind !== undefined ? kind : null,
       sentAt: new Date().toISOString(),
     };
-    devSupportMessages = sortSupportBySentAt([...devSupportMessages, msg]);
+    devApplySupportMessage(DEV_SELLER_SUPPORT_STORE_ID, msg, true);
     return { ...msg };
   }
 
@@ -551,4 +801,190 @@ export async function sendSupportMessage(payload: SendSupportPayload): Promise<S
     throw new Error('Respuesta de soporte inválida.');
   }
   return m;
+}
+
+// ---- Soporte Admin (Paso 27) ----
+
+export async function fetchSupportConversations(): Promise<SupportConversation[]> {
+  if (import.meta.env.DEV) {
+    await devDelay(undefined);
+    return sortSupportConversations(devSupportConversations.map((c) => ({ ...c })));
+  }
+
+  const raw = await apiClient.get<unknown>(`${ADMIN_SUPPORT_API_PATH}/conversations`);
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  const out: SupportConversation[] = [];
+  for (const row of raw) {
+    const conv = parseSupportConversationRow(row);
+    if (conv) {
+      out.push(conv);
+    }
+  }
+  return sortSupportConversations(out);
+}
+
+export async function fetchAdminSupportMessages(
+  storeId: string,
+  pageZero: number,
+): Promise<Page<SupportMessage>> {
+  const sid = storeId.trim();
+  if (!sid) {
+    return { content: [], totalElements: 0, number: 0, size: SUPPORT_MESSAGES_PAGE_SIZE };
+  }
+  const page = Number.isFinite(pageZero) && pageZero >= 0 ? Math.floor(pageZero) : 0;
+  const size = SUPPORT_MESSAGES_PAGE_SIZE;
+
+  if (import.meta.env.DEV) {
+    await devDelay(undefined);
+    const sorted = sortSupportBySentAt(devSupportMessagesByStore[sid] ?? []);
+    const start = page * size;
+    const slice = sorted.slice(start, start + size);
+    return {
+      content: slice.map((m) => ({ ...m })),
+      totalElements: sorted.length,
+      number: page,
+      size,
+    };
+  }
+
+  const qs = new URLSearchParams({ page: String(page), size: String(size) });
+  const raw = await apiClient.get<unknown>(
+    `${ADMIN_SUPPORT_API_PATH}/conversations/${encodeURIComponent(sid)}/messages?${qs.toString()}`,
+  );
+  if (typeof raw !== 'object' || raw === null) {
+    return { content: [], totalElements: 0, number: page, size };
+  }
+  const root = raw as Record<string, unknown>;
+  const contentRaw = Array.isArray(root.content) ? root.content : [];
+  const out: SupportMessage[] = [];
+  for (const row of contentRaw) {
+    const m = parseSupportMessageRow(row);
+    if (m) {
+      out.push(m);
+    }
+  }
+  out.sort((a, b) => new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime());
+  const totalElements =
+    typeof root.totalElements === 'number' ? root.totalElements
+    : typeof root.total_elements === 'number' ? root.total_elements
+    : out.length;
+  return {
+    content: out,
+    totalElements,
+    number: typeof root.number === 'number' ? root.number : page,
+    size: typeof root.size === 'number' ? root.size : size,
+  };
+}
+
+export type SendAdminSupportPayload = SendSupportPayload;
+
+export async function sendAdminSupportMessage(
+  storeId: string,
+  payload: SendAdminSupportPayload,
+): Promise<SupportMessage> {
+  const sid = storeId.trim();
+  const text = payload.content.trim();
+  const attachmentUrlTrim = typeof payload.attachmentUrl === 'string' ? payload.attachmentUrl.trim() : '';
+  const hasAttach = attachmentUrlTrim.length > 0;
+  const kind = payload.attachmentType;
+
+  if (!sid) {
+    throw new Error('Tienda inválida.');
+  }
+  if (text === '' && !hasAttach) {
+    throw new Error('Mensaje o adjunto obligatorio.');
+  }
+  if (hasAttach && kind !== 'image' && kind !== 'pdf') {
+    throw new Error('Tipo de adjunto no válido.');
+  }
+
+  if (import.meta.env.DEV) {
+    await devDelay(undefined);
+    devSupportSendCounter += 1;
+    const msg: SupportMessage = {
+      id: `support-admin-${String(devSupportSendCounter)}-${String(Date.now())}`,
+      senderId: 'admin-dev',
+      senderRole: 'ADMIN',
+      content: text,
+      attachmentUrl: hasAttach ? attachmentUrlTrim : null,
+      attachmentType: hasAttach && kind !== undefined ? kind : null,
+      sentAt: new Date().toISOString(),
+    };
+    if (!devSupportMessagesByStore[sid]) {
+      devSupportMessagesByStore[sid] = [];
+    }
+    devApplySupportMessage(sid, msg, false);
+    return { ...msg };
+  }
+
+  const raw = await apiClient.post<unknown>(
+    `${ADMIN_SUPPORT_API_PATH}/conversations/${encodeURIComponent(sid)}/messages`,
+    {
+      content: text,
+      ...(hasAttach ?
+        {
+          attachmentUrl: attachmentUrlTrim,
+          ...(kind !== undefined ? { attachmentType: kind } : {}),
+        }
+      : {}),
+    },
+  );
+  const m = parseSupportMessageRow(raw);
+  if (!m) {
+    throw new Error('Respuesta de soporte inválida.');
+  }
+  return m;
+}
+
+export async function markConversationAsRead(storeId: string): Promise<void> {
+  const sid = storeId.trim();
+  if (!sid) {
+    return;
+  }
+
+  if (import.meta.env.DEV) {
+    await devDelay(undefined, 80);
+    const conv = devSupportConversations.find((c) => c.storeId === sid);
+    if (conv) {
+      conv.unreadCount = 0;
+    }
+    return;
+  }
+
+  await apiClient.post<void>(
+    `${ADMIN_SUPPORT_API_PATH}/conversations/${encodeURIComponent(sid)}/read`,
+  );
+}
+
+/** Registra o actualiza metadata de conversación DEV (Admin). */
+export function registerDevSupportConversation(
+  meta: Pick<SupportConversation, 'storeId' | 'businessName' | 'sellerEmail' | 'sellerName'>,
+): void {
+  if (!import.meta.env.DEV) {
+    return;
+  }
+  const messages = devSupportMessagesByStore[meta.storeId] ?? [];
+  const ix = devSupportConversations.findIndex((c) => c.storeId === meta.storeId);
+  if (ix < 0) {
+    devSupportConversations.push({
+      ...meta,
+      lastMessage: lastMessageFromThread(messages),
+      unreadCount: 0,
+    });
+  } else {
+    const cur = devSupportConversations[ix];
+    if (!cur) {
+      return;
+    }
+    devSupportConversations[ix] = {
+      ...cur,
+      businessName: meta.businessName,
+      sellerEmail: meta.sellerEmail,
+      sellerName: meta.sellerName,
+      lastMessage: lastMessageFromThread(messages),
+    };
+  }
+  devSupportConversations = sortSupportConversations(devSupportConversations);
 }

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { ApiError } from '../../lib/http/apiClient';
 import type { Page } from '../../types/api';
-import type { SellerOrderSummary } from '../../types/order';
+import type { SellerOrderStore } from '../../types/order';
 
 import { SELLER_ORDERS_PAGE_SIZE } from '../../lib/constants';
 import {
@@ -16,13 +16,13 @@ export type SellerOrdersListFilters = {
 };
 
 export type UseSellerOrdersState = {
-  data: Page<SellerOrderSummary> | null;
+  data: Page<SellerOrderStore> | null;
   loading: boolean;
   errorMessage: string | null;
 };
 
 export function useSellerOrdersList(filters: SellerOrdersListFilters): UseSellerOrdersState {
-  const [data, setData] = useState<Page<SellerOrderSummary> | null>(null);
+  const [data, setData] = useState<Page<SellerOrderStore> | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 

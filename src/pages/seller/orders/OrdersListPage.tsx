@@ -10,7 +10,7 @@ import { useSellerOrdersList } from '../../../features/orders/useSellerOrders';
 import { formatARS, formatDate } from '../../../lib/format';
 import { ROUTES, SELLER_ORDERS_PAGE_SIZE, sellerOrderDetailPath } from '../../../lib/constants';
 import { cn } from '../../../lib/cn';
-import type { SellerOrderSummary } from '../../../types/order';
+import type { SellerOrderStore } from '../../../types/order';
 
 function parsePageOneBased(raw: string | null): number {
   const n = Number.parseInt(raw ?? '1', 10);
@@ -57,8 +57,8 @@ export function OrdersListPage() {
   const totalPages =
     data != null ? Math.max(1, Math.ceil((data.totalElements || 0) / Math.max(1, data.size))) : 1;
 
-  const columns: DataColumn<SellerOrderSummary>[] = useMemo(
-    (): DataColumn<SellerOrderSummary>[] => [
+  const columns: DataColumn<SellerOrderStore>[] = useMemo(
+    (): DataColumn<SellerOrderStore>[] => [
       {
         id: 'id',
         header: 'Pedido',
@@ -74,7 +74,7 @@ export function OrdersListPage() {
       {
         id: 'date',
         header: 'Fecha',
-        cell: (row) => <span className="text-[var(--text-secondary)]">{formatDate(row.placedAt)}</span>,
+        cell: (row) => <span className="text-[var(--text-secondary)]">{formatDate(row.orderDate)}</span>,
       },
       {
         id: 'buyer',
@@ -82,9 +82,11 @@ export function OrdersListPage() {
         wrap: true,
         cell: (row) => (
           <div>
-            <p className="font-medium text-[var(--text-primary)]">{row.buyerName}</p>
-            {row.buyerEmail ?
-              <p className="text-xs text-[var(--text-muted)]">{row.buyerEmail}</p>
+            <p className="font-medium text-[var(--text-primary)]">
+              {row.buyer.displayName?.trim() || 'Comprador'}
+            </p>
+            {row.buyer.email ?
+              <p className="text-xs text-[var(--text-muted)]">{row.buyer.email}</p>
             : null}
           </div>
         ),
@@ -93,7 +95,7 @@ export function OrdersListPage() {
         id: 'total',
         header: 'Total',
         align: 'right',
-        cell: (row) => formatARS(row.totalArs),
+        cell: (row) => formatARS(row.subtotalArs),
       },
       {
         id: 'status',
@@ -147,7 +149,7 @@ export function OrdersListPage() {
 
           {data != null && data.content.length > 0 ? (
             <>
-              <DataTable<SellerOrderSummary>
+              <DataTable<SellerOrderStore>
                 columns={columns}
                 data={data.content}
                 getRowKey={(row) => row.id}

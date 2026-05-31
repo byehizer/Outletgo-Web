@@ -1,24 +1,41 @@
-import { ChevronRight, Loader2 } from 'lucide-react';
+import { AlertTriangle, ChevronRight, Loader2, MessageCircle, PackageX } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { OrderStatusBadge } from '../../../features/orders/OrderStatusBadge';
-import { advanceSellerOrder, fetchSellerOrderDetail } from '../../../features/orders/ordersApi';
+import { ReportItemStockModal } from '../../../features/orders/ReportItemStockModal';
+import {
+  advanceSellerOrder,
+  cancelOrderItemSlice,
+  fetchSellerOrderDetail,
+  reportItemStockIssue,
+} from '../../../features/orders/ordersApi';
 import { canSellerAdvanceOrderStatus } from '../../../features/orders/orderStatusFlow';
+import { useToast } from '../../../hooks/useToast';
 import { ROUTES } from '../../../lib/constants';
 import { formatARS, formatDate } from '../../../lib/format';
-import { cn } from '../../../lib/cn';
 import { ApiError } from '../../../lib/http/apiClient';
-import { buyerDisplayNameForSellerPanel, formatSellerOrderItemVariation, type SellerOrderDetail } from '../../../types/order';
+import {
+  buyerDisplayNameForSellerPanel,
+  findStockIssueForItem,
+  formatSellerOrderItemVariation,
+  orderAllowsStockReport,
+  type SellerOrderItem,
+  type SellerOrderStore,
+} from '../../../types/order';
 
 export function OrderDetailPage() {
   const { orderId } = useParams<{ orderId: string }>();
+  const navigate = useNavigate();
+  const { success, error: showError } = useToast();
 
-  const [detail, setDetail] = useState<SellerOrderDetail | null>(null);
+  const [detail, setDetail] = useState<SellerOrderStore | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ variant: 'success' | 'error'; text: string } | null>(null);
+  const [reportItem, setReportItem] = useState<SellerOrderItem | null>(null);
+  const [reportError, setReportError] = useState<string | null>(null);
+  const [cancelItemId, setCancelItemId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const id = orderId?.trim() ?? '';
@@ -57,25 +74,97 @@ export function OrderDetailPage() {
       return;
     }
     setBusy(true);
-    setToast(null);
     try {
       const next = await advanceSellerOrder(id);
       setDetail(next);
-      setToast({ variant: 'success', text: 'Estado actualizado.' });
+      success('Estado actualizado.');
     } catch (err: unknown) {
       if (err instanceof ApiError) {
-        setToast({ variant: 'error', text: err.message });
+        showError(err.message);
       } else if (err instanceof Error) {
-        setToast({ variant: 'error', text: err.message });
+        showError(err.message);
       } else {
-        setToast({ variant: 'error', text: 'No se pudo avanzar el estado.' });
+        showError('No se pudo avanzar el estado.');
       }
     } finally {
       setBusy(false);
     }
-  }, [detail, orderId]);
+  }, [detail, orderId, success, showError]);
+
+  const onConfirmReport = useCallback(
+    async (availableQuantity: number) => {
+      const id = orderId?.trim() ?? '';
+      if (!id || !reportItem) {
+        return;
+      }
+      setBusy(true);
+      setReportError(null);
+      try {
+        const next = await reportItemStockIssue(id, reportItem.id, availableQuantity);
+        setDetail(next);
+        setReportItem(null);
+        success('Problema de stock reportado.');
+      } catch (err: unknown) {
+        if (err instanceof ApiError) {
+          setReportError(err.message);
+        } else if (err instanceof Error) {
+          setReportError(err.message);
+        } else {
+          setReportError('No se pudo reportar el problema de stock.');
+        }
+      } finally {
+        setBusy(false);
+      }
+    },
+    [orderId, reportItem, success],
+  );
+
+  const onCancelItem = useCallback(
+    async (itemId: string) => {
+      const id = orderId?.trim() ?? '';
+      if (!id) {
+        return;
+      }
+      setCancelItemId(itemId);
+      setBusy(true);
+      try {
+        const next = await cancelOrderItemSlice(id, itemId);
+        setDetail(next);
+        success('Ítem cancelado del pedido.');
+      } catch (err: unknown) {
+        if (err instanceof ApiError) {
+          showError(err.message);
+        } else if (err instanceof Error) {
+          showError(err.message);
+        } else {
+          showError('No se pudo cancelar el ítem.');
+        }
+      } finally {
+        setBusy(false);
+        setCancelItemId(null);
+      }
+    },
+    [orderId, success, showError],
+  );
+
+  const onContactBuyer = useCallback(
+    (itemId: string) => {
+      const id = orderId?.trim() ?? '';
+      if (!id) {
+        return;
+      }
+      const sp = new URLSearchParams({
+        openWithContext: 'true',
+        orderId: id,
+        item: itemId,
+      });
+      navigate(`${ROUTES.sellerChats}?${sp.toString()}`);
+    },
+    [navigate, orderId],
+  );
 
   const showAdvance = detail != null && canSellerAdvanceOrderStatus(detail.status);
+  const allowsStockActions = detail != null && orderAllowsStockReport(detail.status);
 
   return (
     <div className="space-y-8">
@@ -111,20 +200,6 @@ export function OrderDetailPage() {
         </header>
       </div>
 
-      {toast ?
-        <p
-          role="status"
-          className={cn(
-            'rounded-lg border px-4 py-3 text-sm',
-            toast.variant === 'error' ?
-              'border-danger/40 bg-danger/10 text-danger'
-            : 'border-success/40 bg-success/10 text-[var(--text-secondary)]',
-          )}
-        >
-          {toast.text}
-        </p>
-      : null}
-
       {loading ?
         <div className="flex items-center gap-3 py-12 text-[var(--text-muted)]">
           <Loader2 className="size-6 animate-spin text-brand motion-reduce:animate-none" aria-hidden />
@@ -148,42 +223,105 @@ export function OrderDetailPage() {
           <section className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-6 lg:col-span-2">
             <h2 className="font-display text-lg font-semibold text-[var(--text-primary)]">Ítems</h2>
             <ul className="mt-4 divide-y divide-[var(--border)]">
-              {detail.items.map((line, idx) => {
+              {detail.items.map((line) => {
                 const variation = formatSellerOrderItemVariation(line);
+                const stockIssue = findStockIssueForItem(detail, line.id);
+                const canReport =
+                  allowsStockActions && stockIssue === undefined && !busy;
+                const canCancel =
+                  (allowsStockActions || stockIssue !== undefined) && !busy;
+                const canceling = cancelItemId === line.id && busy;
+
                 return (
-                  <li
-                    key={`${line.productId}-${idx}`}
-                    className="flex gap-3 py-3 text-sm"
-                  >
-                    <div className="shrink-0">
-                      {line.thumbnailUrl ?
-                        <img
-                          src={line.thumbnailUrl}
-                          alt=""
-                          className="size-14 rounded-md border border-[var(--border)] object-cover"
-                        />
-                      : (
+                  <li key={line.id} className="py-4">
+                    <div className="flex gap-3 text-sm">
+                      <div className="shrink-0">
                         <div
                           aria-hidden
                           className="flex size-14 items-center justify-center rounded-md border border-dashed border-[var(--border)] bg-[var(--bg-input)] text-[10px] text-[var(--text-muted)]"
                         >
                           —
                         </div>
-                      )}
-                    </div>
-                    <div className="flex min-w-0 flex-1 flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                      <div className="min-w-0">
-                        <p className="font-medium text-[var(--text-primary)]">{line.productName}</p>
-                        {variation ?
-                          <p className="mt-0.5 text-sm text-[var(--text-muted)]">{variation}</p>
-                        : null}
-                        <p className="text-xs text-[var(--text-muted)]">
-                          {line.quantity} × {formatARS(line.unitPriceArs)}
-                        </p>
                       </div>
-                      <p className="font-semibold text-[var(--text-secondary)]">
-                        {formatARS(line.quantity * line.unitPriceArs)}
-                      </p>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex min-w-0 flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                          <div className="min-w-0">
+                            <p className="font-medium text-[var(--text-primary)]">{line.productName}</p>
+                            {variation ?
+                              <p className="mt-0.5 text-sm text-[var(--text-muted)]">{variation}</p>
+                            : null}
+                            <p className="text-xs text-[var(--text-muted)]">
+                              {line.quantity} × {formatARS(line.unitPrice)}
+                            </p>
+                          </div>
+                          <p className="font-semibold text-[var(--text-secondary)]">
+                            {formatARS(line.quantity * line.unitPrice)}
+                          </p>
+                        </div>
+
+                        {stockIssue ?
+                          <div
+                            className="mt-3 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2.5 text-sm text-[var(--text-secondary)]"
+                            role="status"
+                          >
+                            <p className="flex items-start gap-2 font-medium text-warning">
+                              <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden />
+                              Problema de stock reportado
+                            </p>
+                            <p className="mt-1 text-xs text-[var(--text-muted)]">
+                              Pedido: {stockIssue.requestedQuantity} u. · Disponible:{' '}
+                              {stockIssue.availableQuantity} u.
+                            </p>
+                            <button
+                              type="button"
+                              disabled={busy}
+                              onClick={() => onContactBuyer(line.id)}
+                              className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--text-link)] underline-offset-2 hover:underline disabled:opacity-60"
+                            >
+                              <MessageCircle className="size-3.5" aria-hidden />
+                              Contactar Cliente
+                            </button>
+                          </div>
+                        : null}
+
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {canReport ?
+                            <button
+                              type="button"
+                              disabled={busy}
+                              onClick={() => {
+                                setReportError(null);
+                                setReportItem(line);
+                              }}
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-warning/40 bg-warning/10 px-3 py-1.5 text-xs font-semibold text-warning transition-colors hover:bg-warning/15 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              <AlertTriangle className="size-3.5" aria-hidden />
+                              Reportar falta de stock
+                            </button>
+                          : null}
+                          {canCancel ?
+                            <button
+                              type="button"
+                              disabled={busy}
+                              onClick={() => {
+                                if (
+                                  window.confirm(
+                                    `¿Cancelar «${line.productName}» de este pedido?`,
+                                  )
+                                ) {
+                                  void onCancelItem(line.id);
+                                }
+                              }}
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-danger/30 px-3 py-1.5 text-xs font-semibold text-danger transition-colors hover:bg-danger/10 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              {canceling ?
+                                <Loader2 className="size-3.5 animate-spin motion-reduce:animate-none" aria-hidden />
+                              : <PackageX className="size-3.5" aria-hidden />}
+                              Cancelar ítem
+                            </button>
+                          : null}
+                        </div>
+                      </div>
                     </div>
                   </li>
                 );
@@ -191,7 +329,7 @@ export function OrderDetailPage() {
             </ul>
             <div className="mt-4 flex justify-between border-t border-[var(--border)] pt-4 text-sm">
               <span className="font-semibold text-[var(--text-primary)]">Total</span>
-              <span className="font-semibold text-[var(--text-primary)]">{formatARS(detail.totalArs)}</span>
+              <span className="font-semibold text-[var(--text-primary)]">{formatARS(detail.subtotalArs)}</span>
             </div>
           </section>
 
@@ -201,12 +339,12 @@ export function OrderDetailPage() {
               <dl className="mt-4 space-y-3 text-sm">
                 <div>
                   <dt className="text-[var(--text-muted)]">Fecha</dt>
-                  <dd className="font-medium text-[var(--text-primary)]">{formatDate(detail.placedAt)}</dd>
+                  <dd className="font-medium text-[var(--text-primary)]">{formatDate(detail.orderDate)}</dd>
                 </div>
                 <div>
                   <dt className="text-[var(--text-muted)]">Cliente</dt>
                   <dd className="font-medium text-[var(--text-primary)]">
-                    {buyerDisplayNameForSellerPanel(detail.buyerName)}
+                    {buyerDisplayNameForSellerPanel(detail.buyer.displayName)}
                   </dd>
                 </div>
                 <div>
@@ -238,6 +376,20 @@ export function OrderDetailPage() {
           </div>
         </div>
       : null}
+
+      <ReportItemStockModal
+        open={reportItem !== null}
+        item={reportItem}
+        busy={busy}
+        errorMessage={reportError}
+        onClose={() => {
+          if (!busy) {
+            setReportItem(null);
+            setReportError(null);
+          }
+        }}
+        onConfirm={(qty) => void onConfirmReport(qty)}
+      />
     </div>
   );
 }

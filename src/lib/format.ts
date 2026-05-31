@@ -12,6 +12,15 @@ export function formatDate(iso: string): string {
   return format(date, 'dd/MM/yyyy', { locale: es });
 }
 
+/** Fecha y hora compactas para previews de chat (Paso 27). */
+export function formatDateTime(iso: string): string {
+  const date = parseISO(iso);
+  if (!isValid(date)) {
+    return '—';
+  }
+  return format(date, "d MMM · HH:mm", { locale: es });
+}
+
 /**
  * Montos en pesos argentinos (ARS).
  */

@@ -1,6 +1,6 @@
 import { ChevronLeft, Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 
 import { ChatComposer } from '../../../features/chat/ChatComposer';
 import { fetchConversations, fetchMessages, sendChatMessage } from '../../../features/chat/chatApi';
@@ -31,6 +31,11 @@ function pendingSellerMessageId(localKey: string): string {
 export function ChatRoomPage() {
   const { conversationId: rawConversationId } = useParams<{ conversationId: string }>();
   const conversationId = rawConversationId?.trim() ?? '';
+  const location = useLocation();
+  const draftMessage =
+    typeof (location.state as { draftMessage?: string } | null)?.draftMessage === 'string'
+      ? ((location.state as { draftMessage: string }).draftMessage)
+      : '';
 
   const [buyerName, setBuyerName] = useState<string | null>(null);
   const [messages, setMessages] = useState<SellerChatMessage[]>([]);
@@ -197,7 +202,8 @@ export function ChatRoomPage() {
         : null}
 
         <ChatComposer
-          key={conversationId}
+          key={`${conversationId}:${draftMessage}`}
+          initialDraft={draftMessage}
           disabled={!conversationId || showLoading === true || errorMessage !== null}
           onSend={({ content }) => void handleSend(content)}
         />

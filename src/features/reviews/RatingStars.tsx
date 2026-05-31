@@ -8,15 +8,20 @@ export type RatingStarsProps = {
   className?: string;
 };
 
-const clampRating = (n: number): number =>
-  Number.isFinite(n) ? Math.min(5, Math.max(1, Math.round(n))) : 1;
+const clampRating = (n: number): number => {
+  if (!Number.isFinite(n)) {
+    return 1;
+  }
+  return Math.min(5, Math.max(0, Math.round(n)));
+};
 
 /**
  * Indicador visual de calificación (sin interacción).
  */
 export function RatingStars({ rating, className }: RatingStarsProps) {
   const value = clampRating(rating);
-  const label = `Calificación ${value} de 5 estrellas`;
+  const label =
+    value === 0 ? 'Sin calificación' : `Calificación ${value} de 5 estrellas`;
 
   return (
     <div

@@ -9,6 +9,8 @@ const statusBadgeClass: Record<OrderStatus, string> = {
   SHIPPED: 'bg-brand/15 text-brand',
   DELIVERED: 'bg-success/15 text-success',
   CANCELED: 'bg-danger/15 text-danger',
+  STOCK_ISSUE:
+    'border border-warning/50 bg-warning/10 text-warning',
 };
 
 export function OrderStatusBadge({ status, className }: { status: OrderStatus; className?: string }) {

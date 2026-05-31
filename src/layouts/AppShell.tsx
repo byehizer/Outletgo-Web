@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useState } from 'react';
 
 import type { ShellNavItem } from './nav/navTypes';
 import { Header } from './Header';
@@ -13,26 +13,56 @@ type AppShellProps = {
 export function AppShell({ navItems, children }: AppShellProps) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
+  const closeMobileNav = useCallback(() => {
+    setMobileNavOpen(false);
+  }, []);
+
+  const openMobileNav = useCallback(() => {
+    setMobileNavOpen(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mobileNavOpen) {
+      return;
+    }
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeMobileNav();
+      }
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [mobileNavOpen, closeMobileNav]);
+
   return (
-    <div className="relative flex min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)]">
-      {mobileNavOpen ? (
+    <div className="relative flex min-h-screen overflow-x-hidden bg-[var(--bg-base)] text-[var(--text-primary)]">
+      {mobileNavOpen ?
         <button
           type="button"
           className="fixed inset-0 z-40 bg-black/60 md:hidden"
-          aria-label="Cerrar overlay"
-          onClick={() => setMobileNavOpen(false)}
+          aria-label="Cerrar menú de navegación"
+          onClick={closeMobileNav}
         />
-      ) : null}
+      : null}
 
       <Sidebar
         navItems={navItems}
         mobileOpen={mobileNavOpen}
-        onCloseMobile={() => setMobileNavOpen(false)}
+        onCloseMobile={closeMobileNav}
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <Header onMenuOpen={() => setMobileNavOpen(true)} />
-        <div className="flex-1 overflow-auto p-6">{children}</div>
+        <Header navItems={navItems} onMenuOpen={openMobileNav} />
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6">{children}</main>
       </div>
     </div>
   );

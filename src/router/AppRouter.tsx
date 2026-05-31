@@ -1,9 +1,18 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import { ROUTES } from '../lib/constants';
 import { AdminLayout } from '../layouts/AdminLayout';
 import { SellerLayout } from '../layouts/SellerLayout';
 import { AdminHomePage } from '../pages/admin/AdminHomePage';
+import { BuyersListPage } from '../pages/admin/buyers/BuyersListPage';
+import { AdminProductsListPage } from '../pages/admin/products/AdminProductsListPage';
+import { AdminReviewsListPage } from '../pages/admin/reviews/AdminReviewsListPage';
+import { ReportsListPage } from '../pages/admin/reports/ReportsListPage';
+import { AdminOrdersListPage } from '../pages/admin/orders/AdminOrdersListPage';
+import { AdminOrderDetailPage } from '../pages/admin/orders/AdminOrderDetailPage';
+import { SupportInboxPage } from '../pages/admin/support/SupportInboxPage';
+import { SellersListPage } from '../pages/admin/sellers/SellersListPage';
 import { CallbackPage } from '../pages/auth/CallbackPage';
 import { LoginPage } from '../pages/auth/LoginPage';
 import { RecoverPasswordPage } from '../pages/auth/RecoverPasswordPage';
@@ -19,7 +28,7 @@ import { ChatRoomPage } from '../pages/seller/chats/ChatRoomPage';
 import { ChatsListPage } from '../pages/seller/chats/ChatsListPage';
 import { SupportChatPage } from '../pages/seller/support/SupportChatPage';
 import { ReviewsListPage } from '../pages/seller/reviews/ReviewsListPage';
-import { SellerHomePage } from '../pages/seller/SellerHomePage';
+import { DashboardPage } from '../pages/seller/dashboard/DashboardPage';
 import { StoreProfilePage } from '../pages/seller/store/StoreProfilePage';
 
 import { HomeRedirect } from './HomeRedirect';
@@ -38,8 +47,15 @@ export function AppRouter() {
 
         <Route element={<ProtectedRoute />}>
           <Route element={<RoleGate allow={['SELLER']} />}>
-            <Route path={ROUTES.sellerRoot} element={<SellerLayout />}>
-              <Route index element={<SellerHomePage />} />
+            <Route
+              path={ROUTES.sellerRoot}
+              element={
+                <ErrorBoundary>
+                  <SellerLayout />
+                </ErrorBoundary>
+              }
+            >
+              <Route index element={<DashboardPage />} />
               <Route path="products/new" element={<ProductFormPage />} />
               <Route path="products/:productId/edit" element={<ProductFormPage />} />
               <Route path="products" element={<ProductsListPage />} />
@@ -55,12 +71,27 @@ export function AppRouter() {
           </Route>
 
           <Route element={<RoleGate allow={['ADMIN']} />}>
-            <Route path={ROUTES.adminRoot} element={<AdminLayout />}>
+            <Route
+              path={ROUTES.adminRoot}
+              element={
+                <ErrorBoundary>
+                  <AdminLayout />
+                </ErrorBoundary>
+              }
+            >
               <Route index element={<AdminHomePage />} />
+              <Route path="sellers" element={<SellersListPage />} />
               <Route
-                path="sellers"
-                element={<ComingSoonPage title="Gestión de vendedores" />}
+                path="sellers/:sellerId"
+                element={<ComingSoonPage title="Perfil del vendedor" />}
               />
+              <Route path="buyers" element={<BuyersListPage />} />
+              <Route path="products" element={<AdminProductsListPage />} />
+              <Route path="reviews" element={<AdminReviewsListPage />} />
+              <Route path="reports" element={<ReportsListPage />} />
+              <Route path="orders/:id" element={<AdminOrderDetailPage />} />
+              <Route path="orders" element={<AdminOrdersListPage />} />
+              <Route path="support" element={<SupportInboxPage />} />
             </Route>
           </Route>
         </Route>

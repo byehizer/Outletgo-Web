@@ -18,6 +18,8 @@ type DataTableProps<T> = {
   getRowKey: (row: T, rowIndex: number) => string;
   empty?: ReactNode;
   className?: string;
+  onRowClick?: (row: T, rowIndex: number) => void;
+  getRowClassName?: (row: T, rowIndex: number) => string | undefined;
 };
 
 const alignClasses = {
@@ -29,14 +31,27 @@ const alignClasses = {
 /**
  * Tabla genérica tema panel (sticky header opcional vía clase en padre overflow).
  */
-export function DataTable<T>({ columns, data, getRowKey, empty, className }: DataTableProps<T>) {
+export function DataTable<T>({
+  columns,
+  data,
+  getRowKey,
+  empty,
+  className,
+  onRowClick,
+  getRowClassName,
+}: DataTableProps<T>) {
   if (data.length === 0 && empty !== undefined) {
     return empty;
   }
 
   return (
-    <div className={cn('-mx-1 overflow-x-auto', className)}>
-      <table className="min-w-full border-collapse text-sm">
+    <div
+      className={cn(
+        'w-full max-w-full overflow-x-auto overscroll-x-contain',
+        className,
+      )}
+    >
+      <table className="min-w-[36rem] w-full border-collapse text-sm">
         <thead>
           <tr className="border-b border-[var(--border)] bg-[var(--bg-surface)]">
             {columns.map((col) => (
@@ -58,7 +73,12 @@ export function DataTable<T>({ columns, data, getRowKey, empty, className }: Dat
           {data.map((row, rowIndex) => (
             <tr
               key={getRowKey(row, rowIndex)}
-              className="bg-[var(--bg-card)] transition-colors hover:bg-[var(--bg-hover)]/60"
+              className={cn(
+                'bg-[var(--bg-card)] transition-colors hover:bg-[var(--bg-hover)]/60',
+                onRowClick ? 'cursor-pointer' : '',
+                getRowClassName?.(row, rowIndex),
+              )}
+              onClick={onRowClick ? () => onRowClick(row, rowIndex) : undefined}
             >
               {columns.map((col) => (
                 <td

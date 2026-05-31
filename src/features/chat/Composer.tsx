@@ -33,6 +33,8 @@ export type ComposerProps = {
   allowAttachments?: boolean;
   /** Si existe, se pasa al `multipart` como `stagingSessionId` (mismo contrato que productos). */
   stagingSessionId?: string;
+  /** Texto precargado en el campo (ej. deep link desde pedido con problema de stock). */
+  initialDraft?: string;
   onSend: (payload: ComposerSendPayload) => void | Promise<void>;
 };
 
@@ -88,9 +90,13 @@ export function Composer({
   allowAttachments = false,
   imageUploader,
   stagingSessionId,
+  initialDraft,
   onSend,
 }: ComposerProps) {
-  const defaultValues = useMemo((): ComposerValues => ({ text: '' }), []);
+  const defaultValues = useMemo(
+    (): ComposerValues => ({ text: initialDraft?.trim() ? initialDraft : '' }),
+    [initialDraft],
+  );
   const textInputRef = useRef<HTMLInputElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const uploaderRef: MutableRefObject<ImageUploader> = useRef(imageUploader ?? defaultUploader);
@@ -397,7 +403,6 @@ export function Composer({
           type="submit"
           disabled={submitDisabled}
           aria-label="Enviar mensaje"
-          title="Enviar"
           className={cn(
             'flex h-11 min-w-11 shrink-0 items-center justify-center rounded-lg bg-brand text-white transition-opacity hover:bg-brand-dark disabled:cursor-not-allowed disabled:bg-brand-dark/70 disabled:opacity-50',
           )}

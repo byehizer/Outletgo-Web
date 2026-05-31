@@ -29,8 +29,65 @@ export const ROUTES = {
   sellerUploadDemo: '/seller/upload-demo',
   adminRoot: '/admin',
   adminSellers: '/admin/sellers',
+  adminBuyers: '/admin/buyers',
+  /** Moderación de productos (Paso 23). */
+  adminProducts: '/admin/products',
+  /** Moderación de reseñas (Paso 24). */
+  adminReviews: '/admin/reviews',
+  /** Reportes de compradores (Paso 25). */
+  adminReports: '/admin/reports',
+  /** Pedidos globales multitienda (Paso 26). */
+  adminOrders: '/admin/orders',
+  /** Bandeja de soporte Admin ↔ vendedores (Paso 27). */
+  adminSupport: '/admin/support',
   forbidden: '/forbidden',
 } as const;
+
+/** Listado paginado de reportes Admin (Paso 25). */
+export const ADMIN_REPORTS_PAGE_SIZE = 10;
+
+/** Reportes — panel Admin (Paso 25). */
+export const ADMIN_REPORTS_API_PATH = '/api/admin/reports' as const;
+
+/** Listado paginado de pedidos Admin (Paso 26). */
+export const ADMIN_ORDERS_PAGE_SIZE = 10;
+
+/** Pedidos globales — panel Admin (Paso 26). */
+export const ADMIN_ORDERS_API_PATH = '/api/admin/orders' as const;
+
+/** Detalle Admin: `/admin/orders/:orderId`. */
+export function adminOrderDetailPath(orderId: string): string {
+  return `${ROUTES.adminOrders}/${encodeURIComponent(orderId)}`;
+}
+
+/** Listado paginado de reseñas Admin (Paso 24). */
+export const ADMIN_REVIEWS_PAGE_SIZE = 10;
+
+/** Moderación de reseñas — panel Admin (Paso 24). */
+export const ADMIN_REVIEWS_API_PATH = '/api/admin/reviews' as const;
+
+/** Listado paginado de productos Admin (Paso 23). */
+export const ADMIN_PRODUCTS_PAGE_SIZE = 10;
+
+/** Moderación de productos — panel Admin (Paso 23). */
+export const ADMIN_PRODUCTS_API_PATH = '/api/admin/products' as const;
+
+/** Listado paginado de compradores Admin (Paso 22). */
+export const ADMIN_BUYERS_PAGE_SIZE = 10;
+
+/** Cuentas comprador — panel Admin (Paso 22). */
+export const ADMIN_BUYERS_API_PATH = '/api/admin/buyers' as const;
+
+/** Listado paginado de vendedores Admin (Paso 21). */
+export const ADMIN_SELLERS_PAGE_SIZE = 10;
+
+/** CRUD cuentas vendedor — panel Admin (Paso 21). */
+export const ADMIN_SELLERS_API_PATH = '/api/admin/sellers' as const;
+
+/** Detalle vendedor Admin: `/admin/sellers/:sellerId`. */
+export function adminSellerDetailPath(sellerId: string): string {
+  return `${ROUTES.adminSellers}/${encodeURIComponent(sellerId)}`;
+}
 
 /** Fotos máximas por producto en el panel vendedor (staging / formulario Paso 13). */
 export const PRODUCT_IMAGE_MAX_COUNT = 4;
@@ -96,8 +153,14 @@ export function sellerChatRoomPath(conversationId: string): string {
 /** Listado y mensajes de chat seller (Paso 18). Ajustá si el backend usa otra convención. */
 export const SELLER_CHATS_API_PATH = '/api/seller/chats' as const;
 
+/** Resumen del panel seller — home `/seller` (Paso 20). */
+export const SELLER_DASHBOARD_API_PATH = '/api/seller/dashboard' as const;
+
 /** Mensajes del canal seller ↔ admin (Paso 19). */
 export const SUPPORT_MESSAGES_API_PATH = '/api/support/messages' as const;
+
+/** Bandeja de soporte Admin (Paso 27). */
+export const ADMIN_SUPPORT_API_PATH = '/api/admin/support' as const;
 
 /** Paginado GET soporte (supuesto Spring `Page`). */
 export const SUPPORT_MESSAGES_PAGE_SIZE = 20;

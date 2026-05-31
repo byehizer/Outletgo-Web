@@ -1,7 +1,7 @@
-import { fetchMessages, fetchSupportMessages } from './chatApi';
+import { fetchAdminSupportMessages, fetchMessages, fetchSupportConversations, fetchSupportMessages } from './chatApi';
 
 import type { SellerChatMessage } from '../../types/chat';
-import type { SupportMessage } from '../../types/support';
+import type { SupportConversation, SupportMessage } from '../../types/support';
 
 const POLL_MS = 5000;
 
@@ -184,3 +184,101 @@ export class SupportChatTransport {
 }
 
 export const supportChatTransport = new SupportChatTransport();
+
+/** Polling del hilo soporte Admin ↔ tienda (Paso 27). */
+export class AdminSupportChatTransport {
+  private pollTimer: ReturnType<typeof window.setInterval> | null = null;
+  private gen = 0;
+  private seenMessageIds = new Set<string>();
+
+  unsubscribe(): void {
+    this.gen += 1;
+    if (this.pollTimer !== null) {
+      window.clearInterval(this.pollTimer);
+      this.pollTimer = null;
+    }
+    this.seenMessageIds.clear();
+  }
+
+  acknowledgeMessages(...messageIds: string[]): void {
+    for (const id of messageIds) {
+      if (id.trim() !== '') {
+        this.seenMessageIds.add(id);
+      }
+    }
+  }
+
+  subscribe(
+    storeId: string,
+    onMessageReceived: (msg: SupportMessage) => void,
+    onConversationsRefresh?: (conversations: SupportConversation[]) => void,
+  ): void {
+    const sid = storeId.trim();
+    if (sid === '') {
+      return;
+    }
+
+    this.unsubscribe();
+    const myGen = this.gen;
+
+    const sortAsc = (a: SupportMessage, b: SupportMessage): number =>
+      new Date(a.sentAt).getTime() - new Date(b.sentAt).getTime();
+
+    const fetchSorted = async (): Promise<SupportMessage[]> => {
+      const page = await fetchAdminSupportMessages(sid, 0);
+      return [...page.content].sort(sortAsc);
+    };
+
+    const runPollCycle = (): void => {
+      if (import.meta.env.DEV) {
+        console.log('[AdminSupportChatTransport] short poll', sid);
+      }
+      void (async () => {
+        if (myGen !== this.gen) {
+          return;
+        }
+        try {
+          const sorted = await fetchSorted();
+          if (myGen !== this.gen) {
+            return;
+          }
+          for (const msg of sorted) {
+            if (this.seenMessageIds.has(msg.id)) {
+              continue;
+            }
+            this.seenMessageIds.add(msg.id);
+            onMessageReceived(msg);
+          }
+          if (onConversationsRefresh) {
+            const convs = await fetchSupportConversations();
+            if (myGen === this.gen) {
+              onConversationsRefresh(convs);
+            }
+          }
+        } catch {
+          /* siguiente ciclo */
+        }
+      })();
+    };
+
+    void (async () => {
+      try {
+        const sorted = await fetchSorted();
+        if (myGen !== this.gen) {
+          return;
+        }
+        for (const m of sorted) {
+          this.seenMessageIds.add(m.id);
+        }
+      } catch {
+        /* primer ciclo reintenta */
+      }
+      if (myGen !== this.gen) {
+        return;
+      }
+      this.pollTimer = window.setInterval(runPollCycle, POLL_MS);
+    })();
+  }
+}
+
+export const adminSupportChatTransport = new AdminSupportChatTransport();

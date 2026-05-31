@@ -24,7 +24,7 @@ export const MOCK_TOKEN = 'fake-jwt-token-desarrollo' as const;
 export const MOCK_USER: User = {
   id: 'mock-123',
   email: 'ehizer@outletgo.com',
-  role: 'SELLER',
+  role: 'ADMIN',
   name: 'Ehizer Valero',
   storeId: 'tienda-avellaneda-1',
   avatarUrl: null,
@@ -38,12 +38,18 @@ function getInitialAuthState(): { token: string | null; user: User | null } {
     return stored;
   }
 
+  /** Token mock en localStorage → siempre reflejar MOCK_USER del código (DEV). */
+  if (stored.token === MOCK_TOKEN) {
+    setSession(MOCK_TOKEN, MOCK_USER);
+    return { token: MOCK_TOKEN, user: MOCK_USER };
+  }
+
   /** Sesión real persistida → no pisar el mock. */
   if (stored.token && stored.user) {
     return stored;
   }
 
-  console.warn('⚠️ MOCK AUTH ACTIVADO: Logueado automáticamente como SELLER');
+  console.warn(`⚠️ MOCK AUTH ACTIVADO: Logueado automáticamente como ${MOCK_USER.role}`);
 
   /** Misma rutina que login real: localStorage visible para `apiClient` Bearer. */
   setSession(MOCK_TOKEN, MOCK_USER);

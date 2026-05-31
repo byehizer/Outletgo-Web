@@ -38,8 +38,26 @@
     --border-focus: #2b8fd4;
     --text-primary: #0f172a;
     --text-secondary: #475569;
-    --text-muted: #94a3b8;
+    --text-muted: #64748b;
     --text-link: #1a3f7a;
+  }
+}
+
+@layer base {
+  html {
+    overflow-x: hidden;
+  }
+
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  summary:focus-visible,
+  [role='menuitem']:focus-visible,
+  [role='tab']:focus-visible {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 2px;
   }
 }
 

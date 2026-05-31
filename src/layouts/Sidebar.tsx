@@ -14,7 +14,7 @@ type SidebarProps = {
 
 export function Sidebar({ navItems, mobileOpen, onCloseMobile }: SidebarProps) {
   const mobilePanelClasses = cn(
-    'fixed inset-y-0 left-0 z-50 flex w-[var(--sidebar-width)] flex-col border-r border-[var(--border)] bg-[var(--bg-surface)] transition-transform duration-200 md:static md:translate-x-0',
+    'fixed inset-y-0 left-0 z-50 flex w-[min(100vw,var(--sidebar-width))] max-w-[85vw] flex-col border-r border-[var(--border)] bg-[var(--bg-surface)] transition-transform duration-200 ease-out motion-reduce:transition-none md:static md:max-w-none md:translate-x-0',
     mobileOpen ? 'translate-x-0 shadow-xl' : '-translate-x-full md:shadow-none',
   );
 
@@ -38,7 +38,7 @@ export function Sidebar({ navItems, mobileOpen, onCloseMobile }: SidebarProps) {
         </button>
       </div>
 
-      <nav className="flex flex-col gap-1 p-3" role="navigation">
+      <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3" aria-label="Secciones del panel">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
