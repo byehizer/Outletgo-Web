@@ -497,21 +497,14 @@ sortCreatedAt: 'ASC' | 'DESC'
 Page<SellerReview>
 
 type SellerReview = {
-  id:            string;
-  rating:        number;   // 1–5
-  comment:       string | null;
-  isVisible:     boolean;
-  createdAt:     string;   // ISO 8601
-  referenceType: 'STORE' | 'PRODUCT';
-  buyer: {
-    id:          string;
-    displayName: string | null;
-    email:       string;
-  };
-  product: {
-    id:   string;
-    name: string;
-  } | null;
+  id:          string;
+  authorName:  string;
+  rating:      number;   // 1–5
+  comment:     string;
+  storeId:     string;   // FK obligatoria — tienda del vendedor
+  productId:   string | null;  // FK explícita; null en reseñas de tienda
+  productName: string | null;  // denormalizado; null si no hay producto
+  createdAt:   string;   // ISO 8601
 };
 ```
 
@@ -1316,7 +1309,7 @@ Actualiza el producto en la lista y panel. Muestra toast de éxito.
 ```
 page:          number (0-based)
 size:          number
-referenceType?: 'STORE' | 'PRODUCT'
+reviewScope?: 'store' | 'product'  // store = productId IS NULL; product = productId IS NOT NULL
 storeId?:      string
 productId?:    string
 buyerSearch?:  string (filtra por nombre o email del comprador)
@@ -1334,7 +1327,8 @@ type AdminReview = {
   comment:       string | null;
   isVisible:     boolean;
   createdAt:     string;
-  referenceType: 'STORE' | 'PRODUCT';
+  storeId:       string;        // FK explícita
+  productId:     string | null; // null = reseña de tienda
   store: {
     id:           string;
     businessName: string;
@@ -1375,13 +1369,15 @@ Renderiza la tabla de reseñas con rating, visibilidad, comprador y tienda.
   displayName: string | null;
   email:       string;
   reviews: Array<{
-    id:            string;
-    rating:        number;
-    comment:       string | null;
-    referenceType: 'STORE' | 'PRODUCT';
-    referenceName: string;
-    isVisible:     boolean;
-    createdAt:     string;
+    id:          string;
+    rating:      number;
+    comment:     string | null;
+    storeId:     string;
+    storeName:   string;
+    productId:   string | null;
+    productName: string | null;
+    isVisible:   boolean;
+    createdAt:   string;
   }>;
 }
 ```
@@ -1476,6 +1472,8 @@ type ProductReport = {
   resolutionType: 'DISABLED' | 'WARNED' | null;
   createdAt:      string;
   reason:         string;
+  productId:      string;  // FK explícita al producto reportado
+  storeId:        string;  // FK explícita a la tienda del producto
   product: {
     id:            string;
     name:          string;
@@ -1526,6 +1524,7 @@ type StoreReport = {
   resolutionType: 'DISABLED' | 'WARNED' | null;
   createdAt:      string;
   reason:         string;
+  storeId:        string;  // FK explícita a la tienda reportada
   store: {
     id:           string;
     businessName: string;

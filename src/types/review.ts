@@ -1,10 +1,6 @@
 /**
- * Referencia de una reseña en el panel seller (Paso 17).
- */
-export type SellerReviewReferenceType = 'STORE' | 'PRODUCT';
-
-/**
- * Reseña recibida por la tienda o un producto — sólo lectura en panel vendedor.
+ * Reseña recibida por la tienda o un producto — sólo lectura en panel vendedor (Paso 17).
+ * Relaciones explícitas: `storeId` obligatorio; `productId` nulo en reseñas de tienda.
  */
 export type SellerReview = {
   id: string;
@@ -13,11 +9,16 @@ export type SellerReview = {
   rating: number;
   /** Puede estar vacío si el cliente no dejó texto. */
   comment: string;
-  referenceType: SellerReviewReferenceType;
-  /** Identificador del producto cuando `referenceType === 'PRODUCT'`. */
-  productId?: string | undefined;
-  /** Sólo aplica cuando `referenceType === 'PRODUCT'`. */
-  productName?: string | undefined;
+  storeId: string;
+  /** `null` cuando la reseña es sobre la tienda (sin producto). */
+  productId: string | null;
+  /** Nombre denormalizado del producto; `null` si no aplica. */
+  productName: string | null;
   /** Fecha ISO 8601. */
   createdAt: string;
 };
+
+/** Reseña dirigida a un producto (FK `productId` presente). */
+export function isProductSellerReview(review: SellerReview): boolean {
+  return review.productId != null;
+}

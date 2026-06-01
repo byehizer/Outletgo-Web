@@ -1,6 +1,4 @@
-import type { ReferenceType } from './moderation';
-
-/** Reseña moderada por Admin (Paso 24). */
+/** Reseña moderada por Admin (Paso 24). Relaciones explícitas vía FK y objetos anidados. */
 export type AdminReview = {
   id: string;
   /** Valor entre 1 y 5. */
@@ -9,12 +7,14 @@ export type AdminReview = {
   isVisible: boolean;
   /** Fecha ISO 8601 de publicación. */
   createdAt: string;
-  referenceType: ReferenceType;
+  storeId: string;
+  /** `null` cuando la reseña es sobre la tienda (sin producto). */
+  productId: string | null;
   store: {
     id: string;
     businessName: string;
   };
-  /** `null` cuando `referenceType` es `STORE`. */
+  /** `null` cuando `productId` es `null`. */
   product: {
     id: string;
     name: string;
@@ -26,14 +26,22 @@ export type AdminReview = {
   };
 };
 
+/** Reseña dirigida a un producto (FK `productId` presente). */
+export function isProductAdminReview(review: AdminReview): boolean {
+  return review.productId != null;
+}
+
 /** Entrada del historial de reseñas de un comprador. */
 export type BuyerReviewEntry = {
   id: string;
   rating: number;
   comment: string | null;
-  referenceType: ReferenceType;
-  /** Nombre de la tienda o del producto según el tipo. */
-  referenceName: string;
+  storeId: string;
+  storeName: string;
+  /** `null` si la reseña es solo de tienda. */
+  productId: string | null;
+  /** `null` si no hay producto asociado. */
+  productName: string | null;
   isVisible: boolean;
   /** Fecha ISO 8601 de publicación. */
   createdAt: string;

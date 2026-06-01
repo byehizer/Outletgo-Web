@@ -16,8 +16,7 @@ import { RatingStars } from '../../features/reviews/RatingStars';
 import { cn } from '../../lib/cn';
 import { formatDate } from '../../lib/format';
 import { ApiError } from '../../lib/http/apiClient';
-import type { AdminReview, BuyerReviewHistory } from '../../types/admin-review';
-import { REFERENCE_TYPE } from '../../types/moderation';
+import { isProductAdminReview, type AdminReview, type BuyerReviewEntry, type BuyerReviewHistory } from '../../types/admin-review';
 
 import {
   deleteReview,
@@ -82,18 +81,22 @@ function VisibilityBadge({ isVisible }: { isVisible: boolean }) {
   );
 }
 
-function ReferenceTypeBadge({ referenceType }: { referenceType: AdminReview['referenceType'] }) {
-  const isStore = referenceType === REFERENCE_TYPE.STORE;
+function ReviewTargetBadge({ productId }: { productId: string | null }) {
+  const isProduct = productId != null;
   return (
     <span
       className={cn(
         'inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold',
-        isStore ? 'bg-brand/15 text-brand' : 'bg-[var(--text-muted)]/15 text-[var(--text-muted)]',
+        isProduct ? 'bg-[var(--text-muted)]/15 text-[var(--text-muted)]' : 'bg-brand/15 text-brand',
       )}
     >
-      {isStore ? 'Tienda' : 'Producto'}
+      {isProduct ? 'Producto' : 'Tienda'}
     </span>
   );
+}
+
+function buyerReviewTargetLabel(entry: BuyerReviewEntry): string {
+  return entry.productId != null && entry.productName ? entry.productName : entry.storeName;
 }
 
 function HistorySkeleton() {
@@ -253,7 +256,7 @@ export function ReviewDetailPanel({
 
             <section className="space-y-2 border-t border-[var(--border)] px-6 py-6">
               <h3 className="text-sm font-semibold text-[var(--text-primary)]">Sobre</h3>
-              {review.referenceType === REFERENCE_TYPE.STORE ? (
+              {!isProductAdminReview(review) ? (
                 <div className="flex items-center gap-2 text-sm text-[var(--text-primary)]">
                   <Store className="size-4 shrink-0 text-brand" aria-hidden />
                   <span>{review.store.businessName}</span>
@@ -322,11 +325,11 @@ export function ReviewDetailPanel({
                                   rating={entry.rating}
                                   className="[&_svg]:size-3.5"
                                 />
-                                <ReferenceTypeBadge referenceType={entry.referenceType} />
+                                <ReviewTargetBadge productId={entry.productId} />
                                 <VisibilityBadge isVisible={entry.isVisible} />
                               </div>
                               <p className="mt-2 text-sm font-medium text-[var(--text-primary)]">
-                                {entry.referenceName}
+                                {buyerReviewTargetLabel(entry)}
                               </p>
                               <p
                                 className={cn(

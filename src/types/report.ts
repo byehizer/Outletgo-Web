@@ -30,6 +30,10 @@ export type ProductReport = {
   /** null cuando status es PENDING */
   resolutionType: ReportResolutionType | null;
   createdAt: string;
+  /** FK explícita al producto reportado. */
+  productId: string;
+  /** FK explícita a la tienda del producto. */
+  storeId: string;
   reporter: ReportReporter;
   product: {
     id: string;
@@ -46,6 +50,8 @@ export type StoreReport = {
   /** null cuando status es PENDING */
   resolutionType: ReportResolutionType | null;
   createdAt: string;
+  /** FK explícita a la tienda reportada. */
+  storeId: string;
   reporter: ReportReporter;
   store: {
     id: string;

@@ -8,13 +8,6 @@ export const REPORT_STATUS = {
 
 export type ReportStatus = (typeof REPORT_STATUS)[keyof typeof REPORT_STATUS];
 
-export const REFERENCE_TYPE = {
-  STORE: 'STORE',
-  PRODUCT: 'PRODUCT',
-} as const;
-
-export type ReferenceType = (typeof REFERENCE_TYPE)[keyof typeof REFERENCE_TYPE];
-
 /** Imagen de producto en moderación Admin. */
 export type AdminProductImage = {
   id: string;

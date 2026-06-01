@@ -4,7 +4,7 @@ import {
   SELLER_STORE_REVIEWS_API_PATH,
 } from '../../lib/constants';
 import type { Page } from '../../types/api';
-import type { SellerReview, SellerReviewReferenceType } from '../../types/review';
+import type { SellerReview } from '../../types/review';
 
 import { DEV_SELLER_PRODUCT_OPTIONS } from './useProductOptions';
 
@@ -31,13 +31,17 @@ export type FetchProductReviewsParams = {
   search?: string;
 };
 
+const DEV_SELLER_STORE_ID = 'store-dev-001';
+
 const DEV_STORE_REVIEWS_SEED: SellerReview[] = [
   {
     id: 'rev-store-501',
     authorName: 'Ana Rodríguez',
     rating: 5,
     comment: 'Excelente tienda y atención rápida. Volvería sin dudarlo.',
-    referenceType: 'STORE',
+    storeId: DEV_SELLER_STORE_ID,
+    productId: null,
+    productName: null,
     createdAt: '2024-06-02T14:22:30.000Z',
   },
   {
@@ -45,7 +49,9 @@ const DEV_STORE_REVIEWS_SEED: SellerReview[] = [
     authorName: 'Martín Paz',
     rating: 5,
     comment: '',
-    referenceType: 'STORE',
+    storeId: DEV_SELLER_STORE_ID,
+    productId: null,
+    productName: null,
     createdAt: '2024-06-03T09:15:00.000Z',
   },
   {
@@ -53,7 +59,9 @@ const DEV_STORE_REVIEWS_SEED: SellerReview[] = [
     authorName: 'Lucía Méndez',
     rating: 4,
     comment: 'Buen local, llegué después de esperar una cola bastante larga.',
-    referenceType: 'STORE',
+    storeId: DEV_SELLER_STORE_ID,
+    productId: null,
+    productName: null,
     createdAt: '2024-06-10T11:05:42.000Z',
   },
   {
@@ -61,7 +69,9 @@ const DEV_STORE_REVIEWS_SEED: SellerReview[] = [
     authorName: 'Esteban Quiroga',
     rating: 3,
     comment: 'Ni muy ni tan poco. La experiencia fue aceptable.',
-    referenceType: 'STORE',
+    storeId: DEV_SELLER_STORE_ID,
+    productId: null,
+    productName: null,
     createdAt: '2024-08-03T08:52:17.000Z',
   },
   {
@@ -69,7 +79,9 @@ const DEV_STORE_REVIEWS_SEED: SellerReview[] = [
     authorName: 'Iván Colombo',
     rating: 2,
     comment: 'No recomiendo el estacionamiento cercano pero la tienda estuvo bien.',
-    referenceType: 'STORE',
+    storeId: DEV_SELLER_STORE_ID,
+    productId: null,
+    productName: null,
     createdAt: '2024-09-05T19:07:56.000Z',
   },
 ];
@@ -93,9 +105,9 @@ const DEV_PRODUCT_REVIEWS_SEED: SellerReview[] = [
     authorName: 'Gabriel Torres',
     rating: 4,
     comment: 'Jeans muy buenos pero el tiempo de despacho tardó más de lo esperado.',
-    referenceType: 'PRODUCT',
+    storeId: DEV_SELLER_STORE_ID,
     productId: devSellerProduct(0).id,
-    productName: productNameForMock(devSellerProduct(0).id),
+    productName: productNameForMock(devSellerProduct(0).id) ?? null,
     createdAt: '2024-07-01T16:44:21.000Z',
   },
   {
@@ -103,9 +115,9 @@ const DEV_PRODUCT_REVIEWS_SEED: SellerReview[] = [
     authorName: 'Rocío Vega',
     rating: 3,
     comment: 'Regular. El producto no era exactamente igual al de la foto.',
-    referenceType: 'PRODUCT',
+    storeId: DEV_SELLER_STORE_ID,
     productId: devSellerProduct(1).id,
-    productName: productNameForMock(devSellerProduct(1).id),
+    productName: productNameForMock(devSellerProduct(1).id) ?? null,
     createdAt: '2024-07-12T20:03:59.000Z',
   },
   {
@@ -113,9 +125,9 @@ const DEV_PRODUCT_REVIEWS_SEED: SellerReview[] = [
     authorName: 'Laura Funes',
     rating: 2,
     comment: 'Me confundieron un talle. El cambio tardó bastante.',
-    referenceType: 'PRODUCT',
+    storeId: DEV_SELLER_STORE_ID,
     productId: devSellerProduct(2).id,
-    productName: productNameForMock(devSellerProduct(2).id),
+    productName: productNameForMock(devSellerProduct(2).id) ?? null,
     createdAt: '2024-08-21T13:41:09.000Z',
   },
   {
@@ -123,9 +135,9 @@ const DEV_PRODUCT_REVIEWS_SEED: SellerReview[] = [
     authorName: 'Felipe Ramos',
     rating: 1,
     comment: 'El producto llegó con una costura suelta.',
-    referenceType: 'PRODUCT',
+    storeId: DEV_SELLER_STORE_ID,
     productId: devSellerProduct(3).id,
-    productName: productNameForMock(devSellerProduct(3).id),
+    productName: productNameForMock(devSellerProduct(3).id) ?? null,
     createdAt: '2024-09-18T10:38:03.000Z',
   },
   {
@@ -133,9 +145,9 @@ const DEV_PRODUCT_REVIEWS_SEED: SellerReview[] = [
     authorName: 'Juana Silva',
     rating: 5,
     comment: 'Hermosa campera y calidad impecable. Envío rápido.',
-    referenceType: 'PRODUCT',
+    storeId: DEV_SELLER_STORE_ID,
     productId: devSellerProduct(3).id,
-    productName: productNameForMock(devSellerProduct(3).id),
+    productName: productNameForMock(devSellerProduct(3).id) ?? null,
     createdAt: '2024-10-02T07:59:41.000Z',
   },
   {
@@ -143,9 +155,9 @@ const DEV_PRODUCT_REVIEWS_SEED: SellerReview[] = [
     authorName: 'Nicolas Dupuy',
     rating: 1,
     comment: '',
-    referenceType: 'PRODUCT',
+    storeId: DEV_SELLER_STORE_ID,
     productId: devSellerProduct(4).id,
-    productName: productNameForMock(devSellerProduct(4).id),
+    productName: productNameForMock(devSellerProduct(4).id) ?? null,
     createdAt: '2024-10-09T21:45:12.000Z',
   },
 ];
@@ -239,6 +251,14 @@ function pickString(v: unknown): string | undefined {
   return typeof v === 'string' && v.length > 0 ? v : undefined;
 }
 
+function pickNullableString(v: unknown): string | null {
+  if (v === null || v === undefined) {
+    return null;
+  }
+  const s = typeof v === 'string' ? v.trim() : '';
+  return s.length > 0 ? s : null;
+}
+
 function coerceSellerReview(raw: unknown): SellerReview | null {
   if (typeof raw !== 'object' || raw === null) {
     return null;
@@ -248,41 +268,30 @@ function coerceSellerReview(raw: unknown): SellerReview | null {
   const authorName = pickString(o.authorName ?? o.author_name);
   const rating = pickNumber(o.rating);
   const commentRaw = typeof o.comment === 'string' ? o.comment : '';
-  const referenceTypeRaw = (
-    typeof o.referenceType === 'string' ? o.referenceType.toUpperCase().trim()
-    : typeof o.reference_type === 'string' ? String(o.reference_type).toUpperCase().trim()
-    : ''
-  ) as SellerReviewReferenceType | '';
-
-  let referenceType: SellerReviewReferenceType | null = null;
-  if (referenceTypeRaw === 'STORE' || referenceTypeRaw === 'PRODUCT') {
-    referenceType = referenceTypeRaw;
-  }
-
-  const productIdPick = pickString(o.productId ?? o.product_id);
-  const productNamePick = pickString(o.productName ?? o.product_name);
+  const storeId = pickString(o.storeId ?? o.store_id);
+  const productRaw = o.product;
+  const productNested =
+    typeof productRaw === 'object' && productRaw !== null ? (productRaw as Record<string, unknown>) : null;
+  const productId =
+    pickNullableString(o.productId ?? o.product_id) ??
+    pickNullableString(productNested?.id ?? productNested?.productId);
+  const productName =
+    pickNullableString(o.productName ?? o.product_name) ?? pickNullableString(productNested?.name);
   const createdAt = pickString(o.createdAt ?? o.created_at);
-  if (!id || !authorName || rating === undefined || rating < 1 || rating > 5 || !referenceType || !createdAt) {
+  if (!id || !authorName || rating === undefined || rating < 1 || rating > 5 || !storeId || !createdAt) {
     return null;
   }
 
-  const out: SellerReview = {
+  return {
     id,
     authorName,
     rating: Math.round(rating),
     comment: commentRaw,
-    referenceType,
+    storeId,
+    productId,
+    productName,
     createdAt,
   };
-  if (referenceType === 'PRODUCT') {
-    if (productIdPick !== undefined) {
-      out.productId = productIdPick;
-    }
-    if (productNamePick !== undefined) {
-      out.productName = productNamePick;
-    }
-  }
-  return out;
 }
 
 function coerceSellerReviewsPage(payload: unknown, fallbackSize: number): Page<SellerReview> {

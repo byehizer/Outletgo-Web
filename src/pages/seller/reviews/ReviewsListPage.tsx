@@ -280,7 +280,7 @@ export function ReviewsListPage() {
         header: 'Producto',
         wrap: true,
         cell: (row) =>
-          row.productName?.trim() ?
+          row.productName != null && row.productName.trim() ?
             <span>{row.productName.trim()}</span>
           : <span className="text-[var(--text-muted)]">—</span>,
       });

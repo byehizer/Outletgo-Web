@@ -172,19 +172,23 @@ function coerceProductReport(payload: unknown): ProductReport | undefined {
     return undefined;
   }
 
+  const productIdFk = pickString(o.productId ?? o.product_id) ?? productId;
+
   return {
     id,
     reason,
     status,
     resolutionType: coerceReportResolutionType(o.resolutionType ?? o.resolution_type, status),
     createdAt,
+    productId: productIdFk,
+    storeId,
     reporter: {
       id: reporterId,
       displayName: pickNullableString(reporterRaw?.displayName ?? reporterRaw?.display_name),
       email: reporterEmail,
     },
     product: {
-      id: productId,
+      id: productIdFk,
       name: productName,
       currentStatus,
       store: { id: storeId, businessName },
@@ -221,19 +225,22 @@ function coerceStoreReport(payload: unknown): StoreReport | undefined {
     return undefined;
   }
 
+  const storeIdFk = pickString(o.storeId ?? o.store_id) ?? storeId;
+
   return {
     id,
     reason,
     status,
     resolutionType: coerceReportResolutionType(o.resolutionType ?? o.resolution_type, status),
     createdAt,
+    storeId: storeIdFk,
     reporter: {
       id: reporterId,
       displayName: pickNullableString(reporterRaw?.displayName ?? reporterRaw?.display_name),
       email: reporterEmail,
     },
     store: {
-      id: storeId,
+      id: storeIdFk,
       businessName,
       isActive: pickBoolean(storeRaw?.isActive ?? storeRaw?.is_active ?? true),
     },
@@ -279,6 +286,8 @@ let devProductReports: ProductReport[] = [
     status: REPORT_STATUS.PENDING,
     resolutionType: null,
     createdAt: devIsoDaysAgo(2),
+    productId: 'mod-p1',
+    storeId: 'store-001',
     reporter: {
       id: 'buyer-001',
       displayName: 'Juan Pérez',
@@ -298,6 +307,8 @@ let devProductReports: ProductReport[] = [
     status: REPORT_STATUS.PENDING,
     resolutionType: null,
     createdAt: devIsoDaysAgo(1),
+    productId: 'mod-p5',
+    storeId: 'store-004',
     reporter: {
       id: 'buyer-006',
       displayName: 'Sofía Gómez',
@@ -317,6 +328,8 @@ let devProductReports: ProductReport[] = [
     status: REPORT_STATUS.DISMISSED,
     resolutionType: null,
     createdAt: devIsoDaysAgo(8),
+    productId: 'mod-p2',
+    storeId: 'store-002',
     reporter: {
       id: 'buyer-002',
       displayName: 'Mariana López',
@@ -336,6 +349,8 @@ let devProductReports: ProductReport[] = [
     status: REPORT_STATUS.RESOLVED,
     resolutionType: REPORT_RESOLUTION_TYPE.DISABLED,
     createdAt: devIsoDaysAgo(14),
+    productId: 'mod-p4',
+    storeId: 'store-004',
     reporter: {
       id: 'buyer-005',
       displayName: 'Lucía Herrera',
@@ -355,6 +370,8 @@ let devProductReports: ProductReport[] = [
     status: REPORT_STATUS.PENDING,
     resolutionType: null,
     createdAt: devIsoDaysAgo(4),
+    productId: 'mod-p3',
+    storeId: 'store-001',
     reporter: {
       id: 'buyer-004',
       displayName: null,
@@ -373,6 +390,8 @@ let devProductReports: ProductReport[] = [
     status: REPORT_STATUS.DISMISSED,
     resolutionType: null,
     createdAt: devIsoDaysAgo(20),
+    productId: 'mod-p1',
+    storeId: 'store-001',
     reporter: {
       id: 'buyer-003',
       displayName: 'Carlos Benítez',
@@ -396,6 +415,7 @@ let devStoreReports: StoreReport[] = [
     status: REPORT_STATUS.PENDING,
     resolutionType: null,
     createdAt: devIsoDaysAgo(3),
+    storeId: 'store-002',
     reporter: {
       id: 'buyer-001',
       displayName: 'Juan Pérez',
@@ -414,6 +434,7 @@ let devStoreReports: StoreReport[] = [
     status: REPORT_STATUS.DISMISSED,
     resolutionType: null,
     createdAt: devIsoDaysAgo(10),
+    storeId: 'store-001',
     reporter: {
       id: 'buyer-002',
       displayName: 'Mariana López',
@@ -432,6 +453,7 @@ let devStoreReports: StoreReport[] = [
     status: REPORT_STATUS.RESOLVED,
     resolutionType: REPORT_RESOLUTION_TYPE.DISABLED,
     createdAt: devIsoDaysAgo(25),
+    storeId: 'store-003',
     reporter: {
       id: 'buyer-005',
       displayName: 'Lucía Herrera',
@@ -449,6 +471,7 @@ let devStoreReports: StoreReport[] = [
     status: REPORT_STATUS.PENDING,
     resolutionType: null,
     createdAt: devIsoDaysAgo(6),
+    storeId: 'store-005',
     reporter: {
       id: 'buyer-006',
       displayName: 'Sofía Gómez',

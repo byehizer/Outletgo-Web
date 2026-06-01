@@ -18,6 +18,7 @@ import { Skeleton } from '../../../components/Skeleton';
 import {
   ADMIN_REVIEWS_PAGE_SIZE,
   fetchAdminReviews,
+  type AdminReviewScope,
 } from '../../../features/admin/adminReviewsApi';
 import { fetchAdminProducts } from '../../../features/admin/moderationApi';
 import { ReviewDetailPanel } from '../../../features/admin/ReviewDetailPanel';
@@ -29,8 +30,7 @@ import { cn } from '../../../lib/cn';
 import { formatDate } from '../../../lib/format';
 import { ApiError } from '../../../lib/http/apiClient';
 import type { Page } from '../../../types/api';
-import type { AdminReview } from '../../../types/admin-review';
-import { REFERENCE_TYPE, type ReferenceType } from '../../../types/moderation';
+import { isProductAdminReview, type AdminReview } from '../../../types/admin-review';
 
 type ReviewsListUiState = {
   data: Page<AdminReview> | null;
@@ -139,12 +139,12 @@ function parsePageOneBased(raw: string | null): number {
   return n;
 }
 
-function referenceTypeFromParams(raw: string | null): ReferenceType | undefined {
-  if (raw === REFERENCE_TYPE.STORE) {
-    return REFERENCE_TYPE.STORE;
+function reviewScopeFromParams(raw: string | null): AdminReviewScope | undefined {
+  if (raw === 'store') {
+    return 'store';
   }
-  if (raw === REFERENCE_TYPE.PRODUCT) {
-    return REFERENCE_TYPE.PRODUCT;
+  if (raw === 'product') {
+    return 'product';
   }
   return undefined;
 }
@@ -580,8 +580,8 @@ export function AdminReviewsListPage() {
   const pendingScrollToDetailRef = useRef(false);
 
   const pageOneBased = useMemo(() => parsePageOneBased(searchParams.get('page')), [searchParams]);
-  const referenceTypeFilter = useMemo(
-    () => referenceTypeFromParams(searchParams.get('referenceType')),
+  const reviewScopeFilter = useMemo(
+    () => reviewScopeFromParams(searchParams.get('reviewScope')),
     [searchParams],
   );
   const storeIdFilter = searchParams.get('storeId')?.trim() || undefined;
@@ -619,7 +619,7 @@ export function AdminReviewsListPage() {
   const queryKey = useMemo(
     () => ({
       pageZero: pageOneBased - 1,
-      referenceType: referenceTypeFilter,
+      reviewScope: reviewScopeFilter,
       storeId: storeIdFilter,
       productId: productIdFilter,
       buyerSearch: debouncedBuyerSearch.trim(),
@@ -629,7 +629,7 @@ export function AdminReviewsListPage() {
     }),
     [
       pageOneBased,
-      referenceTypeFilter,
+      reviewScopeFilter,
       storeIdFilter,
       productIdFilter,
       debouncedBuyerSearch,
@@ -645,7 +645,7 @@ export function AdminReviewsListPage() {
     void fetchAdminReviews({
       page: queryKey.pageZero,
       size: ADMIN_REVIEWS_PAGE_SIZE,
-      referenceType: queryKey.referenceType,
+      reviewScope: queryKey.reviewScope,
       storeId: queryKey.storeId,
       productId: queryKey.productId,
       buyerSearch: queryKey.buyerSearch.length > 0 ? queryKey.buyerSearch : undefined,
@@ -683,13 +683,13 @@ export function AdminReviewsListPage() {
     [searchParams, setSearchParams],
   );
 
-  const setReferenceTypeFilter = useCallback(
-    (value: 'all' | ReferenceType) => {
+  const setReviewScopeFilter = useCallback(
+    (value: 'all' | AdminReviewScope) => {
       const next = new URLSearchParams(searchParams);
       if (value === 'all') {
-        next.delete('referenceType');
+        next.delete('reviewScope');
       } else {
-        next.set('referenceType', value);
+        next.set('reviewScope', value);
       }
       next.delete('storeId');
       next.delete('productId');
@@ -805,17 +805,16 @@ export function AdminReviewsListPage() {
   const totalPages =
     data != null ? Math.max(1, Math.ceil((data.totalElements || 0) / Math.max(1, data.size))) : 1;
   const hasFilters =
-    referenceTypeFilter !== undefined ||
+    reviewScopeFilter !== undefined ||
     storeIdFilter !== undefined ||
     productIdFilter !== undefined ||
     debouncedBuyerSearch.trim().length > 0 ||
     ratingFilter !== undefined ||
     visibilityFilter !== undefined;
 
-  const showProductFilter =
-    referenceTypeFilter === undefined || referenceTypeFilter === REFERENCE_TYPE.PRODUCT;
+  const showProductFilter = reviewScopeFilter === undefined || reviewScopeFilter === 'product';
 
-  const referenceTypeSelectValue = referenceTypeFilter ?? 'all';
+  const reviewScopeSelectValue = reviewScopeFilter ?? 'all';
   const ratingSelectValue = ratingFilter != null ? String(ratingFilter) : 'all';
   const visibilitySelectValue =
     visibilityFilter === true ? 'true' : visibilityFilter === false ? 'false' : 'all';
@@ -850,12 +849,12 @@ export function AdminReviewsListPage() {
           <span
             className={cn(
               'inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold',
-              row.referenceType === REFERENCE_TYPE.STORE
+              !isProductAdminReview(row)
                 ? 'bg-brand/15 text-brand'
                 : 'bg-[var(--text-muted)]/15 text-[var(--text-muted)]',
             )}
           >
-            {row.referenceType === REFERENCE_TYPE.STORE ? 'Tienda' : 'Producto'}
+            {isProductAdminReview(row) ? 'Producto' : 'Tienda'}
           </span>
         ),
       },
@@ -864,9 +863,7 @@ export function AdminReviewsListPage() {
         header: 'Sobre',
         cell: (row) => (
           <span className="text-[var(--text-secondary)]">
-            {row.referenceType === REFERENCE_TYPE.PRODUCT && row.product
-              ? row.product.name
-              : row.store.businessName}
+            {isProductAdminReview(row) && row.product ? row.product.name : row.store.businessName}
           </span>
         ),
       },
@@ -948,16 +945,14 @@ export function AdminReviewsListPage() {
         <div className="mt-4 shrink-0 space-y-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-4">
           <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
             <select
-              value={referenceTypeSelectValue}
-              onChange={(e) =>
-                setReferenceTypeFilter(e.target.value as 'all' | ReferenceType)
-              }
+              value={reviewScopeSelectValue}
+              onChange={(e) => setReviewScopeFilter(e.target.value as 'all' | AdminReviewScope)}
               className="h-10 rounded-lg border border-[var(--border)] bg-[var(--bg-input)] px-3 text-sm outline-none focus:border-[var(--border-focus)] lg:w-auto"
               aria-label="Filtrar por tipo de reseña"
             >
               <option value="all">Todas</option>
-              <option value={REFERENCE_TYPE.STORE}>De tiendas</option>
-              <option value={REFERENCE_TYPE.PRODUCT}>De productos</option>
+              <option value="store">De tiendas</option>
+              <option value="product">De productos</option>
             </select>
             <StoreSearchAutocomplete
               storeId={storeIdFilter}
