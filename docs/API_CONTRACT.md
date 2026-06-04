@@ -335,7 +335,7 @@ Page<SellerOrderStore>
 type SellerOrderStore = {
   id:          string;   // ID del slice (OrderStore)
   orderId:     string;   // ID de la orden padre
-  status:      OrderStatus;
+  storeStatus: OrderStoreStatus; // Estado del slice de tienda. El backend puede enviar esto como 'storeStatus', 'store_status' o 'status'; el frontend lo tolera de forma flexible.
   subtotalArs: number;
   orderDate:   string;   // ISO 8601
   buyer: {
@@ -365,8 +365,21 @@ type OrderStatus =
   | 'PENDING'
   | 'PAID'
   | 'PREPARING'
+  | 'COLLECTING'
+  | 'CONSOLIDATED'
   | 'READY_FOR_PICKUP'
-  | 'COMPLETED'
+  | 'SHIPPED'
+  | 'IN_TRANSIT'
+  | 'DELIVERED'
+  | 'CANCELED'
+  | 'STOCK_ISSUE';
+
+type OrderStoreStatus =
+  | 'PENDING'
+  | 'PAID'
+  | 'PREPARING'
+  | 'READY_FOR_PICKUP'
+  | 'COLLECTED_BY_OUTLETGO'
   | 'CANCELED'
   | 'STOCK_ISSUE';
 ```
@@ -1675,6 +1688,7 @@ Page<AdminOrder>
 
 type AdminOrder = {
   id:        string;
+  status:    OrderStatus; // Estado logístico global del pedido
   createdAt: string;  // ISO 8601
   buyer: {
     id:    string;
@@ -1687,7 +1701,7 @@ type AdminOrder = {
 
 type AdminOrderStore = {
   id:          string;   // sliceId
-  status:      OrderStatus;
+  storeStatus: OrderStoreStatus; // Estado del slice de tienda. El backend puede enviar esto como 'storeStatus', 'store_status' o 'status'; el frontend lo tolera de forma flexible.
   subtotalArs: number;
   store: {
     id:           string;
@@ -1755,7 +1769,7 @@ AdminOrder  // objeto completo con todos los slices
 - Body:
 ```typescript
 {
-  status: OrderStatus;
+  status: OrderStoreStatus;
   reason: string;  // mínimo 10 caracteres
 }
 ```
@@ -1980,6 +1994,148 @@ Valida estrictamente que la respuesta sea `{ url: string }` con `url` no vacía.
 
 ---
 
+## 17. Puntos de Retiro — Admin
+
+### GET /api/admin/shipping/pickup-points
+
+**Estado:** Confirmado  
+**Quién lo usa:** Admin  
+**Cuándo se llama:** Al cargar la lista de puntos de retiro en el panel de administración y al aplicar búsquedas por texto o filtros de estado.
+
+**Request:**
+- Params (query):
+```
+page:      number (0-based)
+size:      number
+search?:   string (filtro por nombre o localidad)
+isActive?: boolean (filtro por estado activo/inactivo)
+```
+
+**Respuesta esperada:**
+```typescript
+Page<{
+  id:            string;
+  name:          string;
+  address:       string;
+  neighborhood:  string;
+  city:          string;
+  lat:           number;
+  lng:           number;
+  businessHours: string;
+  isActive:      boolean;
+}>
+```
+
+---
+
+### POST /api/admin/shipping/pickup-points
+
+**Estado:** Confirmado  
+**Quién lo usa:** Admin  
+**Cuándo se llama:** Al crear un nuevo punto de retiro físico desde el formulario modal.
+
+**Request:**
+- Body:
+```typescript
+{
+  name:          string;
+  address:       string;
+  neighborhood:  string;
+  city:          string;
+  lat:           number;
+  lng:           number;
+  businessHours: string;
+}
+```
+
+**Respuesta esperada:**
+```typescript
+{
+  id:            string;
+  name:          string;
+  address:       string;
+  neighborhood:  string;
+  city:          string;
+  lat:           number;
+  lng:           number;
+  businessHours: string;
+  isActive:      boolean;
+}
+```
+
+---
+
+### PATCH /api/admin/shipping/pickup-points/:id
+
+**Estado:** Confirmado  
+**Quién lo usa:** Admin  
+**Cuándo se llama:** Al guardar cambios de edición sobre un punto de retiro físico existente.
+
+**Request:**
+- Params: `id` en la URL
+- Body:
+```typescript
+{
+  name:          string;
+  address:       string;
+  neighborhood:  string;
+  city:          string;
+  lat:           number;
+  lng:           number;
+  businessHours: string;
+}
+```
+
+**Respuesta esperada:**
+```typescript
+{
+  id:            string;
+  name:          string;
+  address:       string;
+  neighborhood:  string;
+  city:          string;
+  lat:           number;
+  lng:           number;
+  businessHours: string;
+  isActive:      boolean;
+}
+```
+
+---
+
+### PATCH /api/admin/shipping/pickup-points/:id/status
+
+**Estado:** Confirmado  
+**Quién lo usa:** Admin  
+**Cuándo se llama:** Al suspender/deactivar o reactivar un punto de retiro.
+
+**Request:**
+- Params: `id` en la URL
+- Body:
+```typescript
+{
+  isActive: boolean;
+  reason?:  string;  // Requerido cuando isActive es false (mínimo 10 caracteres)
+}
+```
+
+**Respuesta esperada:**
+```typescript
+{
+  id:            string;
+  name:          string;
+  address:       string;
+  neighborhood:  string;
+  city:          string;
+  lat:           number;
+  lng:           number;
+  businessHours: string;
+  isActive:      boolean;
+}
+```
+
+---
+
 ## Decisiones de arquitectura relevantes
 
 ### 1. El frontend no se conecta a Supabase directamente
@@ -2038,3 +2194,6 @@ El array `lowStockProducts` en `GET /api/seller/dashboard` incluye `criticalVari
 
 ### 15. Reportes Admin — endpoints separados
 Los reportes de productos y tiendas son dos recursos REST independientes: `GET /api/admin/reports/products` y `GET /api/admin/reports/stores`.
+
+### 16. Gestión de Puntos de Retiro (Deactivación/Suspensión)
+Los puntos de retiro físicos cuentan con un flujo de suspensión (deactivación) que requiere justificación de al menos 10 caracteres al suspender (`isActive: false`), mientras que la reactivación (`isActive: true`) se efectúa de manera directa.

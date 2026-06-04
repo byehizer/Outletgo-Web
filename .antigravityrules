@@ -1,0 +1,116 @@
+# OutletGo Web — Reglas del Proyecto y Sistema de Diseño
+
+Este archivo unifica las directrices de desarrollo, flujo de trabajo, decisiones tecnológicas y el sistema de diseño para el panel web de OutletGo.
+
+---
+
+## 1. NORMAS DE TRABAJO Y COMPORTAMIENTO DEL AGENTE
+
+### Ritmo de Trabajo
+* **Un paso a la vez:** Nunca avances al siguiente paso de desarrollo sin confirmación explícita del usuario.
+* **Un archivo a la vez:** Si un paso requiere varios archivos, crea el primero, explícalo, espera confirmación y luego continúa.
+* Nunca generes código de más "para adelantar".
+
+### Estructura de Respuesta
+Al inicio de cada respuesta de desarrollo, muestra siempre el estado de los pasos:
+```
+📍 PASO ACTUAL: [número y nombre]
+✅ COMPLETADOS: [lista de pasos terminados]
+⏭️ SIGUIENTE: [nombre del próximo paso]
+```
+
+Al final de cada respuesta de desarrollo, pregunta siempre:
+"¿Entendiste cómo funciona esta parte? ¿Alguna duda antes de continuar?"
+
+### Explicación Obligatoria
+Always include these four sections after presenting new code:
+1. **¿Qué hace este código?** (En español simple, sin asumir conocimiento previo).
+2. **¿Por qué se hace así y no de otra manera?** (Justificación del diseño y alternativas).
+3. **¿Cómo encaja en el proyecto?** (Conexión con el resto de componentes y servicios).
+4. **¿Qué errores comunes pueden aparecer aquí?** (Problemas frecuentes y resolución).
+
+### Restricciones Críticas (Prohibido)
+* No uses `any` en TypeScript bajo ninguna circunstancia (usar tipado estricto).
+* No instales ni utilices el SDK de Supabase (`@supabase/supabase-js`) en el frontend de forma directa. La base de datos y la auth de Supabase son invisibles para la app y se manejan 100% a través del Backend API.
+* No utilices librerías como Axios, Redux, Zustand o React Query. El estado global se maneja únicamente mediante **Context API** y las peticiones con `fetch` nativo.
+
+---
+
+## 2. STACK TECNOLÓGICO Y ARQUITECTURA
+
+* **Framework:** React 18 + Vite (react-ts template)
+* **Estilos:** Tailwind CSS v3
+* **Routing:** React Router DOM v6
+* **Formularios:** React Hook Form + Zod
+* **Estado global:** Context API
+* **Iconos:** Lucide React
+* **Fechas:** date-fns + parseISO
+* **Moneda:** Intl.NumberFormat ARS
+* **Deploy:** Vercel
+
+---
+
+## 3. SISTEMA DE DISEÑO (LIGHT & DARK MODE SOPORTADO)
+
+El panel web detecta automáticamente el modo del sistema usando `prefers-color-scheme`.
+
+### Paleta de Colores Invariante
+* **Azul Primario (Acento):** `#2B8FD4`
+* **Azul Oscuro (Hover):** `#1A3F7A`
+* **Azul Claro (Hover Light):** `#5AAEE0`
+
+### Colores por Modo (Light vs Dark)
+* **Modo Light:**
+  * Superficies: Fondo General `#f5f7fa`, Sidebar `#ffffff`, Tarjetas `#ffffff`
+  * Textos: Principal `#0f172a`, Secundario `#475569`, Muted `#94a3b8`
+  * Bordes: `#e2e8f0`
+* **Modo Dark:**
+  * Superficies: Fondo General `#0a0a0a`, Sidebar `#111111`, Tarjetas `#161616`
+  * Textos: Principal `#f2f2f2`, Secundario `#9ca3af`, Muted `#6b7280`
+  * Bordes: `#242424`
+
+### Tipografía
+* **Títulos (Display/Page):** `Sora` (Weights 600 y 700)
+* **Textos/UI/Labels:** `Inter` (Weights 400 y 500)
+
+### Dimensiones y Layout
+* **Sidebar:** 240px ancho en Desktop.
+* **Header:** 64px alto.
+* **Componentes:** Radios rounded-xl (12px) para tarjetas/modales, rounded-lg (8px) para inputs/botones.
+
+---
+
+## 4. ESTADO DE LOS PASOS DEL PROYECTO
+
+| # | Paso | Estado |
+|---|---|---|
+| 1 | Bootstrap del proyecto (Vite + TS strict + Tailwind + ESLint) | ✅ Completado |
+| 2 | Tipos compartidos, constantes, formatters | ✅ Completado |
+| 3 | Cliente HTTP con interceptor 401 | ✅ Completado  |
+| 4 | SessionStore + AuthContext + useAuth | ✅ Completado  |
+| 5 | Router + ProtectedRoute + RoleGate | ✅ Completado  |
+| 6 | AppShell + Sidebar + Header | ✅ Completado  |
+| 7 | LoginPage email/password + bloqueo BUYER | ✅ Completado |
+| 8 | Login Google OAuth (init + callback) | ✅ Completado |
+| 9 | Recuperación de contraseña | ✅ Completado  |
+| 10 | Logout + sesión expirada | ✅ Completado  |
+| 11 | imageUploader Strategy A/B + ImageDropzone | ✅ Completado |
+| 12 | Seller — Listado de productos paginado | ✅ Completado |
+| 13 | Seller — Crear/editar producto + variaciones + imágenes | ✅ Completado |
+| 14 | Seller — Pausar / dar de baja producto | ✅ Completado |
+| 15 | Seller — Pedidos: lista, detalle, avanzar estado | ✅ Completado |
+| 16 | Seller — Perfil de tienda + redes + ubicación | ✅ Completado |
+| 17 | Seller — Reseñas recibidas (solo lectura) | ✅ Completado |
+| 18 | Seller — Chat con compradores (polling 5s) | ✅ Completado |
+| 19 | Seller — Chat con soporte (Admin) + adjuntos | ✅ Completado |
+| 20 | Seller — Dashboard con KPIs | ✅ Completado |
+| 21 | Admin — Cuentas de vendedores | ✅ Completado |
+| 22 | Admin — Cuentas de compradores | ✅ Completado |
+| 23 | Admin — Moderación de productos + historial | ✅ Completado |
+| 24 | Admin — Moderación de reseñas | ✅ Completado |
+| 25 | Admin — Reportes | ✅ Completado |
+| 26 | Admin — Pedidos globales + cancelación + reembolso MP | ✅ Completado |
+| 27 | Admin — Bandeja de soporte | ✅ Completado |
+| 28 | Toasts globales + ErrorBoundary | ✅ Completado |
+| 29 | Responsive + skeletons + accesibilidad | ✅ Completado |
+| 30 | Deploy a Vercel + variables prod + smoke test | ✅ Completado |

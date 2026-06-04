@@ -165,8 +165,8 @@ function formatStoreNames(stores: AdminOrderStore[]): { display: string; full: s
   return { display: `${names.slice(0, 2).join(', ')} +${names.length - 2}`, full };
 }
 
-function AdminOrderAggregateBadge({ stores }: { stores: AdminOrderStore[] }) {
-  const agg = getAdminOrderAggregateStatus(stores);
+function AdminOrderAggregateBadge({ order }: { order: AdminOrder }) {
+  const agg = getAdminOrderAggregateStatus(order.stores, order.status);
   const cfg = AGGREGATE_BADGE[agg];
   return (
     <span
@@ -602,7 +602,7 @@ export function AdminOrdersListPage() {
       {
         id: 'aggregate',
         header: 'Estado general',
-        cell: (row) => <AdminOrderAggregateBadge stores={row.stores} />,
+        cell: (row) => <AdminOrderAggregateBadge order={row} />,
       },
       {
         id: 'date',

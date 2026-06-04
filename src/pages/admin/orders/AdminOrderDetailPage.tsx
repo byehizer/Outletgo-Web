@@ -51,8 +51,8 @@ const AGGREGATE_BADGE: Record<
   },
 };
 
-function AdminOrderAggregateBadge({ stores }: { stores: AdminOrderStore[] }) {
-  const agg = getAdminOrderAggregateStatus(stores);
+function AdminOrderAggregateBadge({ order }: { order: AdminOrder }) {
+  const agg = getAdminOrderAggregateStatus(order.stores, order.status);
   const cfg = AGGREGATE_BADGE[agg];
   return (
     <span
@@ -167,7 +167,7 @@ export function AdminOrderDetailPage() {
               </h1>
               <p className="mt-2 text-sm text-[var(--text-muted)]">{formatDate(order.orderDate)}</p>
             </div>
-            <AdminOrderAggregateBadge stores={order.stores} />
+            <AdminOrderAggregateBadge order={order} />
           </header>
 
           <section className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-6">

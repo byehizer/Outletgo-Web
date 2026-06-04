@@ -9,10 +9,10 @@ import { forceSliceStatus } from './adminOrdersApi';
 import { cn } from '../../lib/cn';
 import { ApiError } from '../../lib/http/apiClient';
 import {
-  ORDER_STATUS,
-  ORDER_STATUS_LABEL_ES,
+  ORDER_STORE_STATUS,
+  ORDER_STORE_STATUS_LABEL_ES,
   type AdminOrderStore,
-  type OrderStatus,
+  type OrderStoreStatus,
 } from '../../types/order';
 
 const forceStatusSchema = z.object({
@@ -22,13 +22,13 @@ const forceStatusSchema = z.object({
 
 type ForceStatusFormValues = z.infer<typeof forceStatusSchema>;
 
-const ADMIN_FORCE_STATUS_OPTIONS: { value: OrderStatus; label: string }[] = [
-  { value: ORDER_STATUS.PENDING, label: 'Pendiente' },
-  { value: ORDER_STATUS.PREPARING, label: 'Preparando' },
-  { value: ORDER_STATUS.READY_FOR_PICKUP, label: 'Listo para retiro' },
-  { value: ORDER_STATUS.DELIVERED, label: 'Entregado' },
-  { value: ORDER_STATUS.CANCELED, label: 'Cancelado' },
-  { value: ORDER_STATUS.STOCK_ISSUE, label: 'Problema de stock' },
+const ADMIN_FORCE_STATUS_OPTIONS: { value: OrderStoreStatus; label: string }[] = [
+  { value: ORDER_STORE_STATUS.PENDING, label: 'Pendiente de pago' },
+  { value: ORDER_STORE_STATUS.PREPARING, label: 'Preparando' },
+  { value: ORDER_STORE_STATUS.READY_FOR_PICKUP, label: 'Listo para retiro' },
+  { value: ORDER_STORE_STATUS.COLLECTED_BY_OUTLETGO, label: 'Retirado por OutletGo' },
+  { value: ORDER_STORE_STATUS.CANCELED, label: 'Cancelado' },
+  { value: ORDER_STORE_STATUS.STOCK_ISSUE, label: 'Problema de stock' },
 ];
 
 export type ForceStatusModalProps = {
@@ -36,7 +36,7 @@ export type ForceStatusModalProps = {
   slice: AdminOrderStore | null;
   orderId: string;
   /** Estado pre-seleccionado (ej. cancelar desde STOCK_ISSUE). */
-  initialStatus?: OrderStatus;
+  initialStatus?: OrderStoreStatus;
   onSuccess: () => void;
   onClose: () => void;
 };
@@ -60,7 +60,7 @@ export function ForceStatusModal({
     return ADMIN_FORCE_STATUS_OPTIONS.filter((opt) => opt.value !== slice.status);
   }, [slice]);
 
-  const defaultStatus = initialStatus ?? statusOptions[0]?.value ?? ORDER_STATUS.PREPARING;
+  const defaultStatus = initialStatus ?? statusOptions[0]?.value ?? ORDER_STORE_STATUS.PREPARING;
 
   const {
     register,
@@ -83,7 +83,7 @@ export function ForceStatusModal({
     const pre =
       initialStatus && initialStatus !== slice.status && opts.some((o) => o.value === initialStatus)
         ? initialStatus
-        : (opts[0]?.value ?? ORDER_STATUS.PREPARING);
+        : (opts[0]?.value ?? ORDER_STORE_STATUS.PREPARING);
     reset({ status: pre, reason: '' });
     setSubmitError(null);
   }, [open, slice, initialStatus, reset]);
@@ -125,7 +125,7 @@ export function ForceStatusModal({
 
   const onSubmit = async (values: ForceStatusFormValues) => {
     setSubmitError(null);
-    const status = values.status as OrderStatus;
+    const status = values.status as OrderStoreStatus;
 
     try {
       await forceSliceStatus(slice.id, { status, reason: values.reason.trim() });
@@ -142,7 +142,7 @@ export function ForceStatusModal({
     }
   };
 
-  const showCancelWarning = selectedStatus === ORDER_STATUS.CANCELED;
+  const showCancelWarning = selectedStatus === ORDER_STORE_STATUS.CANCELED;
 
   return createPortal(
     <div
@@ -168,7 +168,7 @@ export function ForceStatusModal({
           Slice #{slice.id} de la Orden #{orderId}
         </p>
         <p className="mt-2 text-xs text-[var(--text-muted)]">
-          Estado actual: {ORDER_STATUS_LABEL_ES[slice.status]}
+          Estado actual: {ORDER_STORE_STATUS_LABEL_ES[slice.status]}
         </p>
 
         <form className="mt-5 space-y-4" onSubmit={(e) => void handleSubmit(onSubmit)(e)}>

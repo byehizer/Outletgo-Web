@@ -28,7 +28,7 @@ import type {
   SellerDashboardRecentOrder,
   SellerDashboardRecentReview,
 } from '../../../types/dashboard';
-import { ORDER_STATUS, type OrderStatus } from '../../../types/order';
+import { ORDER_STORE_STATUS, type OrderStoreStatus } from '../../../types/order';
 
 type DashboardUiState = {
   data: SellerDashboardData | null;
@@ -83,18 +83,18 @@ function formatCriticalVariationChip(v: SellerDashboardCriticalVariation): strin
   return `T: ${v.size} / C: ${v.color} — ${v.stock} u.`;
 }
 
-const DASHBOARD_ACTIONABLE_STATUSES = new Set<OrderStatus>([
-  ORDER_STATUS.PENDING,
-  ORDER_STATUS.PREPARING,
-  ORDER_STATUS.READY_FOR_PICKUP,
-  ORDER_STATUS.STOCK_ISSUE,
+const DASHBOARD_ACTIONABLE_STATUSES = new Set<OrderStoreStatus>([
+  ORDER_STORE_STATUS.PENDING,
+  ORDER_STORE_STATUS.PREPARING,
+  ORDER_STORE_STATUS.READY_FOR_PICKUP,
+  ORDER_STORE_STATUS.STOCK_ISSUE,
 ]);
 
-const DASHBOARD_ORDER_SORT_PRIORITY: Partial<Record<OrderStatus, number>> = {
-  [ORDER_STATUS.STOCK_ISSUE]: -1,
-  [ORDER_STATUS.PENDING]: 0,
-  [ORDER_STATUS.PREPARING]: 1,
-  [ORDER_STATUS.READY_FOR_PICKUP]: 2,
+const DASHBOARD_ORDER_SORT_PRIORITY: Partial<Record<OrderStoreStatus, number>> = {
+  [ORDER_STORE_STATUS.STOCK_ISSUE]: -1,
+  [ORDER_STORE_STATUS.PENDING]: 0,
+  [ORDER_STORE_STATUS.PREPARING]: 1,
+  [ORDER_STORE_STATUS.READY_FOR_PICKUP]: 2,
 };
 
 function selectDashboardOrders(orders: SellerDashboardRecentOrder[]): SellerDashboardRecentOrder[] {

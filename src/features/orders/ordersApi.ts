@@ -1,11 +1,11 @@
 import type { Page } from '../../types/api';
 import type {
-  OrderStatus,
+  OrderStoreStatus,
   SellerOrderItem,
   SellerOrderStockIssue,
   SellerOrderStore,
 } from '../../types/order';
-import { ORDER_STATUS, isOrderStatus } from '../../types/order';
+import { ORDER_STORE_STATUS, isOrderStoreStatus } from '../../types/order';
 import { ApiError, apiClient } from '../../lib/http/apiClient';
 import { SELLER_ORDERS_API_PATH, SELLER_ORDERS_PAGE_SIZE } from '../../lib/constants';
 
@@ -35,9 +35,9 @@ function pickNumber(v: unknown): number {
   return Number.isFinite(n) ? n : 0;
 }
 
-function coerceOrderStatus(raw: unknown): OrderStatus {
+function coerceOrderStoreStatus(raw: unknown): OrderStoreStatus {
   const s = typeof raw === 'string' ? raw : '';
-  return isOrderStatus(s) ? s : ORDER_STATUS.PENDING;
+  return isOrderStoreStatus(s) ? s : ORDER_STORE_STATUS.PENDING;
 }
 
 function pickVariationBlock(o: JsonRecord): JsonRecord | undefined {
@@ -189,7 +189,7 @@ export function coerceSellerOrderStore(payload: JsonRecord): SellerOrderStore | 
       payload.total_amount ??
       payload.total,
   );
-  const status = coerceOrderStatus(payload.status);
+  const status = coerceOrderStoreStatus(payload.status ?? payload.storeStatus ?? payload.store_status);
 
   if (!id || !orderId) {
     return undefined;
@@ -254,7 +254,7 @@ const DEV_SHIPPING_ADDRESS = 'Retiro OutletGo — Av. Mitre 1234, Avellaneda';
 export const DEV_OTHER_STORE_ORDER_SLICE: SellerOrderStore = {
   id: 'oss-300b',
   orderId: 'ord-300',
-  status: ORDER_STATUS.PREPARING,
+  status: ORDER_STORE_STATUS.PREPARING,
   subtotalArs: 52_000,
   shippingAddress: 'Retiro OutletGo — Av. Rivadavia 4500, CABA',
   orderDate: '2026-05-27T11:00:00.000Z',
@@ -279,7 +279,7 @@ const DEV_ORDERS: Record<string, SellerOrderStore> = {
   'oss-201': {
     id: 'oss-201',
     orderId: 'ord-201',
-    status: ORDER_STATUS.PAID,
+    status: ORDER_STORE_STATUS.PAID,
     subtotalArs: 42_800,
     shippingAddress: DEV_SHIPPING_ADDRESS,
     orderDate: '2026-05-26T10:30:00.000Z',
@@ -309,7 +309,7 @@ const DEV_ORDERS: Record<string, SellerOrderStore> = {
   'oss-202': {
     id: 'oss-202',
     orderId: 'ord-202',
-    status: ORDER_STATUS.PREPARING,
+    status: ORDER_STORE_STATUS.PREPARING,
     subtotalArs: 99_000,
     shippingAddress: DEV_SHIPPING_ADDRESS,
     orderDate: '2026-05-25T15:00:00.000Z',
@@ -331,7 +331,7 @@ const DEV_ORDERS: Record<string, SellerOrderStore> = {
   'oss-203': {
     id: 'oss-203',
     orderId: 'ord-203',
-    status: ORDER_STATUS.READY_FOR_PICKUP,
+    status: ORDER_STORE_STATUS.READY_FOR_PICKUP,
     subtotalArs: 14_500,
     shippingAddress: DEV_SHIPPING_ADDRESS,
     orderDate: '2026-05-24T09:15:00.000Z',
@@ -353,7 +353,7 @@ const DEV_ORDERS: Record<string, SellerOrderStore> = {
   'oss-199': {
     id: 'oss-199',
     orderId: 'ord-199',
-    status: ORDER_STATUS.CANCELED,
+    status: ORDER_STORE_STATUS.CANCELED,
     subtotalArs: 2_000,
     shippingAddress: DEV_SHIPPING_ADDRESS,
     orderDate: '2026-05-20T12:00:00.000Z',
@@ -375,7 +375,7 @@ const DEV_ORDERS: Record<string, SellerOrderStore> = {
   'oss-300a': {
     id: 'oss-300a',
     orderId: 'ord-300',
-    status: ORDER_STATUS.PAID,
+    status: ORDER_STORE_STATUS.PAID,
     subtotalArs: 29_000,
     shippingAddress: DEV_SHIPPING_ADDRESS,
     orderDate: '2026-05-27T11:00:00.000Z',
@@ -397,7 +397,7 @@ const DEV_ORDERS: Record<string, SellerOrderStore> = {
   'oss-stock-juan': {
     id: 'oss-stock-juan',
     orderId: 'ord-stock-juan',
-    status: ORDER_STATUS.STOCK_ISSUE,
+    status: ORDER_STORE_STATUS.STOCK_ISSUE,
     subtotalArs: 58_000,
     shippingAddress: DEV_SHIPPING_ADDRESS,
     orderDate: '2026-05-26T08:00:00.000Z',
@@ -608,7 +608,7 @@ export async function reportItemStockIssue(
     const stockIssues = [...(current.stockIssues ?? []).filter((s) => s.itemId !== lineId), issue];
     return devPersistSlice({
       ...current,
-      status: ORDER_STATUS.STOCK_ISSUE,
+      status: ORDER_STORE_STATUS.STOCK_ISSUE,
       stockIssues,
     });
   }
@@ -658,12 +658,12 @@ export async function cancelOrderItemSlice(
 
     let status = current.status;
     if (items.length === 0) {
-      status = ORDER_STATUS.CANCELED;
+      status = ORDER_STORE_STATUS.CANCELED;
     } else if (
-      status === ORDER_STATUS.STOCK_ISSUE &&
+      status === ORDER_STORE_STATUS.STOCK_ISSUE &&
       (stockIssues === undefined || stockIssues.length === 0)
     ) {
-      status = ORDER_STATUS.PREPARING;
+      status = ORDER_STORE_STATUS.PREPARING;
     }
 
     return devPersistSlice({

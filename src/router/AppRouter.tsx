@@ -13,6 +13,7 @@ import { AdminOrdersListPage } from '../pages/admin/orders/AdminOrdersListPage';
 import { AdminOrderDetailPage } from '../pages/admin/orders/AdminOrderDetailPage';
 import { SupportInboxPage } from '../pages/admin/support/SupportInboxPage';
 import { SellersListPage } from '../pages/admin/sellers/SellersListPage';
+import { PickupPointsListPage } from '../pages/admin/pickup-points/PickupPointsListPage';
 import { CallbackPage } from '../pages/auth/CallbackPage';
 import { LoginPage } from '../pages/auth/LoginPage';
 import { RecoverPasswordPage } from '../pages/auth/RecoverPasswordPage';
@@ -92,6 +93,7 @@ export function AppRouter() {
               <Route path="orders/:id" element={<AdminOrderDetailPage />} />
               <Route path="orders" element={<AdminOrdersListPage />} />
               <Route path="support" element={<SupportInboxPage />} />
+              <Route path="pickup-points" element={<PickupPointsListPage />} />
             </Route>
           </Route>
         </Route>

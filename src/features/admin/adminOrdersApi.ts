@@ -5,8 +5,9 @@ import type {
   ForceOrderStatusDTO,
   RefundResult,
   RefundSliceDTO,
+  OrderStoreStatus,
 } from '../../types/order';
-import { ORDER_STATUS, isOrderStatus } from '../../types/order';
+import { ORDER_STATUS, isOrderStatus, ORDER_STORE_STATUS, isOrderStoreStatus } from '../../types/order';
 import { ApiError, apiClient } from '../../lib/http/apiClient';
 import { ADMIN_ORDERS_API_PATH, ADMIN_ORDERS_PAGE_SIZE } from '../../lib/constants';
 
@@ -55,12 +56,17 @@ function coerceLineItem(o: JsonRecord) {
   };
 }
 
+function coerceOrderStoreStatus(raw: unknown): OrderStoreStatus {
+  const s = typeof raw === 'string' ? raw : '';
+  return isOrderStoreStatus(s) ? s : ORDER_STORE_STATUS.PENDING;
+}
+
 function coerceAdminOrderStore(o: JsonRecord): AdminOrderStore | undefined {
   const id = pickString(o.id ?? o.sliceId);
   const storeId = pickString(o.storeId ?? o.store_id);
   const businessName = pickString(o.businessName ?? o.business_name);
-  const statusRaw = pickString(o.status);
-  const status = statusRaw && isOrderStatus(statusRaw) ? statusRaw : ORDER_STATUS.PENDING;
+  const statusRaw = pickString(o.status ?? o.storeStatus ?? o.store_status);
+  const status = coerceOrderStoreStatus(statusRaw);
   if (!id || !storeId || !businessName) {
     return undefined;
   }
@@ -110,12 +116,16 @@ function coerceAdminOrder(payload: JsonRecord): AdminOrder | undefined {
     )
     .filter((x): x is AdminOrderStore => x !== undefined);
 
+  const statusRaw = pickString(payload.status);
+  const status = statusRaw && isOrderStatus(statusRaw) ? statusRaw : ORDER_STATUS.PENDING;
+
   if (!id || !buyerId) {
     return undefined;
   }
 
   return {
     id,
+    status,
     orderDate,
     totalArs,
     mpPreferenceId,
@@ -144,6 +154,7 @@ function coercePageAdminOrders(payload: unknown): Page<AdminOrder> {
 /** Orden 1: dos tiendas, ambas PREPARING. */
 const DEV_ORDER_1: AdminOrder = {
   id: 'ord-admin-001',
+  status: ORDER_STATUS.PREPARING,
   orderDate: '2026-05-27T14:30:00.000Z',
   totalArs: 71_300,
   mpPreferenceId: 'MP-PREF-001-7788',
@@ -157,7 +168,7 @@ const DEV_ORDER_1: AdminOrder = {
       id: 'aos-001a',
       storeId: 'store-001',
       businessName: 'Outlet Avellaneda Norte',
-      status: ORDER_STATUS.PREPARING,
+      status: ORDER_STORE_STATUS.PREPARING,
       subtotalArs: 42_800,
       items: [
         {
@@ -182,7 +193,7 @@ const DEV_ORDER_1: AdminOrder = {
       id: 'aos-001b',
       storeId: 'store-002',
       businessName: 'Moda Flores Local',
-      status: ORDER_STATUS.PREPARING,
+      status: ORDER_STORE_STATUS.PREPARING,
       subtotalArs: 28_500,
       items: [
         {
@@ -201,6 +212,7 @@ const DEV_ORDER_1: AdminOrder = {
 /** Orden 2: DELIVERED + STOCK_ISSUE. */
 const DEV_ORDER_2: AdminOrder = {
   id: 'ord-admin-002',
+  status: ORDER_STATUS.STOCK_ISSUE,
   orderDate: '2026-05-26T10:00:00.000Z',
   totalArs: 86_300,
   mpPreferenceId: 'MP-PREF-002-9912',
@@ -214,7 +226,7 @@ const DEV_ORDER_2: AdminOrder = {
       id: 'aos-002a',
       storeId: 'store-001',
       businessName: 'Outlet Avellaneda Norte',
-      status: ORDER_STATUS.DELIVERED,
+      status: ORDER_STORE_STATUS.READY_FOR_PICKUP,
       subtotalArs: 14_500,
       items: [
         {
@@ -231,7 +243,7 @@ const DEV_ORDER_2: AdminOrder = {
       id: 'aos-002b',
       storeId: 'store-005',
       businessName: 'Jean & Remera Outlet',
-      status: ORDER_STATUS.STOCK_ISSUE,
+      status: ORDER_STORE_STATUS.STOCK_ISSUE,
       subtotalArs: 71_800,
       items: [
         {
@@ -260,6 +272,7 @@ const DEV_ORDER_2: AdminOrder = {
 /** Orden 3: una tienda CANCELED con reembolso procesado. */
 const DEV_ORDER_3: AdminOrder = {
   id: 'ord-admin-003',
+  status: ORDER_STATUS.CANCELED,
   orderDate: '2026-05-20T16:45:00.000Z',
   totalArs: 99_000,
   mpPreferenceId: 'MP-PREF-003-4455',
@@ -273,7 +286,7 @@ const DEV_ORDER_3: AdminOrder = {
       id: 'aos-003a',
       storeId: 'store-002',
       businessName: 'Moda Flores Local',
-      status: ORDER_STATUS.CANCELED,
+      status: ORDER_STORE_STATUS.CANCELED,
       subtotalArs: 99_000,
       items: [
         {
@@ -296,6 +309,7 @@ const DEV_ORDER_3: AdminOrder = {
 /** Orden 4: tres tiendas, todas PENDING. */
 const DEV_ORDER_4: AdminOrder = {
   id: 'ord-admin-004',
+  status: ORDER_STATUS.PENDING,
   orderDate: '2026-05-28T09:00:00.000Z',
   totalArs: 156_400,
   mpPreferenceId: 'MP-PREF-004-1122',
@@ -309,7 +323,7 @@ const DEV_ORDER_4: AdminOrder = {
       id: 'aos-004a',
       storeId: 'store-001',
       businessName: 'Outlet Avellaneda Norte',
-      status: ORDER_STATUS.PENDING,
+      status: ORDER_STORE_STATUS.PENDING,
       subtotalArs: 29_000,
       items: [
         {
@@ -326,7 +340,7 @@ const DEV_ORDER_4: AdminOrder = {
       id: 'aos-004b',
       storeId: 'store-004',
       businessName: 'Nuevo Local Palermo',
-      status: ORDER_STATUS.PENDING,
+      status: ORDER_STORE_STATUS.PENDING,
       subtotalArs: 52_000,
       items: [
         {
@@ -343,7 +357,7 @@ const DEV_ORDER_4: AdminOrder = {
       id: 'aos-004c',
       storeId: 'store-005',
       businessName: 'Jean & Remera Outlet',
-      status: ORDER_STATUS.PENDING,
+      status: ORDER_STORE_STATUS.PENDING,
       subtotalArs: 75_400,
       items: [
         {
@@ -362,6 +376,7 @@ const DEV_ORDER_4: AdminOrder = {
 /** Orden 5: una tienda READY_FOR_PICKUP. */
 const DEV_ORDER_5: AdminOrder = {
   id: 'ord-admin-005',
+  status: ORDER_STATUS.READY_FOR_PICKUP,
   orderDate: '2026-05-24T11:15:00.000Z',
   totalArs: 13_800,
   mpPreferenceId: 'MP-PREF-005-6677',
@@ -375,7 +390,7 @@ const DEV_ORDER_5: AdminOrder = {
       id: 'aos-005a',
       storeId: 'store-001',
       businessName: 'Outlet Avellaneda Norte',
-      status: ORDER_STATUS.READY_FOR_PICKUP,
+      status: ORDER_STORE_STATUS.READY_FOR_PICKUP,
       subtotalArs: 13_800,
       items: [
         {
@@ -394,6 +409,7 @@ const DEV_ORDER_5: AdminOrder = {
 /** Orden 6: DELIVERED + CANCELED (sin reembolso aún). */
 const DEV_ORDER_6: AdminOrder = {
   id: 'ord-admin-006',
+  status: ORDER_STATUS.DELIVERED,
   orderDate: '2026-05-22T18:20:00.000Z',
   totalArs: 57_300,
   mpPreferenceId: 'MP-PREF-006-3344',
@@ -407,7 +423,7 @@ const DEV_ORDER_6: AdminOrder = {
       id: 'aos-006a',
       storeId: 'store-004',
       businessName: 'Nuevo Local Palermo',
-      status: ORDER_STATUS.DELIVERED,
+      status: ORDER_STORE_STATUS.COLLECTED_BY_OUTLETGO,
       subtotalArs: 28_500,
       items: [
         {
@@ -424,7 +440,7 @@ const DEV_ORDER_6: AdminOrder = {
       id: 'aos-006b',
       storeId: 'store-002',
       businessName: 'Moda Flores Local',
-      status: ORDER_STATUS.CANCELED,
+      status: ORDER_STORE_STATUS.CANCELED,
       subtotalArs: 28_800,
       items: [
         {
@@ -628,7 +644,7 @@ export async function forceSliceStatus(
     const updatedSlice: AdminOrderStore = {
       ...slice,
       status: data.status,
-      stockIssues: data.status === ORDER_STATUS.CANCELED ? undefined : slice.stockIssues,
+      stockIssues: data.status === ORDER_STORE_STATUS.CANCELED ? undefined : slice.stockIssues,
     };
     const updatedOrder: AdminOrder = {
       ...order,
@@ -675,7 +691,7 @@ export async function refundSlice(data: RefundSliceDTO): Promise<RefundResult> {
       throw new ApiError(404, null, `No hay slice «${sliceId}» en desarrollo.`);
     }
     const { order, slice } = found;
-    if (slice.status !== ORDER_STATUS.CANCELED) {
+    if (slice.status !== ORDER_STORE_STATUS.CANCELED) {
       throw new ApiError(400, null, 'Solo se puede reembolsar un slice cancelado.');
     }
     if (slice.refund) {

@@ -1,17 +1,17 @@
 /**
- * Estados de pedido. El diagrama de clases tenía PENDING/PAID/…;
- * RF-WEB-04.3 usa "Recibido → Preparando → Listo para retiro".
- * PREPARING y READY_FOR_PICKUP enlazan ese flujo post-pago (Paso 15).
+ * Estados globales del pedido (Order). Corresponde al viaje logístico del comprador.
  */
 export const ORDER_STATUS = {
   PENDING: 'PENDING',
   PAID: 'PAID',
   PREPARING: 'PREPARING',
+  COLLECTING: 'COLLECTING',
+  CONSOLIDATED: 'CONSOLIDATED',
   READY_FOR_PICKUP: 'READY_FOR_PICKUP',
-  SHIPPED: 'SHIPPED',
+  SHIPPED: 'SHIPPED', // Mantener por retrocompatibilidad
+  IN_TRANSIT: 'IN_TRANSIT',
   DELIVERED: 'DELIVERED',
   CANCELED: 'CANCELED',
-  /** Problema de stock en negociación con el comprador. */
   STOCK_ISSUE: 'STOCK_ISSUE',
 } as const;
 
@@ -21,16 +21,49 @@ export function isOrderStatus(value: string): value is OrderStatus {
   return (Object.values(ORDER_STATUS) as string[]).includes(value);
 }
 
-/** Textos del panel seller (Pasos 15+). */
+/** Textos del estado general del pedido en español. */
 export const ORDER_STATUS_LABEL_ES: Record<OrderStatus, string> = {
+  PENDING: 'Pendiente de pago',
+  PAID: 'Pago confirmado',
+  PREPARING: 'Preparando',
+  COLLECTING: 'Recolectando',
+  CONSOLIDATED: 'Consolidado',
+  READY_FOR_PICKUP: 'Listo para retirar',
+  SHIPPED: 'Enviado',
+  IN_TRANSIT: 'En camino',
+  DELIVERED: 'Entregado',
+  CANCELED: 'Cancelado',
+  STOCK_ISSUE: 'Problema de stock',
+};
+
+/**
+ * Estados del sub-pedido (OrderStore/Slice) correspondientes a cada tienda.
+ */
+export const ORDER_STORE_STATUS = {
+  PENDING: 'PENDING',
+  PAID: 'PAID',
+  PREPARING: 'PREPARING',
+  READY_FOR_PICKUP: 'READY_FOR_PICKUP',
+  COLLECTED_BY_OUTLETGO: 'COLLECTED_BY_OUTLETGO',
+  CANCELED: 'CANCELED',
+  STOCK_ISSUE: 'STOCK_ISSUE',
+} as const;
+
+export type OrderStoreStatus = (typeof ORDER_STORE_STATUS)[keyof typeof ORDER_STORE_STATUS];
+
+export function isOrderStoreStatus(value: string): value is OrderStoreStatus {
+  return (Object.values(ORDER_STORE_STATUS) as string[]).includes(value);
+}
+
+/** Textos del estado del slice de tienda en español. */
+export const ORDER_STORE_STATUS_LABEL_ES: Record<OrderStoreStatus, string> = {
   PENDING: 'Pendiente de pago',
   PAID: 'Pagado',
   PREPARING: 'Preparando',
   READY_FOR_PICKUP: 'Listo para retiro',
-  SHIPPED: 'Enviado',
-  DELIVERED: 'Entregado',
+  COLLECTED_BY_OUTLETGO: 'Retirado por OutletGo',
   CANCELED: 'Cancelado',
-  STOCK_ISSUE: 'Problema de Stock',
+  STOCK_ISSUE: 'Problema de stock',
 };
 
 export type OrderBuyer = {
@@ -68,7 +101,7 @@ export type SellerOrderStore = {
   id: string;
   /** ID de la orden completa del comprador (referencia cruzada con Admin). */
   orderId: string;
-  status: OrderStatus;
+  status: OrderStoreStatus;
   /** Subtotal en ARS solo de los ítems de esta tienda. */
   subtotalArs: number;
   shippingAddress: string;
@@ -84,7 +117,7 @@ export type AdminOrderStore = {
   id: string;
   storeId: string;
   businessName: string;
-  status: OrderStatus;
+  status: OrderStoreStatus;
   subtotalArs: number;
   items: SellerOrderItem[];
   /** Problemas de stock activos en este slice; ausente si no hay ninguno. */
@@ -102,6 +135,7 @@ export type AdminSliceRefund = {
 /** Orden completa del comprador — solo endpoint Admin. */
 export type AdminOrder = {
   id: string;
+  status: OrderStatus; // Estado logístico global real del backend
   orderDate: string;
   totalArs: number;
   mpPreferenceId: string;
@@ -115,7 +149,7 @@ export type UpdateOrderStatusDTO = {
 
 /** Cambio de estado forzado por Admin sobre un slice. */
 export type ForceOrderStatusDTO = {
-  status: OrderStatus;
+  status: OrderStoreStatus;
   /** Obligatorio — el Admin debe justificar el cambio. */
   reason: string;
 };
@@ -151,11 +185,11 @@ export function findStockIssueForItem(
   return store.stockIssues?.find((issue) => issue.itemId === itemId);
 }
 
-export function orderAllowsStockReport(status: OrderStatus): boolean {
+export function orderAllowsStockReport(status: OrderStoreStatus): boolean {
   return (
-    status === ORDER_STATUS.PENDING ||
-    status === ORDER_STATUS.PREPARING ||
-    status === ORDER_STATUS.STOCK_ISSUE
+    status === ORDER_STORE_STATUS.PENDING ||
+    status === ORDER_STORE_STATUS.PREPARING ||
+    status === ORDER_STORE_STATUS.STOCK_ISSUE
   );
 }
 
@@ -169,17 +203,18 @@ export type AdminOrderAggregateStatus =
 
 export function getAdminOrderAggregateStatus(
   stores: AdminOrderStore[],
+  orderStatus?: OrderStatus,
 ): AdminOrderAggregateStatus {
-  if (stores.some((s) => s.status === ORDER_STATUS.STOCK_ISSUE)) {
+  if (stores.some((s) => s.status === ORDER_STORE_STATUS.STOCK_ISSUE)) {
     return 'STOCK_ISSUE';
   }
-  if (stores.some((s) => s.status === ORDER_STATUS.CANCELED)) {
+  if (stores.some((s) => s.status === ORDER_STORE_STATUS.CANCELED)) {
     return 'PARTIAL_CANCEL';
   }
-  if (stores.length > 0 && stores.every((s) => s.status === ORDER_STATUS.DELIVERED)) {
+  if (orderStatus === ORDER_STATUS.DELIVERED) {
     return 'COMPLETED';
   }
-  if (stores.length > 0 && stores.every((s) => s.status === ORDER_STATUS.PENDING)) {
+  if (orderStatus === ORDER_STATUS.PENDING || (stores.length > 0 && stores.every((s) => s.status === ORDER_STORE_STATUS.PENDING))) {
     return 'PENDING';
   }
   return 'IN_PROGRESS';

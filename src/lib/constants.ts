@@ -40,6 +40,8 @@ export const ROUTES = {
   adminOrders: '/admin/orders',
   /** Bandeja de soporte Admin ↔ vendedores (Paso 27). */
   adminSupport: '/admin/support',
+  /** Puntos de retiro físico OutletGo (Paso 4.6). */
+  adminPickupPoints: '/admin/pickup-points',
   forbidden: '/forbidden',
 } as const;
 
@@ -173,4 +175,10 @@ export const ADMIN_SUPPORT_CONVERSATIONS_PAGE_SIZE = 50;
 
 /** Paginado GET soporte (supuesto Spring `Page`). */
 export const SUPPORT_MESSAGES_PAGE_SIZE = 20;
+
+/** Listado paginado de puntos de retiro Admin (Paso 4.6). */
+export const ADMIN_PICKUP_POINTS_PAGE_SIZE = 10;
+
+/** Puntos de retiro — panel Admin (Paso 4.6). */
+export const ADMIN_PICKUP_POINTS_API_PATH = '/api/admin/shipping/pickup-points' as const;
 
