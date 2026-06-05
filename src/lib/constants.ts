@@ -42,6 +42,8 @@ export const ROUTES = {
   adminSupport: '/admin/support',
   /** Puntos de retiro físico OutletGo (Paso 4.6). */
   adminPickupPoints: '/admin/pickup-points',
+  /** Gestión de Tarifas de Servicio y Comisiones */
+  adminServiceFeeRules: '/admin/service-fee-rules',
   forbidden: '/forbidden',
 } as const;
 
@@ -181,4 +183,10 @@ export const ADMIN_PICKUP_POINTS_PAGE_SIZE = 10;
 
 /** Puntos de retiro — panel Admin (Paso 4.6). */
 export const ADMIN_PICKUP_POINTS_API_PATH = '/api/admin/shipping/pickup-points' as const;
+
+/** Listado paginado de reglas de tarifas de servicio Admin */
+export const ADMIN_SERVICE_FEE_RULES_PAGE_SIZE = 10;
+
+/** API path para las reglas de tarifas de servicio Admin */
+export const ADMIN_SERVICE_FEE_RULES_API_PATH = '/api/admin/service-fee-rules' as const;
 

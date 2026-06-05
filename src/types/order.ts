@@ -102,6 +102,13 @@ export type SellerOrderStore = {
   /** ID de la orden completa del comprador (referencia cruzada con Admin). */
   orderId: string;
   status: OrderStoreStatus;
+  storeName?: string | null;
+  grossAmount?: number;
+  commissionRate?: number;
+  commissionAmount?: number;
+  netAmount?: number;
+  payoutStatus?: 'PENDING' | 'PAID' | 'FAILED';
+  paidAt?: string | null;
   /** Subtotal en ARS solo de los ítems de esta tienda. */
   subtotalArs: number;
   shippingAddress: string;
@@ -118,6 +125,13 @@ export type AdminOrderStore = {
   storeId: string;
   businessName: string;
   status: OrderStoreStatus;
+  storeName?: string | null;
+  grossAmount?: number;
+  commissionRate?: number;
+  commissionAmount?: number;
+  netAmount?: number;
+  payoutStatus?: 'PENDING' | 'PAID' | 'FAILED';
+  paidAt?: string | null;
   subtotalArs: number;
   items: SellerOrderItem[];
   /** Problemas de stock activos en este slice; ausente si no hay ninguno. */
@@ -137,6 +151,9 @@ export type AdminOrder = {
   id: string;
   status: OrderStatus; // Estado logístico global real del backend
   orderDate: string;
+  productSubtotal?: number;
+  shippingCost?: number;
+  serviceFee?: number;
   totalArs: number;
   mpPreferenceId: string;
   buyer: OrderBuyer & { id: string };

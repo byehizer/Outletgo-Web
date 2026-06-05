@@ -1,4 +1,4 @@
-import { Flag, Headphones, LayoutDashboard, MapPin, Shield, ShoppingCart, Star, UserCheck, Users } from 'lucide-react';
+import { Flag, Headphones, LayoutDashboard, MapPin, Percent, Shield, ShoppingCart, Star, UserCheck, Users } from 'lucide-react';
 
 import { ROUTES } from '../../lib/constants';
 
@@ -12,6 +12,7 @@ export const adminNavItems: ShellNavItem[] = [
   { to: ROUTES.adminReports, label: 'Reportes', icon: Flag },
   { to: ROUTES.adminOrders, label: 'Todos los Pedidos', icon: ShoppingCart },
   { to: ROUTES.adminPickupPoints, label: 'Puntos de Retiro', icon: MapPin },
+  { to: ROUTES.adminServiceFeeRules, label: 'Tarifas y Comisiones', icon: Percent },
   { to: ROUTES.adminSupport, label: 'Soporte', icon: Headphones },
   { to: ROUTES.adminSellers, label: 'Vendedores', icon: Users },
   { to: ROUTES.adminBuyers, label: 'Compradores', icon: UserCheck },

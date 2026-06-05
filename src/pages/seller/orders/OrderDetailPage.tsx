@@ -13,6 +13,7 @@ import {
 import { canSellerAdvanceOrderStatus } from '../../../features/orders/orderStatusFlow';
 import { useToast } from '../../../hooks/useToast';
 import { ROUTES } from '../../../lib/constants';
+import { cn } from '../../../lib/cn';
 import { formatARS, formatDate } from '../../../lib/format';
 import { ApiError } from '../../../lib/http/apiClient';
 import {
@@ -327,9 +328,28 @@ export function OrderDetailPage() {
                 );
               })}
             </ul>
-            <div className="mt-4 flex justify-between border-t border-[var(--border)] pt-4 text-sm">
-              <span className="font-semibold text-[var(--text-primary)]">Total</span>
-              <span className="font-semibold text-[var(--text-primary)]">{formatARS(detail.subtotalArs)}</span>
+            <div className="mt-4 border-t border-[var(--border)] pt-4 space-y-2 text-sm">
+              <div className="flex justify-between text-[var(--text-muted)]">
+                <span>Venta Bruta (Productos)</span>
+                <span className="tabular-nums font-medium">{formatARS(detail.grossAmount ?? detail.subtotalArs)}</span>
+              </div>
+              {detail.commissionRate !== undefined && detail.commissionAmount !== undefined ? (
+                <>
+                  <div className="flex justify-between text-danger">
+                    <span>Comisión OutletGo ({(detail.commissionRate * 100).toFixed(1)}%)</span>
+                    <span className="tabular-nums font-medium">- {formatARS(detail.commissionAmount)}</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-success border-t border-dashed border-[var(--border)] pt-2 text-base">
+                    <span>Monto Neto Liquidado</span>
+                    <span className="tabular-nums">{formatARS(detail.netAmount ?? (detail.subtotalArs - detail.commissionAmount))}</span>
+                  </div>
+                </>
+              ) : (
+                <div className="flex justify-between font-semibold text-[var(--text-primary)]">
+                  <span>Total</span>
+                  <span className="tabular-nums">{formatARS(detail.subtotalArs)}</span>
+                </div>
+              )}
             </div>
           </section>
 
@@ -355,6 +375,41 @@ export function OrderDetailPage() {
                 </div>
               </dl>
             </section>
+
+            {detail.payoutStatus ? (
+              <section className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-6 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                <h2 className="font-display text-base font-semibold text-[var(--text-primary)]">Liquidación de Venta</h2>
+                <dl className="mt-4 space-y-3 text-sm">
+                  <div>
+                    <dt className="text-[var(--text-muted)]">Estado de Pago</dt>
+                    <dd className="mt-1">
+                      <span
+                        className={cn(
+                          'inline-flex rounded-full px-2.5 py-0.5 font-semibold text-xs',
+                          detail.payoutStatus === 'PAID'
+                            ? 'bg-success/15 text-success'
+                            : detail.payoutStatus === 'FAILED'
+                              ? 'bg-danger/15 text-danger'
+                              : 'bg-warning/15 text-warning'
+                        )}
+                      >
+                        {detail.payoutStatus === 'PAID'
+                          ? 'Liquidado'
+                          : detail.payoutStatus === 'FAILED'
+                            ? 'Error en liquidación'
+                            : 'Pendiente de liquidación'}
+                      </span>
+                    </dd>
+                  </div>
+                  {detail.paidAt ? (
+                    <div>
+                      <dt className="text-[var(--text-muted)]">Pagado el</dt>
+                      <dd className="font-medium text-[var(--text-primary)]">{formatDate(detail.paidAt)}</dd>
+                    </div>
+                  ) : null}
+                </dl>
+              </section>
+            ) : null}
 
             <section className="rounded-xl border border-brand/25 bg-brand/5 p-6">
               <h2 className="font-display text-lg font-semibold text-[var(--text-primary)]">

@@ -333,6 +333,70 @@ export function AdminOrderDetailPage() {
                       </p>
                     </div>
                   : null}
+
+                  {/* Liquidación y Comisiones de la Tienda */}
+                  {slice.grossAmount !== undefined || slice.commissionAmount !== undefined ? (
+                    <div className="mt-5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border)] p-4">
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-3">
+                        Liquidación y Comisiones de la Tienda
+                      </h4>
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-4 text-sm">
+                        <div>
+                          <span className="text-[11px] text-[var(--text-muted)] block">Venta Bruta</span>
+                          <span className="font-semibold text-[var(--text-primary)] tabular-nums">
+                            {formatARS(slice.grossAmount ?? slice.subtotalArs)}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[11px] text-[var(--text-muted)] block">Tasa de Comisión</span>
+                          <span className="font-semibold text-[var(--text-primary)]">
+                            {slice.commissionRate !== undefined ? `${(slice.commissionRate * 100).toFixed(2)}%` : '—'}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[11px] text-[var(--text-muted)] block">Comisión OutletGo</span>
+                          <span className="font-semibold text-danger tabular-nums">
+                            {slice.commissionAmount !== undefined ? `- ${formatARS(slice.commissionAmount)}` : '—'}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-[11px] text-[var(--text-muted)] block">Monto Neto a Liquidar</span>
+                          <span className="font-bold text-success tabular-nums">
+                            {slice.netAmount !== undefined ? formatARS(slice.netAmount) : '—'}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {slice.payoutStatus ? (
+                        <div className="mt-4 border-t border-[var(--border)] pt-3 flex flex-wrap items-center justify-between gap-2 text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[var(--text-muted)]">Estado del Payout:</span>
+                            <span
+                              className={cn(
+                                'inline-flex rounded-full px-2.5 py-0.5 font-semibold',
+                                slice.payoutStatus === 'PAID'
+                                  ? 'bg-success/15 text-success'
+                                  : slice.payoutStatus === 'FAILED'
+                                    ? 'bg-danger/15 text-danger'
+                                    : 'bg-warning/15 text-warning'
+                              )}
+                            >
+                              {slice.payoutStatus === 'PAID'
+                                ? 'Liquidado'
+                                : slice.payoutStatus === 'FAILED'
+                                  ? 'Error'
+                                  : 'Pendiente'}
+                            </span>
+                          </div>
+                          {slice.paidAt ? (
+                            <span className="text-[var(--text-muted)]">
+                              Pagado el: {formatDate(slice.paidAt)}
+                            </span>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </article>
               );
             })}
@@ -340,17 +404,34 @@ export function AdminOrderDetailPage() {
 
           <section className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-6">
             <h2 className="font-display text-base font-semibold text-[var(--text-primary)]">
-              Resumen financiero
+              Resumen financiero global
             </h2>
+            <ul className="mt-4 space-y-3 text-sm border-b border-[var(--border)] pb-4">
+              <li className="flex justify-between">
+                <span className="text-[var(--text-secondary)]">Subtotal de productos:</span>
+                <span className="font-medium tabular-nums">
+                  {formatARS(order.productSubtotal ?? order.stores.reduce((acc, s) => acc + s.subtotalArs, 0))}
+                </span>
+              </li>
+              <li className="flex justify-between">
+                <span className="text-[var(--text-secondary)]">Costo de envío:</span>
+                <span className="font-medium tabular-nums">{formatARS(order.shippingCost ?? 0)}</span>
+              </li>
+              <li className="flex justify-between">
+                <span className="text-[var(--text-secondary)]">Tarifa de servicio (comprador):</span>
+                <span className="font-medium tabular-nums">{formatARS(order.serviceFee ?? 0)}</span>
+              </li>
+            </ul>
             <ul className="mt-4 space-y-3 text-sm">
+              <li className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider">Aporte de tiendas</li>
               {order.stores.map((slice) => (
                 <li
                   key={slice.id}
                   className="flex flex-wrap items-center justify-between gap-2"
                 >
-                  <span className="font-medium text-[var(--text-primary)]">{slice.businessName}</span>
+                  <span className="text-[var(--text-secondary)]">{slice.businessName}</span>
                   <div className="flex items-center gap-3">
-                    <span className="tabular-nums text-[var(--text-secondary)]">
+                    <span className="tabular-nums text-[var(--text-secondary)] font-mono">
                       {formatARS(slice.subtotalArs)}
                     </span>
                     <OrderStatusBadge status={slice.status} />
@@ -359,9 +440,9 @@ export function AdminOrderDetailPage() {
               ))}
             </ul>
             <div className="my-4 border-t border-[var(--border)]" />
-            <div className="flex justify-between text-sm font-semibold">
-              <span className="text-[var(--text-primary)]">Total de la orden</span>
-              <span className="tabular-nums">{formatARS(order.totalArs)}</span>
+            <div className="flex justify-between text-sm font-bold text-[var(--text-primary)]">
+              <span>Total de la orden (MP)</span>
+              <span className="tabular-nums text-lg">{formatARS(order.totalArs)}</span>
             </div>
             {totalRefunded > 0 ?
               <>

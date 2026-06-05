@@ -14,6 +14,7 @@ import { AdminOrderDetailPage } from '../pages/admin/orders/AdminOrderDetailPage
 import { SupportInboxPage } from '../pages/admin/support/SupportInboxPage';
 import { SellersListPage } from '../pages/admin/sellers/SellersListPage';
 import { PickupPointsListPage } from '../pages/admin/pickup-points/PickupPointsListPage';
+import { ServiceFeeRulesListPage } from '../pages/admin/service-fee-rules/ServiceFeeRulesListPage';
 import { CallbackPage } from '../pages/auth/CallbackPage';
 import { LoginPage } from '../pages/auth/LoginPage';
 import { RecoverPasswordPage } from '../pages/auth/RecoverPasswordPage';
@@ -94,6 +95,7 @@ export function AppRouter() {
               <Route path="orders" element={<AdminOrdersListPage />} />
               <Route path="support" element={<SupportInboxPage />} />
               <Route path="pickup-points" element={<PickupPointsListPage />} />
+              <Route path="service-fee-rules" element={<ServiceFeeRulesListPage />} />
             </Route>
           </Route>
         </Route>

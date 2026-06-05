@@ -85,6 +85,13 @@ function coerceAdminOrderStore(o: JsonRecord): AdminOrderStore | undefined {
     storeId,
     businessName,
     status,
+    storeName: pickString(o.storeName ?? o.store_name),
+    grossAmount: o.grossAmount !== undefined ? pickNumber(o.grossAmount) : undefined,
+    commissionRate: o.commissionRate !== undefined ? pickNumber(o.commissionRate) : undefined,
+    commissionAmount: o.commissionAmount !== undefined ? pickNumber(o.commissionAmount) : undefined,
+    netAmount: o.netAmount !== undefined ? pickNumber(o.netAmount) : undefined,
+    payoutStatus: (pickString(o.payoutStatus ?? o.payout_status) ?? undefined) as any,
+    paidAt: pickString(o.paidAt ?? o.paid_at) ?? null,
     subtotalArs: pickNumber(o.subtotalArs ?? o.subtotal_ars ?? o.subtotal),
     items,
     refund: mpRefundId ? { mpRefundId, refundedAmount } : undefined,
@@ -94,6 +101,9 @@ function coerceAdminOrderStore(o: JsonRecord): AdminOrderStore | undefined {
 function coerceAdminOrder(payload: JsonRecord): AdminOrder | undefined {
   const id = pickString(payload.id ?? payload.orderId);
   const orderDate = pickString(payload.orderDate ?? payload.order_date ?? payload.createdAt) ?? '';
+  const productSubtotal = payload.productSubtotal !== undefined ? pickNumber(payload.productSubtotal) : undefined;
+  const shippingCost = payload.shippingCost !== undefined ? pickNumber(payload.shippingCost) : undefined;
+  const serviceFee = payload.serviceFee !== undefined ? pickNumber(payload.serviceFee) : undefined;
   const totalArs = pickNumber(payload.totalArs ?? payload.total_ars ?? payload.total);
   const mpPreferenceId = pickString(payload.mpPreferenceId ?? payload.mp_preference_id) ?? '';
   const buyerRaw =
@@ -127,6 +137,9 @@ function coerceAdminOrder(payload: JsonRecord): AdminOrder | undefined {
     id,
     status,
     orderDate,
+    productSubtotal,
+    shippingCost,
+    serviceFee,
     totalArs,
     mpPreferenceId,
     buyer: { id: buyerId, displayName: buyerDisplayName, email: buyerEmail },
@@ -156,7 +169,10 @@ const DEV_ORDER_1: AdminOrder = {
   id: 'ord-admin-001',
   status: ORDER_STATUS.PREPARING,
   orderDate: '2026-05-27T14:30:00.000Z',
-  totalArs: 71_300,
+  productSubtotal: 71_300,
+  shippingCost: 0,
+  serviceFee: 150,
+  totalArs: 71_450,
   mpPreferenceId: 'MP-PREF-001-7788',
   buyer: {
     id: 'buyer-101',
@@ -169,6 +185,13 @@ const DEV_ORDER_1: AdminOrder = {
       storeId: 'store-001',
       businessName: 'Outlet Avellaneda Norte',
       status: ORDER_STORE_STATUS.PREPARING,
+      storeName: 'Outlet Avellaneda Norte',
+      grossAmount: 42_800,
+      commissionRate: 0.1000,
+      commissionAmount: 4_280,
+      netAmount: 38_520,
+      payoutStatus: 'PENDING',
+      paidAt: null,
       subtotalArs: 42_800,
       items: [
         {
@@ -194,6 +217,13 @@ const DEV_ORDER_1: AdminOrder = {
       storeId: 'store-002',
       businessName: 'Moda Flores Local',
       status: ORDER_STORE_STATUS.PREPARING,
+      storeName: 'Moda Flores Local',
+      grossAmount: 28_500,
+      commissionRate: 0.1000,
+      commissionAmount: 2_850,
+      netAmount: 25_650,
+      payoutStatus: 'PENDING',
+      paidAt: null,
       subtotalArs: 28_500,
       items: [
         {
@@ -214,7 +244,10 @@ const DEV_ORDER_2: AdminOrder = {
   id: 'ord-admin-002',
   status: ORDER_STATUS.STOCK_ISSUE,
   orderDate: '2026-05-26T10:00:00.000Z',
-  totalArs: 86_300,
+  productSubtotal: 86_300,
+  shippingCost: 800,
+  serviceFee: 150,
+  totalArs: 87_250,
   mpPreferenceId: 'MP-PREF-002-9912',
   buyer: {
     id: 'buyer-102',
@@ -227,6 +260,13 @@ const DEV_ORDER_2: AdminOrder = {
       storeId: 'store-001',
       businessName: 'Outlet Avellaneda Norte',
       status: ORDER_STORE_STATUS.READY_FOR_PICKUP,
+      storeName: 'Outlet Avellaneda Norte',
+      grossAmount: 14_500,
+      commissionRate: 0.1000,
+      commissionAmount: 1_450,
+      netAmount: 13_050,
+      payoutStatus: 'PENDING',
+      paidAt: null,
       subtotalArs: 14_500,
       items: [
         {
@@ -244,6 +284,13 @@ const DEV_ORDER_2: AdminOrder = {
       storeId: 'store-005',
       businessName: 'Jean & Remera Outlet',
       status: ORDER_STORE_STATUS.STOCK_ISSUE,
+      storeName: 'Jean & Remera Outlet',
+      grossAmount: 71_800,
+      commissionRate: 0.1000,
+      commissionAmount: 7_180,
+      netAmount: 64_620,
+      payoutStatus: 'PENDING',
+      paidAt: null,
       subtotalArs: 71_800,
       items: [
         {
@@ -274,7 +321,10 @@ const DEV_ORDER_3: AdminOrder = {
   id: 'ord-admin-003',
   status: ORDER_STATUS.CANCELED,
   orderDate: '2026-05-20T16:45:00.000Z',
-  totalArs: 99_000,
+  productSubtotal: 99_000,
+  shippingCost: 800,
+  serviceFee: 150,
+  totalArs: 99_950,
   mpPreferenceId: 'MP-PREF-003-4455',
   buyer: {
     id: 'buyer-103',
@@ -287,6 +337,13 @@ const DEV_ORDER_3: AdminOrder = {
       storeId: 'store-002',
       businessName: 'Moda Flores Local',
       status: ORDER_STORE_STATUS.CANCELED,
+      storeName: 'Moda Flores Local',
+      grossAmount: 99_000,
+      commissionRate: 0.1000,
+      commissionAmount: 9_900,
+      netAmount: 89_100,
+      payoutStatus: 'PENDING',
+      paidAt: null,
       subtotalArs: 99_000,
       items: [
         {
@@ -311,7 +368,10 @@ const DEV_ORDER_4: AdminOrder = {
   id: 'ord-admin-004',
   status: ORDER_STATUS.PENDING,
   orderDate: '2026-05-28T09:00:00.000Z',
-  totalArs: 156_400,
+  productSubtotal: 156_400,
+  shippingCost: 0,
+  serviceFee: 150,
+  totalArs: 156_550,
   mpPreferenceId: 'MP-PREF-004-1122',
   buyer: {
     id: 'buyer-104',
@@ -324,6 +384,13 @@ const DEV_ORDER_4: AdminOrder = {
       storeId: 'store-001',
       businessName: 'Outlet Avellaneda Norte',
       status: ORDER_STORE_STATUS.PENDING,
+      storeName: 'Outlet Avellaneda Norte',
+      grossAmount: 29_000,
+      commissionRate: 0.1000,
+      commissionAmount: 2_900,
+      netAmount: 26_100,
+      payoutStatus: 'PENDING',
+      paidAt: null,
       subtotalArs: 29_000,
       items: [
         {
@@ -341,6 +408,13 @@ const DEV_ORDER_4: AdminOrder = {
       storeId: 'store-004',
       businessName: 'Nuevo Local Palermo',
       status: ORDER_STORE_STATUS.PENDING,
+      storeName: 'Nuevo Local Palermo',
+      grossAmount: 52_000,
+      commissionRate: 0.1000,
+      commissionAmount: 5_200,
+      netAmount: 46_800,
+      payoutStatus: 'PENDING',
+      paidAt: null,
       subtotalArs: 52_000,
       items: [
         {
@@ -358,6 +432,13 @@ const DEV_ORDER_4: AdminOrder = {
       storeId: 'store-005',
       businessName: 'Jean & Remera Outlet',
       status: ORDER_STORE_STATUS.PENDING,
+      storeName: 'Jean & Remera Outlet',
+      grossAmount: 75_400,
+      commissionRate: 0.1000,
+      commissionAmount: 7_540,
+      netAmount: 67_860,
+      payoutStatus: 'PENDING',
+      paidAt: null,
       subtotalArs: 75_400,
       items: [
         {
@@ -378,7 +459,10 @@ const DEV_ORDER_5: AdminOrder = {
   id: 'ord-admin-005',
   status: ORDER_STATUS.READY_FOR_PICKUP,
   orderDate: '2026-05-24T11:15:00.000Z',
-  totalArs: 13_800,
+  productSubtotal: 13_800,
+  shippingCost: 0,
+  serviceFee: 150,
+  totalArs: 13_950,
   mpPreferenceId: 'MP-PREF-005-6677',
   buyer: {
     id: 'buyer-105',
@@ -391,6 +475,13 @@ const DEV_ORDER_5: AdminOrder = {
       storeId: 'store-001',
       businessName: 'Outlet Avellaneda Norte',
       status: ORDER_STORE_STATUS.READY_FOR_PICKUP,
+      storeName: 'Outlet Avellaneda Norte',
+      grossAmount: 13_800,
+      commissionRate: 0.1000,
+      commissionAmount: 1_380,
+      netAmount: 12_420,
+      payoutStatus: 'PENDING',
+      paidAt: null,
       subtotalArs: 13_800,
       items: [
         {
@@ -411,7 +502,10 @@ const DEV_ORDER_6: AdminOrder = {
   id: 'ord-admin-006',
   status: ORDER_STATUS.DELIVERED,
   orderDate: '2026-05-22T18:20:00.000Z',
-  totalArs: 57_300,
+  productSubtotal: 57_300,
+  shippingCost: 800,
+  serviceFee: 150,
+  totalArs: 58_250,
   mpPreferenceId: 'MP-PREF-006-3344',
   buyer: {
     id: 'buyer-106',
@@ -424,6 +518,13 @@ const DEV_ORDER_6: AdminOrder = {
       storeId: 'store-004',
       businessName: 'Nuevo Local Palermo',
       status: ORDER_STORE_STATUS.COLLECTED_BY_OUTLETGO,
+      storeName: 'Nuevo Local Palermo',
+      grossAmount: 28_500,
+      commissionRate: 0.1000,
+      commissionAmount: 2_850,
+      netAmount: 25_650,
+      payoutStatus: 'PAID',
+      paidAt: '2026-05-23T10:00:00.000Z',
       subtotalArs: 28_500,
       items: [
         {
@@ -441,6 +542,13 @@ const DEV_ORDER_6: AdminOrder = {
       storeId: 'store-002',
       businessName: 'Moda Flores Local',
       status: ORDER_STORE_STATUS.CANCELED,
+      storeName: 'Moda Flores Local',
+      grossAmount: 28_800,
+      commissionRate: 0.1000,
+      commissionAmount: 2_880,
+      netAmount: 25_920,
+      payoutStatus: 'PENDING',
+      paidAt: null,
       subtotalArs: 28_800,
       items: [
         {

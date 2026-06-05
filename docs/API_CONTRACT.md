@@ -333,11 +333,18 @@ endDate?:   string (ISO 8601 fecha)
 Page<SellerOrderStore>
 
 type SellerOrderStore = {
-  id:          string;   // ID del slice (OrderStore)
-  orderId:     string;   // ID de la orden padre
-  storeStatus: OrderStoreStatus; // Estado del slice de tienda. El backend puede enviar esto como 'storeStatus', 'store_status' o 'status'; el frontend lo tolera de forma flexible.
-  subtotalArs: number;
-  orderDate:   string;   // ISO 8601
+  id:               string;   // ID del slice (OrderStore)
+  orderId:          string;   // ID de la orden padre
+  storeStatus:      OrderStoreStatus; // Estado del slice de tienda
+  storeName:        string | null; // Nombre del local al momento de la compra
+  grossAmount:      number;   // Subtotal del local en ARS
+  commissionRate:   number;   // Porcentaje aplicado (ej: 0.05)
+  commissionAmount: number;   // Monto de comisión descontado
+  netAmount:        number;   // Monto neto a transferir al local
+  payoutStatus:     'PENDING' | 'PAID' | 'FAILED';
+  paidAt:           string | null; // ISO 8601 o null
+  subtotalArs:      number;   // Subtotal en ARS para retrocompatibilidad
+  orderDate:        string;   // ISO 8601
   buyer: {
     displayName: string | null;
     email:       string;
@@ -1687,22 +1694,33 @@ endDate?:   string (ISO 8601)
 Page<AdminOrder>
 
 type AdminOrder = {
-  id:        string;
-  status:    OrderStatus; // Estado logístico global del pedido
-  createdAt: string;  // ISO 8601
+  id:              string;
+  status:          OrderStatus; // Estado logístico global del pedido
+  createdAt:       string;  // ISO 8601
+  productSubtotal: number;  // Subtotal de productos consolidado en ARS
+  shippingCost:    number;  // Costo de envío consolidado en ARS
+  serviceFee:      number;  // Tarifa de servicio consolidada cobrada al comprador
+  totalArs:        number;  // Pago total del comprador
+  mpPreferenceId:  string;
   buyer: {
     id:    string;
     email: string;
     name:  string | null;
   };
   stores: AdminOrderStore[];  // slices por tienda
-  totalArs: number;
 };
 
 type AdminOrderStore = {
-  id:          string;   // sliceId
-  storeStatus: OrderStoreStatus; // Estado del slice de tienda. El backend puede enviar esto como 'storeStatus', 'store_status' o 'status'; el frontend lo tolera de forma flexible.
-  subtotalArs: number;
+  id:               string;   // sliceId
+  storeStatus:      OrderStoreStatus; // Estado del slice de tienda
+  storeName:        string | null; // Nombre de la tienda denormalizado
+  grossAmount:      number;   // Subtotal de la tienda en ARS
+  commissionRate:   number;   // Porcentaje de comisión
+  commissionAmount: number;   // Monto de comisión cobrado a la tienda
+  netAmount:        number;   // Monto neto a transferir al local
+  payoutStatus:     'PENDING' | 'PAID' | 'FAILED';
+  paidAt:           string | null;
+  subtotalArs:      number;   // Para retrocompatibilidad
   store: {
     id:           string;
     businessName: string;
