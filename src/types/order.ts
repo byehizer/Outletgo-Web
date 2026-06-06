@@ -216,20 +216,25 @@ export type AdminOrderAggregateStatus =
   | 'PARTIAL_CANCEL'
   | 'COMPLETED'
   | 'PENDING'
-  | 'IN_PROGRESS';
+  | 'IN_PROGRESS'
+  | 'CANCELED';
 
 export function getAdminOrderAggregateStatus(
   stores: AdminOrderStore[],
   orderStatus?: OrderStatus,
 ): AdminOrderAggregateStatus {
-  if (stores.some((s) => s.status === ORDER_STORE_STATUS.STOCK_ISSUE)) {
-    return 'STOCK_ISSUE';
-  }
-  if (stores.some((s) => s.status === ORDER_STORE_STATUS.CANCELED)) {
-    return 'PARTIAL_CANCEL';
+  if (orderStatus === ORDER_STATUS.CANCELED) {
+    return 'CANCELED';
   }
   if (orderStatus === ORDER_STATUS.DELIVERED) {
     return 'COMPLETED';
+  }
+  if (stores.some((s) => s.status === ORDER_STORE_STATUS.STOCK_ISSUE)) {
+    return 'STOCK_ISSUE';
+  }
+  // Si hay alguna tienda cancelada que aún no tiene su reembolso procesado, se alerta
+  if (stores.some((s) => s.status === ORDER_STORE_STATUS.CANCELED && !s.refund)) {
+    return 'PARTIAL_CANCEL';
   }
   if (orderStatus === ORDER_STATUS.PENDING || (stores.length > 0 && stores.every((s) => s.status === ORDER_STORE_STATUS.PENDING))) {
     return 'PENDING';

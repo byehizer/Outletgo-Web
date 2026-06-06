@@ -123,6 +123,10 @@ const AGGREGATE_BADGE: Record<
     label: 'En progreso',
     className: 'bg-brand/15 text-brand',
   },
+  CANCELED: {
+    label: 'Cancelado',
+    className: 'bg-danger/15 text-danger',
+  },
 };
 
 function parsePageOneBased(raw: string | null): number {

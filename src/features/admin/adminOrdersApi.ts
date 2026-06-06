@@ -564,7 +564,7 @@ const DEV_ORDER_6: AdminOrder = {
   ],
 };
 
-const DEV_ORDERS: Record<string, AdminOrder> = {
+export const DEV_ORDERS: Record<string, AdminOrder> = {
   [DEV_ORDER_1.id]: DEV_ORDER_1,
   [DEV_ORDER_2.id]: DEV_ORDER_2,
   [DEV_ORDER_3.id]: DEV_ORDER_3,
@@ -836,4 +836,39 @@ export async function refundSlice(data: RefundSliceDTO): Promise<RefundResult> {
     refundedAmount: pickNumber(root.refundedAmount ?? root.refunded_amount),
     message: pickString(root.message) ?? 'Operación completada.',
   };
+}
+
+export async function updateGlobalOrderStatus(
+  orderId: string,
+  status: typeof ORDER_STATUS[keyof typeof ORDER_STATUS],
+): Promise<AdminOrder> {
+  const id = orderId.trim();
+  if (!id) {
+    throw new ApiError(400, null, 'ID de orden inválido.');
+  }
+
+  if (import.meta.env.DEV) {
+    await devDelay(undefined, 200);
+    const order = DEV_ORDERS[id];
+    if (!order) {
+      throw new ApiError(404, null, `No hay orden «${id}» en desarrollo.`);
+    }
+    const updatedOrder: AdminOrder = {
+      ...order,
+      status,
+    };
+    DEV_ORDERS[id] = updatedOrder;
+    return mockClone(updatedOrder);
+  }
+
+  const raw = await apiClient.patch<unknown>(
+    `${ADMIN_ORDERS_API_PATH}/${encodeURIComponent(id)}/status`,
+    { status },
+  );
+  const order =
+    typeof raw === 'object' && raw !== null ? coerceAdminOrder(raw as JsonRecord) : undefined;
+  if (!order) {
+    throw new ApiError(502, null, 'Respuesta de orden inválida.');
+  }
+  return order;
 }

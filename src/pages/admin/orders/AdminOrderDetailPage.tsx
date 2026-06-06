@@ -1,23 +1,28 @@
-import { AlertTriangle, CreditCard, RefreshCw } from 'lucide-react';
+import { AlertTriangle, CreditCard, RefreshCw, Loader2, PackageCheck, PackageX, Truck } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 
 import { Skeleton } from '../../../components/Skeleton';
 import { ForceStatusModal } from '../../../features/admin/ForceStatusModal';
 import { RefundModal } from '../../../features/admin/RefundModal';
-import { fetchAdminOrderDetail } from '../../../features/admin/adminOrdersApi';
+import { fetchAdminOrderDetail, updateGlobalOrderStatus, forceSliceStatus } from '../../../features/admin/adminOrdersApi';
 import { OrderStatusBadge } from '../../../features/orders/OrderStatusBadge';
+import { useToast } from '../../../hooks/useToast';
 import { ROUTES } from '../../../lib/constants';
 import { cn } from '../../../lib/cn';
 import { formatARS, formatDate } from '../../../lib/format';
 import { ApiError } from '../../../lib/http/apiClient';
 import {
   ORDER_STATUS,
+  ORDER_STATUS_LABEL_ES,
+  ORDER_STORE_STATUS,
   getAdminOrderAggregateStatus,
   hasStockIssueForItem,
   type AdminOrder,
   type AdminOrderAggregateStatus,
   type AdminOrderStore,
+  type OrderStatus,
+  type OrderStoreStatus,
 } from '../../../types/order';
 
 type DetailModal =
@@ -48,6 +53,10 @@ const AGGREGATE_BADGE: Record<
   IN_PROGRESS: {
     label: 'En progreso',
     className: 'bg-brand/15 text-brand',
+  },
+  CANCELED: {
+    label: 'Cancelado',
+    className: 'bg-danger/15 text-danger',
   },
 };
 
@@ -90,12 +99,15 @@ export function AdminOrderDetailPage() {
   const { id: rawId } = useParams<{ id: string }>();
   const orderId = rawId?.trim() ?? '';
   const [searchParams] = useSearchParams();
+  const { success, error: showError } = useToast();
 
   const [order, setOrder] = useState<AdminOrder | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [modal, setModal] = useState<DetailModal>(null);
   const [refreshNonce, setRefreshNonce] = useState(0);
+  const [globalStatusUpdating, setGlobalStatusUpdating] = useState(false);
+  const [sliceActionBusy, setSliceActionBusy] = useState<Record<string, boolean>>({});
 
   const backHref = useMemo(() => {
     const qs = searchParams.toString();
@@ -136,6 +148,45 @@ export function AdminOrderDetailPage() {
     setRefreshNonce((n) => n + 1);
   }, []);
 
+  const handleUpdateGlobalStatus = useCallback(async (newStatus: OrderStatus) => {
+    if (!orderId) return;
+    setGlobalStatusUpdating(true);
+    try {
+      await updateGlobalOrderStatus(orderId, newStatus);
+      success(`Estado del pedido actualizado a: ${ORDER_STATUS_LABEL_ES[newStatus]}`);
+      bumpRefresh();
+    } catch (err: unknown) {
+      if (err instanceof ApiError) {
+        showError(err.message);
+      } else if (err instanceof Error) {
+        showError(err.message);
+      } else {
+        showError('No se pudo actualizar el estado global del pedido.');
+      }
+    } finally {
+      setGlobalStatusUpdating(false);
+    }
+  }, [orderId, success, showError, bumpRefresh]);
+
+  const handleQuickSliceAction = useCallback(async (sliceId: string, status: OrderStoreStatus, defaultReason: string) => {
+    setSliceActionBusy((prev) => ({ ...prev, [sliceId]: true }));
+    try {
+      await forceSliceStatus(sliceId, { status, reason: defaultReason });
+      success('Estado de la tienda actualizado correctamente.');
+      bumpRefresh();
+    } catch (err: unknown) {
+      if (err instanceof ApiError) {
+        showError(err.message);
+      } else if (err instanceof Error) {
+        showError(err.message);
+      } else {
+        showError('No se pudo actualizar el estado de la tienda.');
+      }
+    } finally {
+      setSliceActionBusy((prev) => ({ ...prev, [sliceId]: false }));
+    }
+  }, [success, showError, bumpRefresh]);
+
   const totalRefunded = order ? sumRefunds(order) : 0;
   const netEffective = order ? order.totalArs - totalRefunded : 0;
 
@@ -160,14 +211,50 @@ export function AdminOrderDetailPage() {
 
       {!loading && order ?
         <>
-          <header className="flex flex-wrap items-start gap-4">
-            <div>
-              <h1 className="font-display text-display-md text-[var(--text-primary)]">
-                Orden #{order.id}
-              </h1>
-              <p className="mt-2 text-sm text-[var(--text-muted)]">{formatDate(order.orderDate)}</p>
+          <header className="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border)] pb-4">
+            <div className="flex flex-wrap items-start gap-6">
+              <div>
+                <h1 className="font-display text-display-md text-[var(--text-primary)]">
+                  Orden #{order.id}
+                </h1>
+                <p className="mt-2 text-sm text-[var(--text-muted)]">{formatDate(order.orderDate)}</p>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">Estado Logístico</span>
+                <div className="flex items-center gap-2">
+                  <AdminOrderAggregateBadge order={order} />
+                  <span className="text-xs font-medium text-[var(--text-secondary)]">({ORDER_STATUS_LABEL_ES[order.status]})</span>
+                </div>
+              </div>
             </div>
-            <AdminOrderAggregateBadge order={order} />
+
+            {/* Selector de Estado Logístico Global */}
+            <div className="flex items-center gap-3 rounded-xl bg-[var(--bg-card)] border border-[var(--border)] p-3 shadow-sm transition hover:shadow-md">
+              <label htmlFor="global-order-status" className="text-xs font-bold text-[var(--text-secondary)]">
+                Acción Logística Global:
+              </label>
+              <select
+                id="global-order-status"
+                value={order.status}
+                disabled={globalStatusUpdating}
+                onChange={(e) => void handleUpdateGlobalStatus(e.target.value as OrderStatus)}
+                className="h-9 rounded-lg border border-[var(--border)] bg-[var(--bg-input)] px-2.5 text-xs font-semibold text-[var(--text-primary)] outline-none focus:border-[var(--border-focus)] focus:ring-1 focus:ring-[var(--border-focus)] disabled:opacity-50 cursor-pointer"
+              >
+                <option value={ORDER_STATUS.PENDING}>Pendiente de pago</option>
+                <option value={ORDER_STATUS.PAID}>Pago confirmado (PAID)</option>
+                <option value={ORDER_STATUS.PREPARING}>Preparando (PREPARING)</option>
+                <option value={ORDER_STATUS.COLLECTING}>Recolectando (COLLECTING)</option>
+                <option value={ORDER_STATUS.CONSOLIDATED}>Consolidado (CONSOLIDATED)</option>
+                <option value={ORDER_STATUS.READY_FOR_PICKUP}>Listo para retirar (READY_FOR_PICKUP)</option>
+                <option value={ORDER_STATUS.IN_TRANSIT}>En camino / Con Rider (IN_TRANSIT)</option>
+                <option value={ORDER_STATUS.DELIVERED}>Entregado (DELIVERED)</option>
+                <option value={ORDER_STATUS.CANCELED}>Cancelado (CANCELED)</option>
+                <option value={ORDER_STATUS.STOCK_ISSUE}>Problema de stock (STOCK_ISSUE)</option>
+              </select>
+              {globalStatusUpdating ? (
+                <Loader2 className="size-4 animate-spin text-brand" />
+              ) : null}
+            </div>
           </header>
 
           <section className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-6">
@@ -215,6 +302,49 @@ export function AdminOrderDetailPage() {
                       <span className="text-sm font-semibold text-[var(--text-secondary)]">
                         {formatARS(slice.subtotalArs)}
                       </span>
+
+                      {slice.status === ORDER_STORE_STATUS.PREPARING || slice.status === ORDER_STORE_STATUS.PAID ? (
+                        <>
+                          <button
+                            type="button"
+                            disabled={sliceActionBusy[slice.id]}
+                            onClick={() => void handleQuickSliceAction(slice.id, ORDER_STORE_STATUS.READY_FOR_PICKUP, 'Avance logístico estándar: Listo en local')}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-brand/40 bg-brand/10 px-3 py-1.5 text-xs font-semibold text-brand transition hover:bg-brand/15 disabled:opacity-50"
+                          >
+                            {sliceActionBusy[slice.id] ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                              <PackageCheck className="size-3.5" />
+                            )}
+                            Listo para Retiro
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setModal({ kind: 'force', slice, initialStatus: ORDER_STORE_STATUS.CANCELED })}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-danger/40 bg-danger/10 px-3 py-1.5 text-xs font-semibold text-danger transition hover:bg-danger/15"
+                          >
+                            <PackageX className="size-3.5" />
+                            Cancelar Slice
+                          </button>
+                        </>
+                      ) : null}
+
+                      {slice.status === ORDER_STORE_STATUS.READY_FOR_PICKUP ? (
+                        <button
+                          type="button"
+                          disabled={sliceActionBusy[slice.id]}
+                          onClick={() => void handleQuickSliceAction(slice.id, ORDER_STORE_STATUS.COLLECTED_BY_OUTLETGO, 'Recolección física en local por chofer de OutletGo')}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-success/40 bg-success/10 px-3 py-1.5 text-xs font-semibold text-success transition hover:bg-success/15 disabled:opacity-50"
+                        >
+                          {sliceActionBusy[slice.id] ? (
+                            <Loader2 className="size-3.5 animate-spin" />
+                          ) : (
+                            <Truck className="size-3.5" />
+                          )}
+                          Recolectar
+                        </button>
+                      ) : null}
+
                       <button
                         type="button"
                         className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-3 py-1.5 text-xs font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--bg-input)]"
