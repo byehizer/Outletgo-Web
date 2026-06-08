@@ -190,3 +190,7 @@ export const ADMIN_SERVICE_FEE_RULES_PAGE_SIZE = 10;
 /** API path para las reglas de tarifas de servicio Admin */
 export const ADMIN_SERVICE_FEE_RULES_API_PATH = '/api/admin/service-fee-rules' as const;
 
+/** API path para el resumen del dashboard Admin */
+export const ADMIN_DASHBOARD_API_PATH = '/api/admin/dashboard' as const;
+
+

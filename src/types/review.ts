@@ -14,6 +14,7 @@ export type SellerReview = {
   productId: string | null;
   /** Nombre denormalizado del producto; `null` si no aplica. */
   productName: string | null;
+  imageUrls: string[];
   /** Fecha ISO 8601. */
   createdAt: string;
 };

@@ -98,7 +98,7 @@ function coerceAdminOrderStore(o: JsonRecord): AdminOrderStore | undefined {
   };
 }
 
-function coerceAdminOrder(payload: JsonRecord): AdminOrder | undefined {
+export function coerceAdminOrder(payload: JsonRecord): AdminOrder | undefined {
   const id = pickString(payload.id ?? payload.orderId);
   const orderDate = pickString(payload.orderDate ?? payload.order_date ?? payload.createdAt) ?? '';
   const productSubtotal = payload.productSubtotal !== undefined ? pickNumber(payload.productSubtotal) : undefined;

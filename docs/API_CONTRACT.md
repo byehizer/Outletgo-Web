@@ -1349,6 +1349,7 @@ type AdminReview = {
   createdAt:     string;
   storeId:       string;        // FK explícita
   productId:     string | null; // null = reseña de tienda
+  imageUrls:     string[];      // URLs de fotos de producto (solo reviews de productos, hasta 4)
   store: {
     id:           string;
     businessName: string;
@@ -1396,6 +1397,7 @@ Renderiza la tabla de reseñas con rating, visibilidad, comprador y tienda.
     storeName:   string;
     productId:   string | null;
     productName: string | null;
+    imageUrls:   string[];      // URLs de fotos de producto
     isVisible:   boolean;
     createdAt:   string;
   }>;
@@ -1777,6 +1779,35 @@ AdminOrder  // objeto completo con todos los slices
 
 ---
 
+### PATCH /api/admin/orders/:orderId/status
+
+**Quién lo usa:** Admin  
+**Cuándo se llama:** Al cambiar manualmente el estado logístico global de la orden (por ejemplo, a `IN_TRANSIT` o `DELIVERED`).
+
+**Request:**
+- Params: `orderId` en la URL
+- Body:
+```typescript
+{
+  status: OrderStatus;
+}
+```
+
+**Respuesta esperada:**
+```typescript
+AdminOrder  // con el status actualizado
+```
+
+**Qué hace el frontend con esto:**
+Actualiza el detalle del pedido en pantalla, muestra toast de éxito y refresca los datos.
+
+**Errores manejados:**
+- 400 → toast "Estado de pedido inválido"
+- 404 → toast "Pedido no encontrado"
+- 401 → limpia sesión → `/login`
+
+---
+
 ### POST /api/admin/orders/slices/:sliceId/force-status
 
 **Quién lo usa:** Admin  
@@ -2149,6 +2180,35 @@ Page<{
   lng:           number;
   businessHours: string;
   isActive:      boolean;
+}
+```
+
+---
+
+## 18. Dashboard — Admin
+
+### GET /api/admin/dashboard
+
+**Estado:** Confirmado  
+**Quién lo usa:** Admin  
+**Cuándo se llama:** Al cargar el resumen administrativo (`/admin`).
+
+**Request:**
+- Params: ninguno
+
+**Respuesta esperada:**
+```typescript
+{
+  totalGmv:                        number;
+  totalCommissions:                number;
+  totalServiceFees:                number;
+  totalOrdersCount:                number;
+  activeStoresCount:               number;
+  pendingReportsCount:             number;
+  pendingRefundsCount:             number;
+  stockIssuesCount:                number;
+  unreadSupportConversationsCount: number;
+  recentOrders:                    AdminOrder[];
 }
 ```
 

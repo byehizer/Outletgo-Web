@@ -133,11 +133,26 @@ export function ReviewDetailPanel({
   const [visibilityBusy, setVisibilityBusy] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
     setHistoryOpen(false);
+    setSelectedImage(null);
     dispatchHistory({ type: 'RESET' });
   }, [review?.id]);
+
+  useEffect(() => {
+    if (!selectedImage) return;
+    const handleKeyDown = (e: globalThis.KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedImage(null);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedImage]);
 
   const loadHistory = useCallback((buyerId: string) => {
     dispatchHistory({ type: 'FETCH_BEGIN' });
@@ -253,6 +268,30 @@ export function ReviewDetailPanel({
                 <p className="text-sm text-[var(--text-muted)]">Sin comentario</p>
               )}
             </section>
+
+            {review.imageUrls && review.imageUrls.length > 0 && (
+              <section className="space-y-2 border-t border-[var(--border)] px-6 py-6">
+                <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+                  Imágenes adjuntas ({review.imageUrls.length})
+                </h3>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  {review.imageUrls.map((url, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => setSelectedImage(url)}
+                      className="group relative aspect-square overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] focus:outline-none focus:ring-2 focus:ring-brand"
+                    >
+                      <img
+                        src={url}
+                        alt={`Miniatura reseña ${index + 1}`}
+                        className="h-full w-full object-cover transition duration-200 group-hover:scale-105"
+                      />
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
 
             <section className="space-y-2 border-t border-[var(--border)] px-6 py-6">
               <h3 className="text-sm font-semibold text-[var(--text-primary)]">Sobre</h3>
@@ -401,6 +440,29 @@ export function ReviewDetailPanel({
         }}
         onConfirm={handleDeleteConfirm}
       />
+
+      {selectedImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-in fade-in duration-150"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div className="relative max-h-[90vh] max-w-[90vw]" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className="absolute -right-4 -top-10 rounded-lg bg-black/60 p-2 text-white hover:bg-black/80"
+              onClick={() => setSelectedImage(null)}
+              aria-label="Cerrar imagen"
+            >
+              <X className="size-6" />
+            </button>
+            <img
+              src={selectedImage}
+              alt="Visualización de reseña"
+              className="max-h-[85vh] max-w-[85vw] rounded-lg object-contain shadow-2xl"
+            />
+          </div>
+        </div>
+      )}
     </>
   );
 }

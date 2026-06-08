@@ -10,6 +10,7 @@ export type AdminReview = {
   storeId: string;
   /** `null` cuando la reseña es sobre la tienda (sin producto). */
   productId: string | null;
+  imageUrls: string[];
   store: {
     id: string;
     businessName: string;
@@ -42,6 +43,7 @@ export type BuyerReviewEntry = {
   productId: string | null;
   /** `null` si no hay producto asociado. */
   productName: string | null;
+  imageUrls: string[];
   isVisible: boolean;
   /** Fecha ISO 8601 de publicación. */
   createdAt: string;

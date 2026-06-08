@@ -42,6 +42,7 @@ const DEV_STORE_REVIEWS_SEED: SellerReview[] = [
     storeId: DEV_SELLER_STORE_ID,
     productId: null,
     productName: null,
+    imageUrls: [],
     createdAt: '2024-06-02T14:22:30.000Z',
   },
   {
@@ -52,6 +53,7 @@ const DEV_STORE_REVIEWS_SEED: SellerReview[] = [
     storeId: DEV_SELLER_STORE_ID,
     productId: null,
     productName: null,
+    imageUrls: [],
     createdAt: '2024-06-03T09:15:00.000Z',
   },
   {
@@ -62,6 +64,7 @@ const DEV_STORE_REVIEWS_SEED: SellerReview[] = [
     storeId: DEV_SELLER_STORE_ID,
     productId: null,
     productName: null,
+    imageUrls: [],
     createdAt: '2024-06-10T11:05:42.000Z',
   },
   {
@@ -72,6 +75,7 @@ const DEV_STORE_REVIEWS_SEED: SellerReview[] = [
     storeId: DEV_SELLER_STORE_ID,
     productId: null,
     productName: null,
+    imageUrls: [],
     createdAt: '2024-08-03T08:52:17.000Z',
   },
   {
@@ -82,6 +86,7 @@ const DEV_STORE_REVIEWS_SEED: SellerReview[] = [
     storeId: DEV_SELLER_STORE_ID,
     productId: null,
     productName: null,
+    imageUrls: [],
     createdAt: '2024-09-05T19:07:56.000Z',
   },
 ];
@@ -108,6 +113,9 @@ const DEV_PRODUCT_REVIEWS_SEED: SellerReview[] = [
     storeId: DEV_SELLER_STORE_ID,
     productId: devSellerProduct(0).id,
     productName: productNameForMock(devSellerProduct(0).id) ?? null,
+    imageUrls: [
+      'https://picsum.photos/seed/rem1/600/600'
+    ],
     createdAt: '2024-07-01T16:44:21.000Z',
   },
   {
@@ -118,6 +126,10 @@ const DEV_PRODUCT_REVIEWS_SEED: SellerReview[] = [
     storeId: DEV_SELLER_STORE_ID,
     productId: devSellerProduct(1).id,
     productName: productNameForMock(devSellerProduct(1).id) ?? null,
+    imageUrls: [
+      'https://picsum.photos/seed/rem2/600/600',
+      'https://picsum.photos/seed/rem3/600/600'
+    ],
     createdAt: '2024-07-12T20:03:59.000Z',
   },
   {
@@ -128,6 +140,7 @@ const DEV_PRODUCT_REVIEWS_SEED: SellerReview[] = [
     storeId: DEV_SELLER_STORE_ID,
     productId: devSellerProduct(2).id,
     productName: productNameForMock(devSellerProduct(2).id) ?? null,
+    imageUrls: [],
     createdAt: '2024-08-21T13:41:09.000Z',
   },
   {
@@ -138,6 +151,9 @@ const DEV_PRODUCT_REVIEWS_SEED: SellerReview[] = [
     storeId: DEV_SELLER_STORE_ID,
     productId: devSellerProduct(3).id,
     productName: productNameForMock(devSellerProduct(3).id) ?? null,
+    imageUrls: [
+      'https://picsum.photos/seed/rem4/600/600'
+    ],
     createdAt: '2024-09-18T10:38:03.000Z',
   },
   {
@@ -148,6 +164,11 @@ const DEV_PRODUCT_REVIEWS_SEED: SellerReview[] = [
     storeId: DEV_SELLER_STORE_ID,
     productId: devSellerProduct(3).id,
     productName: productNameForMock(devSellerProduct(3).id) ?? null,
+    imageUrls: [
+      'https://picsum.photos/seed/rem5/600/600',
+      'https://picsum.photos/seed/rem6/600/600',
+      'https://picsum.photos/seed/rem7/600/600'
+    ],
     createdAt: '2024-10-02T07:59:41.000Z',
   },
   {
@@ -158,6 +179,7 @@ const DEV_PRODUCT_REVIEWS_SEED: SellerReview[] = [
     storeId: DEV_SELLER_STORE_ID,
     productId: devSellerProduct(4).id,
     productName: productNameForMock(devSellerProduct(4).id) ?? null,
+    imageUrls: [],
     createdAt: '2024-10-09T21:45:12.000Z',
   },
 ];
@@ -282,6 +304,17 @@ function coerceSellerReview(raw: unknown): SellerReview | null {
     return null;
   }
 
+  const imageUrlsRaw = o.imageUrls ?? o.image_urls;
+  const imageUrls: string[] = [];
+  // Las imágenes son únicamente de productos (productId no es nulo)
+  if (productId && Array.isArray(imageUrlsRaw)) {
+    for (const url of imageUrlsRaw) {
+      if (typeof url === 'string' && url.trim().length > 0) {
+        imageUrls.push(url.trim());
+      }
+    }
+  }
+
   return {
     id,
     authorName,
@@ -290,6 +323,7 @@ function coerceSellerReview(raw: unknown): SellerReview | null {
     storeId,
     productId,
     productName,
+    imageUrls,
     createdAt,
   };
 }
