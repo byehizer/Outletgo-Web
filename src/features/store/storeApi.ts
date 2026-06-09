@@ -44,7 +44,6 @@ export type SellerStoreProfile = {
   taxIdCuit: string;
   streetAddress: string;
   phone: string | null;
-  headerImageUrl: string | null;
   logoUrl: string | null;
   latitude: number;
   longitude: number;
@@ -118,8 +117,6 @@ export function coerceSellerStoreProfile(raw: unknown): SellerStoreProfile {
     streetAddress:
       pickString(o.streetAddress ?? o.street_address ?? o.address ?? o.fullAddress) ?? '',
     phone: pickString(o.phone ?? o.telephone ?? o.phoneNumber) ?? null,
-    headerImageUrl:
-      pickString(o.headerImageUrl ?? o.header_image_url ?? o.coverImageUrl ?? o.bannerUrl) ?? null,
     logoUrl:
       pickString(o.logoUrl ?? o.logo_url ?? o.logoURL ?? o.storeLogoUrl ?? o.avatarUrl) ?? null,
     latitude: Number.isFinite(lat) ? lat : -34.6625,
@@ -134,7 +131,6 @@ type StoreProfilePatchBody = {
   taxIdCuit: string;
   streetAddress: string;
   phone: string | null;
-  headerImageUrl: string | null;
   logoUrl: string | null;
   social: StoreSocial;
   businessHours: SellerStoreBusinessDay[];
@@ -146,7 +142,6 @@ function formValuesToPatchBody(values: StoreProfileFormValues): StoreProfilePatc
     taxIdCuit: values.taxIdCuit.trim(),
     streetAddress: values.streetAddress.trim(),
     phone: values.phone.trim().length > 0 ? values.phone.trim() : null,
-    headerImageUrl: values.headerImageUrl.trim().length > 0 ? values.headerImageUrl.trim() : null,
     logoUrl: values.logoUrl.trim().length > 0 ? values.logoUrl.trim() : null,
     social: {
       instagram: values.social.instagram.trim() || null,
@@ -169,7 +164,6 @@ export function sellerStoreProfileToFormValues(profile: SellerStoreProfile): Sto
     taxIdCuit: profile.taxIdCuit,
     streetAddress: profile.streetAddress,
     phone: profile.phone ?? '',
-    headerImageUrl: profile.headerImageUrl ?? '',
     logoUrl: profile.logoUrl ?? '',
     social: {
       instagram: profile.social.instagram ?? '',
@@ -219,7 +213,6 @@ let devSellerStore: SellerStoreProfile = {
   taxIdCuit: '30-76123451-9',
   streetAddress: 'Av. Mitre 2100 · Local feria · Avellaneda (GBA)',
   phone: '+54 11 2345-6789',
-  headerImageUrl: 'https://picsum.photos/seed/outletgo-header/1200/400',
   logoUrl: 'https://picsum.photos/seed/outletgo-logo/256/256',
   latitude: -34.662,
   longitude: -58.365,
@@ -276,7 +269,6 @@ export async function updateSellerStoreProfile(values: StoreProfileFormValues): 
       taxIdCuit: body.taxIdCuit,
       streetAddress: body.streetAddress,
       phone: body.phone,
-      headerImageUrl: body.headerImageUrl,
       logoUrl: body.logoUrl,
       social: body.social,
       businessHours: body.businessHours,

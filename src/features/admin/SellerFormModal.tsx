@@ -35,7 +35,7 @@ const sellerCreateFormSchema = sellerFormBaseSchema.extend({
 });
 
 const sellerEditFormSchema = sellerFormBaseSchema.extend({
-  headerImageUrl: z.string().nullable().optional(),
+  logoUrl: z.string().nullable().optional(),
 });
 
 type SellerCreateFormValues = z.infer<typeof sellerCreateFormSchema>;
@@ -84,7 +84,7 @@ function editDefaultValues(seller: SellerAccount): SellerEditFormValues {
     cuit: seller.store.cuit,
     address: seller.store.address,
     description: seller.store.description,
-    headerImageUrl: seller.store.headerImageUrl,
+    logoUrl: seller.store.logoUrl,
   };
 }
 
@@ -101,7 +101,7 @@ function editEmptyDefaultValues(): SellerEditFormValues {
     cuit: '',
     address: '',
     description: '',
-    headerImageUrl: null,
+    logoUrl: null,
   };
 }
 
@@ -133,9 +133,9 @@ export function SellerFormModal(props: SellerFormModalProps) {
         : editEmptyDefaultValues(),
   });
 
-  const headerPreview =
+  const logoPreview =
     mode === 'edit'
-      ? (watch('headerImageUrl' as keyof SellerEditFormValues) as string | null | undefined)
+      ? (watch('logoUrl' as keyof SellerEditFormValues) as string | null | undefined)
       : null;
 
   useEffect(() => {
@@ -216,7 +216,7 @@ export function SellerFormModal(props: SellerFormModalProps) {
           cuit: normalizeCuit(v.cuit),
           address: v.address.trim(),
           description: v.description?.trim() || undefined,
-          headerImageUrl: v.headerImageUrl ?? null,
+          logoUrl: v.logoUrl ?? null,
         });
       }
       onSuccess();
@@ -387,25 +387,33 @@ export function SellerFormModal(props: SellerFormModalProps) {
           {!isCreate ? (
             <div className="space-y-2">
               <p className="text-xs font-medium text-[var(--text-secondary)]">
-                Imagen de portada <span className="text-[var(--text-muted)]">(opcional)</span>
+                Logo de la tienda <span className="text-[var(--text-muted)]">(opcional)</span>
               </p>
-              {headerPreview ? (
-                <img
-                  src={headerPreview}
-                  alt=""
-                  className="h-24 w-full rounded-lg border border-[var(--border)] object-cover"
-                />
-              ) : null}
-              <ImageDropzone
-                uploader={backendImageUploader}
-                maxFiles={1}
-                stagingSessionId={stagingSessionId}
-                onUrlsChange={(urls) => {
-                  setValue('headerImageUrl', urls[0] ?? null, { shouldDirty: true });
-                }}
-                disabled={isSubmitting}
-                className="max-w-full"
-              />
+              <div className="flex items-center gap-4">
+                {logoPreview ? (
+                  <img
+                    src={logoPreview}
+                    alt="Logo"
+                    className="size-16 rounded-lg border border-[var(--border)] object-cover"
+                  />
+                ) : (
+                  <div className="flex size-16 items-center justify-center rounded-lg border border-dashed border-[var(--border)] text-xs text-[var(--text-muted)]" aria-hidden>
+                    Sin logo
+                  </div>
+                )}
+                <div className="flex-1">
+                  <ImageDropzone
+                    uploader={backendImageUploader}
+                    maxFiles={1}
+                    stagingSessionId={stagingSessionId}
+                    onUrlsChange={(urls) => {
+                      setValue('logoUrl', urls[0] ?? null, { shouldDirty: true });
+                    }}
+                    disabled={isSubmitting}
+                    className="max-w-full"
+                  />
+                </div>
+              </div>
             </div>
           ) : null}
 

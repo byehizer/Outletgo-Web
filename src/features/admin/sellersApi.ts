@@ -80,8 +80,8 @@ function coerceSellerAccountStore(o: JsonRecord): SellerAccountStore | undefined
   const cuit = pickString(o.cuit ?? o.taxIdCuit ?? o.tax_id_cuit) ?? '';
   const address = pickString(o.address ?? o.streetAddress ?? o.street_address) ?? '';
   const description = pickString(o.description) ?? '';
-  const headerImageUrl =
-    pickString(o.headerImageUrl ?? o.header_image_url) ?? null;
+  const logoUrl =
+    pickString(o.logoUrl ?? o.logo_url ?? o.headerImageUrl ?? o.header_image_url) ?? null;
   const ratingAvg = pickNullableNumber(o.ratingAvg ?? o.rating_avg);
   const ratingCount = Math.max(
     0,
@@ -90,15 +90,50 @@ function coerceSellerAccountStore(o: JsonRecord): SellerAccountStore | undefined
   if (!id || !businessName) {
     return undefined;
   }
+
+  const phone = pickString(o.phone ?? o.telephone) ?? null;
+  const latitude = o.latitude !== undefined ? pickNumber(o.latitude) : undefined;
+  const longitude = o.longitude !== undefined ? pickNumber(o.longitude) : undefined;
+
+  let social: SellerAccountStore['social'] = undefined;
+  if (o.social && typeof o.social === 'object') {
+    const s = o.social as JsonRecord;
+    social = {
+      instagram: pickString(s.instagram ?? s.instagramUrl) ?? null,
+      facebook: pickString(s.facebook ?? s.facebookUrl) ?? null,
+      tiktok: pickString(s.tiktok ?? s.tiktokUrl) ?? null,
+      website: pickString(s.website ?? s.webUrl) ?? null,
+    };
+  }
+
+  let businessHours: SellerAccountStore['businessHours'] = undefined;
+  if (Array.isArray(o.businessHours ?? o.openingHours ?? o.hours)) {
+    const arr = (o.businessHours ?? o.openingHours ?? o.hours) as unknown[];
+    businessHours = arr.map((item) => {
+      const h = item as JsonRecord;
+      return {
+        day: (pickString(h.day)?.toUpperCase() ?? 'MONDAY') as any,
+        isClosed: Boolean(h.isClosed ?? h.closed),
+        openTime: pickString(h.openTime ?? h.open) ?? null,
+        closeTime: pickString(h.closeTime ?? h.close) ?? null,
+      };
+    });
+  }
+
   return {
     id,
     businessName,
     cuit,
     address,
     description,
-    headerImageUrl,
+    logoUrl,
     ratingAvg,
     ratingCount,
+    phone,
+    latitude,
+    longitude,
+    social,
+    businessHours,
   };
 }
 
@@ -151,9 +186,27 @@ let devSellerAccounts: SellerAccount[] = [
       cuit: '20123456789',
       address: 'Av. Mitre 1234, Avellaneda',
       description: 'Ropa y calzado de outlet en zona sur.',
-      headerImageUrl: 'https://picsum.photos/seed/store001/64/64',
+      logoUrl: 'https://picsum.photos/seed/store001/64/64',
       ratingAvg: 4.3,
       ratingCount: 28,
+      phone: '+54 11 2345-6789',
+      latitude: -34.6625,
+      longitude: -58.3672,
+      social: {
+        instagram: 'https://instagram.com/ejemplo.tienda',
+        facebook: null,
+        tiktok: null,
+        website: null,
+      },
+      businessHours: [
+        { day: 'MONDAY', isClosed: false, openTime: '08:30', closeTime: '18:30' },
+        { day: 'TUESDAY', isClosed: false, openTime: '08:30', closeTime: '18:30' },
+        { day: 'WEDNESDAY', isClosed: false, openTime: '08:30', closeTime: '18:30' },
+        { day: 'THURSDAY', isClosed: false, openTime: '08:30', closeTime: '18:30' },
+        { day: 'FRIDAY', isClosed: false, openTime: '08:30', closeTime: '19:00' },
+        { day: 'SATURDAY', isClosed: false, openTime: '09:00', closeTime: '14:00' },
+        { day: 'SUNDAY', isClosed: true, openTime: null, closeTime: null },
+      ],
     },
   },
   {
@@ -167,9 +220,27 @@ let devSellerAccounts: SellerAccount[] = [
       cuit: '20987654321',
       address: 'Av. Rivadavia 4500, CABA',
       description: 'Indumentaria urbana y accesorios.',
-      headerImageUrl: 'https://picsum.photos/seed/store002/64/64',
+      logoUrl: 'https://picsum.photos/seed/store002/64/64',
       ratingAvg: null,
       ratingCount: 0,
+      phone: '+54 11 9876-5432',
+      latitude: -34.6157,
+      longitude: -58.4333,
+      social: {
+        instagram: 'https://instagram.com/moda.flores',
+        facebook: 'https://facebook.com/modaflores',
+        tiktok: null,
+        website: null,
+      },
+      businessHours: [
+        { day: 'MONDAY', isClosed: false, openTime: '09:00', closeTime: '18:00' },
+        { day: 'TUESDAY', isClosed: false, openTime: '09:00', closeTime: '18:00' },
+        { day: 'WEDNESDAY', isClosed: false, openTime: '09:00', closeTime: '18:00' },
+        { day: 'THURSDAY', isClosed: false, openTime: '09:00', closeTime: '18:00' },
+        { day: 'FRIDAY', isClosed: false, openTime: '09:00', closeTime: '18:00' },
+        { day: 'SATURDAY', isClosed: false, openTime: '09:00', closeTime: '13:00' },
+        { day: 'SUNDAY', isClosed: true, openTime: null, closeTime: null },
+      ],
     },
   },
   {
@@ -183,9 +254,27 @@ let devSellerAccounts: SellerAccount[] = [
       cuit: '20333444555',
       address: 'Calle Falsa 123, La Plata',
       description: 'Cuenta desactivada por moderación.',
-      headerImageUrl: null,
+      logoUrl: null,
       ratingAvg: 2.8,
       ratingCount: 5,
+      phone: null,
+      latitude: -34.9214,
+      longitude: -57.9545,
+      social: {
+        instagram: null,
+        facebook: null,
+        tiktok: null,
+        website: null,
+      },
+      businessHours: [
+        { day: 'MONDAY', isClosed: true, openTime: null, closeTime: null },
+        { day: 'TUESDAY', isClosed: true, openTime: null, closeTime: null },
+        { day: 'WEDNESDAY', isClosed: true, openTime: null, closeTime: null },
+        { day: 'THURSDAY', isClosed: true, openTime: null, closeTime: null },
+        { day: 'FRIDAY', isClosed: true, openTime: null, closeTime: null },
+        { day: 'SATURDAY', isClosed: true, openTime: null, closeTime: null },
+        { day: 'SUNDAY', isClosed: true, openTime: null, closeTime: null },
+      ],
     },
   },
   {
@@ -199,9 +288,27 @@ let devSellerAccounts: SellerAccount[] = [
       cuit: '20444555666',
       address: 'Thames 1800, Palermo',
       description: 'Alta reciente — perfil en construcción.',
-      headerImageUrl: 'https://picsum.photos/seed/store004/64/64',
+      logoUrl: 'https://picsum.photos/seed/store004/64/64',
       ratingAvg: 4.8,
       ratingCount: 6,
+      phone: '+54 11 5555-1234',
+      latitude: -34.5889,
+      longitude: -58.4306,
+      social: {
+        instagram: 'https://instagram.com/palermo.nuevo',
+        facebook: null,
+        tiktok: 'https://tiktok.com/@palermo.nuevo',
+        website: 'https://palermonuevo.demo',
+      },
+      businessHours: [
+        { day: 'MONDAY', isClosed: false, openTime: '10:00', closeTime: '20:00' },
+        { day: 'TUESDAY', isClosed: false, openTime: '10:00', closeTime: '20:00' },
+        { day: 'WEDNESDAY', isClosed: false, openTime: '10:00', closeTime: '20:00' },
+        { day: 'THURSDAY', isClosed: false, openTime: '10:00', closeTime: '20:00' },
+        { day: 'FRIDAY', isClosed: false, openTime: '10:00', closeTime: '21:00' },
+        { day: 'SATURDAY', isClosed: false, openTime: '10:00', closeTime: '21:00' },
+        { day: 'SUNDAY', isClosed: false, openTime: '12:00', closeTime: '19:00' },
+      ],
     },
   },
   {
@@ -215,9 +322,27 @@ let devSellerAccounts: SellerAccount[] = [
       cuit: '20555666777',
       address: 'San Martín 900, Rosario',
       description: '',
-      headerImageUrl: null,
+      logoUrl: null,
       ratingAvg: 3.9,
       ratingCount: 12,
+      phone: null,
+      latitude: -32.9468,
+      longitude: -60.6393,
+      social: {
+        instagram: null,
+        facebook: null,
+        tiktok: null,
+        website: null,
+      },
+      businessHours: [
+        { day: 'MONDAY', isClosed: false, openTime: '09:00', closeTime: '19:00' },
+        { day: 'TUESDAY', isClosed: false, openTime: '09:00', closeTime: '19:00' },
+        { day: 'WEDNESDAY', isClosed: false, openTime: '09:00', closeTime: '19:00' },
+        { day: 'THURSDAY', isClosed: false, openTime: '09:00', closeTime: '19:00' },
+        { day: 'FRIDAY', isClosed: false, openTime: '09:00', closeTime: '19:00' },
+        { day: 'SATURDAY', isClosed: false, openTime: '09:00', closeTime: '13:00' },
+        { day: 'SUNDAY', isClosed: true, openTime: null, closeTime: null },
+      ],
     },
   },
 ];
@@ -312,9 +437,22 @@ export async function createSellerAccount(data: CreateSellerAccountDTO): Promise
         cuit: data.cuit.trim(),
         address: data.address.trim(),
         description: data.description?.trim() ?? '',
-        headerImageUrl: null,
+        logoUrl: null,
         ratingAvg: null,
         ratingCount: 0,
+        phone: null,
+        latitude: -34.6625,
+        longitude: -58.3672,
+        social: { instagram: null, facebook: null, tiktok: null, website: null },
+        businessHours: [
+          { day: 'MONDAY', isClosed: false, openTime: '09:00', closeTime: '18:00' },
+          { day: 'TUESDAY', isClosed: false, openTime: '09:00', closeTime: '18:00' },
+          { day: 'WEDNESDAY', isClosed: false, openTime: '09:00', closeTime: '18:00' },
+          { day: 'THURSDAY', isClosed: false, openTime: '09:00', closeTime: '18:00' },
+          { day: 'FRIDAY', isClosed: false, openTime: '09:00', closeTime: '18:00' },
+          { day: 'SATURDAY', isClosed: false, openTime: '09:00', closeTime: '13:00' },
+          { day: 'SUNDAY', isClosed: true, openTime: null, closeTime: null },
+        ],
       },
     };
     devSellerAccounts = [created, ...devSellerAccounts];
@@ -332,7 +470,7 @@ export async function createSellerAccount(data: CreateSellerAccountDTO): Promise
 export async function updateSellerAccount(
   id: string,
   data: UpdateSellerAccountDTO,
-): Promise<SellerAccount> {
+ ): Promise<SellerAccount> {
   const sellerId = id.trim();
   if (!sellerId) {
     throw new ApiError(400, null, 'ID de vendedor inválido.');
@@ -350,10 +488,10 @@ export async function updateSellerAccount(
         cuit: data.cuit.trim(),
         address: data.address.trim(),
         description: data.description?.trim() ?? '',
-        headerImageUrl:
-          data.headerImageUrl !== undefined
-            ? data.headerImageUrl
-            : current.store.headerImageUrl,
+        logoUrl:
+          data.logoUrl !== undefined
+            ? data.logoUrl
+            : current.store.logoUrl,
       },
     };
     devSellerAccounts = devSellerAccounts.map((row) =>
@@ -403,6 +541,27 @@ export async function toggleSellerStatus(
   const account = coerceSellerAccount(raw);
   if (!account) {
     throw new ApiError(500, raw, 'El servidor no devolvió el vendedor actualizado.');
+  }
+  return account;
+}
+
+export async function fetchSellerAccountById(id: string): Promise<SellerAccount> {
+  const sellerId = id.trim();
+  if (!sellerId) {
+    throw new ApiError(400, null, 'ID de vendedor inválido.');
+  }
+
+  if (import.meta.env.DEV) {
+    await devDelay(undefined, 200);
+    return mockClone(findDevSellerOrThrow(sellerId));
+  }
+
+  const raw = await apiClient.get<unknown>(
+    `${ADMIN_SELLERS_API_PATH}/${encodeURIComponent(sellerId)}`,
+  );
+  const account = coerceSellerAccount(raw);
+  if (!account) {
+    throw new ApiError(500, raw, 'El servidor no devolvió el vendedor.');
   }
   return account;
 }

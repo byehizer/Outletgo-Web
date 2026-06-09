@@ -105,7 +105,6 @@ export const storeProfileFormSchema = z
       .refine(cuitRefine, 'El CUIT debe tener 11 dígitos (podés usar guiones).'),
     streetAddress: z.string().min(5, 'Indicá la dirección física del local.'),
     phone: z.string().max(40, 'El teléfono es demasiado largo.'),
-    headerImageUrl: optionalPublicUrl,
     logoUrl: optionalPublicUrl,
     social: z.object({
       instagram: optionalPublicUrl,
@@ -138,7 +137,6 @@ export function storeProfileFormDefaults(): StoreProfileFormValues {
     taxIdCuit: '',
     streetAddress: '',
     phone: '',
-    headerImageUrl: '',
     logoUrl: '',
     social: {
       instagram: '',

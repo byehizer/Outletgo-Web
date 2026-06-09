@@ -46,7 +46,6 @@ function mapsEmbedSrc(lat: number, lng: number): string {
  * Perfil de tienda seller (Paso 16): datos del local, header, redes y mapa (lat/lng desde backend).
  */
 export function StoreProfilePage() {
-  const [stagingHeaderSession] = useState(newStagingSession);
   const [stagingLogoSession] = useState(newStagingSession);
   const [profile, setProfile] = useState<SellerStoreProfile | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -105,15 +104,7 @@ export function StoreProfilePage() {
     };
   }, []);
 
-  const handleHeaderUrlsChange = useCallback(
-    (urls: string[]) => {
-      setValue('headerImageUrl', urls[0] ?? '', {
-        shouldDirty: true,
-        shouldValidate: true,
-      });
-    },
-    [setValue],
-  );
+
 
   const handleLogoUrlsChange = useCallback(
     (urls: string[]) => {
@@ -178,11 +169,8 @@ export function StoreProfilePage() {
     });
   }, [loadError, loading]);
 
-  const headerUrl = watch('headerImageUrl');
   const logoUrl = watch('logoUrl');
   const businessHoursRows = watch('businessHours');
-  const bannerPreview =
-    typeof headerUrl === 'string' && headerUrl.trim().length > 0 ? headerUrl.trim() : null;
   const logoPreview =
     typeof logoUrl === 'string' && logoUrl.trim().length > 0 ? logoUrl.trim() : null;
 
@@ -234,43 +222,6 @@ export function StoreProfilePage() {
             noValidate
             onSubmit={handleSubmit(onValidSubmit, onInvalidSubmit)}
           >
-            <section
-              id="store-section-header-image"
-              className="overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-card)]"
-            >
-              <div className="relative aspect-[3/1] min-h-[140px] w-full bg-[var(--bg-input)]">
-                {bannerPreview ?
-                  <img src={bannerPreview} alt="" className="size-full object-cover" />
-                : (
-                  <div className="flex size-full items-center justify-center text-sm text-[var(--text-muted)]">
-                    Sin imagen de cabecera
-                  </div>
-                )}
-              </div>
-              <div className="border-t border-[var(--border)] p-6">
-                <h2 className="font-display text-lg font-semibold text-[var(--text-primary)]">
-                  Imagen de cabecera
-                </h2>
-                <p className="mt-1 text-xs text-[var(--text-muted)]">
-                  Una sola imagen ancha (recomendado 1200×400 aprox.).
-                </p>
-                <div className="mt-4">
-                  <ImageDropzone
-                    uploader={uploader}
-                    maxFiles={1}
-                    stagingSessionId={stagingHeaderSession}
-                    onUrlsChange={handleHeaderUrlsChange}
-                    onError={handleDropzoneError}
-                    className="max-w-xl"
-                  />
-                  {errors.headerImageUrl ?
-                    <p role="alert" className="mt-2 text-sm text-danger">
-                      {errors.headerImageUrl.message}
-                    </p>
-                  : null}
-                </div>
-              </div>
-            </section>
 
             <section
               id="store-section-logo"

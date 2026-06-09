@@ -766,7 +766,6 @@ Agrega el mensaje al hilo local y limpia el composer.
   taxIdCuit:      string;
   streetAddress:  string;
   phone:          string | null;
-  headerImageUrl: string | null;
   logoUrl:        string | null;
   latitude:       number | null;
   longitude:      number | null;
@@ -807,7 +806,6 @@ Rellena el formulario de perfil de tienda. Muestra mapa con pin en `latitude`/`l
   taxIdCuit:      string;
   streetAddress:  string;
   phone:          string | null;
-  headerImageUrl: string | null;
   logoUrl:        string | null;
   social: {
     instagram: string | null;
@@ -833,7 +831,6 @@ Rellena el formulario de perfil de tienda. Muestra mapa con pin en `latitude`/`l
   taxIdCuit:      string;
   streetAddress:  string;
   phone:          string | null;
-  headerImageUrl: string | null;
   logoUrl:        string | null;
   latitude:       number | null;
   longitude:      number | null;
@@ -945,7 +942,7 @@ type SellerAccount = {
     cuit:           string;
     address:        string;
     description:    string;
-    headerImageUrl: string | null;
+    logoUrl:        string | null;
     ratingAvg:      number | null;
     ratingCount:    number;
   };
@@ -1007,7 +1004,7 @@ Agrega el vendedor al inicio de la lista local. Cierra el modal. Muestra toast d
   cuit:           string;
   address:        string;
   description?:   string;
-  headerImageUrl?: string | null;
+  logoUrl?:       string | null;
 }
 ```
 
@@ -1050,6 +1047,58 @@ Actualiza el estado del vendedor en la lista. Muestra toast de éxito.
 
 **Errores manejados:**
 - 400 → toast con validación (motivo muy corto)
+- 401 → limpia sesión → `/login`
+
+---
+
+### GET /api/admin/sellers/:sellerId
+
+**Quién lo usa:** Admin  
+**Cuándo se llama:** Al abrir la página de detalles de una tienda/vendedor (`/admin/sellers/:sellerId`).
+
+**Request:**
+- Params: `sellerId` en la URL
+
+**Respuesta esperada:**
+```typescript
+{
+  id:        string;
+  email:     string;
+  isActive:  boolean;
+  createdAt: string;  // ISO 8601
+  store: {
+    id:             string;
+    businessName:   string;
+    cuit:           string;
+    address:        string;
+    description:    string;
+    logoUrl:        string | null;
+    ratingAvg:      number | null;
+    ratingCount:    number;
+    phone:          string | null;
+    latitude:       number;
+    longitude:      number;
+    social: {
+      instagram: string | null;
+      facebook:  string | null;
+      tiktok:    string | null;
+      website:   string | null;
+    };
+    businessHours: Array<{
+      day:       'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY';
+      isClosed:  boolean;
+      openTime:  string | null;
+      closeTime: string | null;
+    }>;
+  };
+}
+```
+
+**Qué hace el frontend con esto:**
+Carga la información completa del vendedor en la página de detalle de administración.
+
+**Errores manejados:**
+- 404 → toast "Vendedor no encontrado"
 - 401 → limpia sesión → `/login`
 
 ---

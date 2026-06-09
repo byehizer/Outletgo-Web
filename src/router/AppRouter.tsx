@@ -13,12 +13,12 @@ import { AdminOrdersListPage } from '../pages/admin/orders/AdminOrdersListPage';
 import { AdminOrderDetailPage } from '../pages/admin/orders/AdminOrderDetailPage';
 import { SupportInboxPage } from '../pages/admin/support/SupportInboxPage';
 import { SellersListPage } from '../pages/admin/sellers/SellersListPage';
+import { AdminSellerDetailPage } from '../pages/admin/sellers/AdminSellerDetailPage';
 import { PickupPointsListPage } from '../pages/admin/pickup-points/PickupPointsListPage';
 import { ServiceFeeRulesListPage } from '../pages/admin/service-fee-rules/ServiceFeeRulesListPage';
 import { CallbackPage } from '../pages/auth/CallbackPage';
 import { LoginPage } from '../pages/auth/LoginPage';
 import { RecoverPasswordPage } from '../pages/auth/RecoverPasswordPage';
-import { ComingSoonPage } from '../pages/ComingSoonPage';
 import { ForbiddenPage } from '../pages/ForbiddenPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { ImageUploadDemoPage } from '../pages/seller/ImageUploadDemoPage';
@@ -83,10 +83,7 @@ export function AppRouter() {
             >
               <Route index element={<AdminHomePage />} />
               <Route path="sellers" element={<SellersListPage />} />
-              <Route
-                path="sellers/:sellerId"
-                element={<ComingSoonPage title="Perfil del vendedor" />}
-              />
+              <Route path="sellers/:sellerId" element={<AdminSellerDetailPage />} />
               <Route path="buyers" element={<BuyersListPage />} />
               <Route path="products" element={<AdminProductsListPage />} />
               <Route path="reviews" element={<AdminReviewsListPage />} />

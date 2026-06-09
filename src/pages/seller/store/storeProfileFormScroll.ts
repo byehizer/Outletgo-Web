@@ -15,10 +15,6 @@ export function scrollToStoreProfileFieldPath(path: string | null): void {
     return;
   }
 
-  if (path === 'headerImageUrl' || path.startsWith('headerImageUrl.')) {
-    smoothScrollIntoView(document.getElementById('store-section-header-image'));
-    return;
-  }
   if (path === 'logoUrl' || path.startsWith('logoUrl.')) {
     smoothScrollIntoView(document.getElementById('store-section-logo'));
     return;

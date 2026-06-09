@@ -278,9 +278,9 @@ export function SellersListPage() {
         wrap: true,
         cell: (row) => (
           <div className="flex min-w-[12rem] items-center gap-3">
-            {row.store.headerImageUrl ? (
+            {row.store.logoUrl ? (
               <img
-                src={row.store.headerImageUrl}
+                src={row.store.logoUrl}
                 alt=""
                 width={32}
                 height={32}

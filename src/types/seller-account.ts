@@ -5,10 +5,25 @@ export type SellerAccountStore = {
   cuit: string;
   address: string;
   description: string;
-  headerImageUrl: string | null;
+  logoUrl: string | null;
   /** Promedio de calificación; `null` si aún no hay reseñas. */
   ratingAvg: number | null;
   ratingCount: number;
+  phone?: string | null;
+  latitude?: number;
+  longitude?: number;
+  social?: {
+    instagram: string | null;
+    facebook: string | null;
+    tiktok: string | null;
+    website: string | null;
+  };
+  businessHours?: Array<{
+    day: 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY';
+    isClosed: boolean;
+    openTime: string | null;
+    closeTime: string | null;
+  }>;
 };
 
 /** Cuenta vendedor gestionada por Admin. */
@@ -38,7 +53,7 @@ export type UpdateSellerAccountDTO = {
   cuit: string;
   address: string;
   description?: string;
-  headerImageUrl?: string | null;
+  logoUrl?: string | null;
 };
 
 /** Desactivación de cuenta vendedor (requiere motivo). */
