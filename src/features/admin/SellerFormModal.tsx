@@ -203,11 +203,7 @@ export function SellerFormModal(props: SellerFormModalProps) {
 
       try {
         const encoded = encodeURIComponent(values.address.trim());
-        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encoded}&format=json&limit=1`, {
-          headers: {
-            'User-Agent': 'OutletGoFrontend/1.0'
-          }
-        });
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encoded}&format=json&limit=1`);
         if (res.ok) {
           const data = await res.json() as Array<{ lat: string; lon: string }>;
           if (data && data[0]) {
