@@ -44,6 +44,8 @@ export type CreateSellerAccountDTO = {
   cuit: string;
   address: string;
   description?: string;
+  latitude?: number;
+  longitude?: number;
 };
 
 /** Actualización de vendedor desde Admin. */
@@ -54,6 +56,8 @@ export type UpdateSellerAccountDTO = {
   address: string;
   description?: string;
   logoUrl?: string | null;
+  latitude?: number;
+  longitude?: number;
 };
 
 /** Desactivación de cuenta vendedor (requiere motivo). */

@@ -198,6 +198,27 @@ export function SellerFormModal(props: SellerFormModalProps) {
     setSubmitError(null);
 
     try {
+      let latitude: number | undefined = undefined;
+      let longitude: number | undefined = undefined;
+
+      try {
+        const encoded = encodeURIComponent(values.address.trim());
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encoded}&format=json&limit=1`, {
+          headers: {
+            'User-Agent': 'OutletGoFrontend/1.0'
+          }
+        });
+        if (res.ok) {
+          const data = await res.json() as Array<{ lat: string; lon: string }>;
+          if (data && data[0]) {
+            latitude = parseFloat(data[0].lat);
+            longitude = parseFloat(data[0].lon);
+          }
+        }
+      } catch (e) {
+        console.warn('Geocoding client-side failed, falling back to backend:', e);
+      }
+
       if (isCreate) {
         const v = values as SellerCreateFormValues;
         await createSellerAccount({
@@ -207,6 +228,8 @@ export function SellerFormModal(props: SellerFormModalProps) {
           cuit: normalizeCuit(v.cuit),
           address: v.address.trim(),
           description: v.description?.trim() || undefined,
+          latitude,
+          longitude,
         });
       } else if (seller) {
         const v = values as SellerEditFormValues;
@@ -217,6 +240,8 @@ export function SellerFormModal(props: SellerFormModalProps) {
           address: v.address.trim(),
           description: v.description?.trim() || undefined,
           logoUrl: v.logoUrl ?? null,
+          latitude,
+          longitude,
         });
       }
       onSuccess();
