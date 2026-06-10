@@ -2263,6 +2263,44 @@ Page<{
 
 ---
 
+## 19. Landing Page — Público
+
+### POST /api/landing/seller-requests
+
+**Quién lo usa:** Visitante / Comercio no registrado (Público)  
+**Cuándo se llama:** Al enviar la solicitud de registro de comercio desde el modal `SellerRequestModal` de la landing page.
+
+**Request:**
+- Params: ninguno
+- Body:
+```typescript
+{
+  businessName:  string;  // Nombre comercial (min 3 caracteres)
+  cuit:          string;  // CUIT de 11 dígitos, ej: "30-12345678-9"
+  contactName:   string;  // Nombre de contacto (min 3 caracteres)
+  email:         string;  // Correo electrónico
+  phone:         string;  // Teléfono de contacto
+  notes?:        string;  // Comentarios o consultas (opcional)
+}
+```
+
+**Respuesta esperada:**
+```typescript
+{
+  success: boolean;
+  message: string;
+}
+```
+
+**Qué hace el frontend con esto:**
+Muestra un estado de confirmación de éxito en el modal informando que la solicitud fue recibida por el equipo de OutletGo.
+
+**Errores manejados:**
+- 400 (Bad Request) → Muestra un mensaje de validación del backend (por ejemplo, si el CUIT es inválido o faltan campos obligatorios).
+- 5xx / Conectividad → Muestra un mensaje de error: "No se pudo enviar la solicitud. Intentá de nuevo."
+
+---
+
 ## Decisiones de arquitectura relevantes
 
 ### 1. El frontend no se conecta a Supabase directamente
