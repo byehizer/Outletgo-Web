@@ -23,6 +23,7 @@ import { ROUTES, SUPPORT_EMAIL } from '../lib/constants';
 import { useToast } from '../hooks/useToast';
 import { cn } from '../lib/cn';
 import { SellerRequestModal } from '../features/landing/SellerRequestModal';
+import { smoothScrollIntoView } from '../lib/formScroll';
 
 // Preguntas frecuentes mock
 const FAQ_ITEMS = [
@@ -86,6 +87,16 @@ export function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [sellerModalOpen, setSellerModalOpen] = useState(false);
+
+  // Helper de smooth scroll
+  const handleScrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
+    e.preventDefault();
+    const target = document.getElementById(sectionId);
+    if (target) {
+      // 'start' para posicionar al principio de la vista
+      smoothScrollIntoView(target, 'start');
+    }
+  };
 
   // Estados del simulador del teléfono
   const [simulatorStep, setSimulatorStep] = useState<0 | 1 | 2>(0);
@@ -162,10 +173,10 @@ export function LandingPage() {
 
           {/* Menú Escritorio */}
           <div className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
-            <a href="#compradores" className="hover:text-[#2B8FD4] transition">Compradores</a>
-            <a href="#puntos-retiro" className="hover:text-[#2B8FD4] transition">Puntos de Retiro</a>
-            <a href="#tiendas" className="hover:text-[#2B8FD4] transition">Vender en OutletGo</a>
-            <a href="#faq" className="hover:text-[#2B8FD4] transition">FAQ</a>
+            <a href="#compradores" onClick={(e) => handleScrollToSection(e, 'compradores')} className="hover:text-[#2B8FD4] transition">Compradores</a>
+            <a href="#puntos-retiro" onClick={(e) => handleScrollToSection(e, 'puntos-retiro')} className="hover:text-[#2B8FD4] transition">Puntos de Retiro</a>
+            <a href="#tiendas" onClick={(e) => handleScrollToSection(e, 'tiendas')} className="hover:text-[#2B8FD4] transition">Vender en OutletGo</a>
+            <a href="#faq" onClick={(e) => handleScrollToSection(e, 'faq')} className="hover:text-[#2B8FD4] transition">FAQ</a>
             <a href={`mailto:${SUPPORT_EMAIL}`} className="hover:text-[#2B8FD4] transition flex items-center gap-1.5">
               <Mail className="size-4" /> Soporte
             </a>
@@ -218,10 +229,10 @@ export function LandingPage() {
               </button>
             </div>
             <div className="flex flex-col gap-5 text-lg font-bold text-slate-700 pt-8">
-              <a href="#compradores" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#2B8FD4]">Compradores</a>
-              <a href="#puntos-retiro" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#2B8FD4]">Puntos de Retiro</a>
-              <a href="#tiendas" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#2B8FD4]">Vender en OutletGo</a>
-              <a href="#faq" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#2B8FD4]">FAQ</a>
+              <a href="#compradores" onClick={(e) => { setMobileMenuOpen(false); handleScrollToSection(e, 'compradores'); }} className="hover:text-[#2B8FD4]">Compradores</a>
+              <a href="#puntos-retiro" onClick={(e) => { setMobileMenuOpen(false); handleScrollToSection(e, 'puntos-retiro'); }} className="hover:text-[#2B8FD4]">Puntos de Retiro</a>
+              <a href="#tiendas" onClick={(e) => { setMobileMenuOpen(false); handleScrollToSection(e, 'tiendas'); }} className="hover:text-[#2B8FD4]">Vender en OutletGo</a>
+              <a href="#faq" onClick={(e) => { setMobileMenuOpen(false); handleScrollToSection(e, 'faq'); }} className="hover:text-[#2B8FD4]">FAQ</a>
               <a href={`mailto:${SUPPORT_EMAIL}`} className="hover:text-[#2B8FD4] flex items-center gap-2">
                 <Mail className="size-5" /> Soporte
               </a>
@@ -269,6 +280,7 @@ export function LandingPage() {
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 pt-4">
             <a
               href="#download-section"
+              onClick={(e) => handleScrollToSection(e, 'download-section')}
               className="inline-flex h-12 items-center gap-3 rounded-xl bg-slate-900 px-5 text-white hover:bg-slate-800 transition shadow-lg shadow-slate-900/10 group"
             >
               <Smartphone className="size-5 text-[#2B8FD4]" />
