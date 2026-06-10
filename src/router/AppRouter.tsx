@@ -33,7 +33,7 @@ import { ReviewsListPage } from '../pages/seller/reviews/ReviewsListPage';
 import { DashboardPage } from '../pages/seller/dashboard/DashboardPage';
 import { StoreProfilePage } from '../pages/seller/store/StoreProfilePage';
 
-import { HomeRedirect } from './HomeRedirect';
+import { LandingPage } from '../pages/LandingPage';
 import { ProtectedRoute } from './ProtectedRoute';
 import { RoleGate } from './RoleGate';
 
@@ -41,7 +41,7 @@ export function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<HomeRedirect />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path={ROUTES.login} element={<LoginPage />} />
         <Route path={ROUTES.recover} element={<RecoverPasswordPage />} />
         <Route path={ROUTES.authCallback} element={<CallbackPage />} />

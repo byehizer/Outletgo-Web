@@ -93,6 +93,9 @@ export function adminSellerDetailPath(sellerId: string): string {
   return `${ROUTES.adminSellers}/${encodeURIComponent(sellerId)}`;
 }
 
+/** Correo de contacto y soporte oficial para registro de tiendas. */
+export const SUPPORT_EMAIL = 'contacto@outletgo.com';
+
 /** Fotos máximas por producto en el panel vendedor (staging / formulario Paso 13). */
 export const PRODUCT_IMAGE_MAX_COUNT = 4;
 
