@@ -157,7 +157,7 @@ export function LandingPage() {
         <div className="mx-auto max-w-7xl px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* LOGOTIPO OFICIAL WHITE MODE */}
-            <img src="/Logotipewhitemode.png" alt="OutletGo Logo" className="h-7 w-auto object-contain" />
+            <img src="/Logotipewhitemode.png" alt="OutletGo Logo" className="h-10 w-auto object-contain" />
           </div>
 
           {/* Menú Escritorio */}
@@ -207,7 +207,7 @@ export function LandingPage() {
         <div className="fixed inset-0 z-50 bg-[#F8FAFC] p-6 flex flex-col justify-between">
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <img src="/Logotipewhitemode.png" alt="OutletGo Logo" className="h-7 w-auto object-contain" />
+              <img src="/Logotipewhitemode.png" alt="OutletGo Logo" className="h-10 w-auto object-contain" />
               <button
                 type="button"
                 className="p-1 text-slate-500 hover:text-slate-800"
@@ -317,7 +317,7 @@ export function LandingPage() {
               {/* Header de la App Virtual */}
               <header className="flex items-center justify-between px-3 py-2 border-b border-slate-200/60 bg-white shadow-sm shrink-0">
                 <div className="flex items-center gap-1.5">
-                  <img src="/Isotipewhitemode.png" alt="OG" className="size-4.5 object-contain" />
+                  <img src="/Isotipewhitemode.png" alt="OG" className="w-5 h-5 object-contain" />
                   <span className="font-bold text-[#0F172A] tracking-tight text-[10px]">OutletGo</span>
                 </div>
                 <div className="flex items-center gap-1 text-[9px] font-bold text-[#1A3F7A]">
@@ -337,7 +337,7 @@ export function LandingPage() {
                   <div className="rounded-xl border border-slate-200/80 bg-white p-2.5 flex gap-3 items-center shadow-sm">
                     {/* SVG Ilustración Remera */}
                     <div className="size-11 rounded-lg bg-[#E8F4FD] flex items-center justify-center shrink-0">
-                      <svg className="size-7 text-[#2B8FD4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg className="w-7 h-7 text-[#2B8FD4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M20.38 3.46L16 2.14a1 1 0 0 0-1 .12L12 5 9 2.26a1 1 0 0 0-1-.12L3.62 3.46a1 1 0 0 0-.62.92v3.13a1 1 0 0 0 .38.78L7 11v10.13a1 1 0 0 0 1 .87h8a1 1 0 0 0 1-.87V11l3.62-2.71A1 1 0 0 0 21 7.51V4.38a1 1 0 0 0-.62-.92z" />
                       </svg>
                     </div>
@@ -356,7 +356,7 @@ export function LandingPage() {
                   <div className="rounded-xl border border-slate-200/80 bg-white p-2.5 flex gap-3 items-center shadow-sm">
                     {/* SVG Ilustración Zapatillas */}
                     <div className="size-11 rounded-lg bg-[#E8F4FD] flex items-center justify-center shrink-0">
-                      <svg className="size-7 text-[#2B8FD4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg className="w-7 h-7 text-[#2B8FD4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M4 16v-2.5C4 11 6 9 8.5 9h5.8c1 0 1.9.5 2.4 1.3l2.8 4.2c.3.5.5 1.1.5 1.7v1.3H4v-1.5z" />
                         <path d="M4 18h16" />
                         <path d="M12 9V5.5A1.5 1.5 0 0 0 10.5 4h0A1.5 1.5 0 0 0 9 5.5V9" />
@@ -768,10 +768,8 @@ export function LandingPage() {
       {/* FOOTER */}
       <footer className="border-t border-slate-800 bg-slate-950 py-12 text-center text-xs text-slate-500">
         <div className="mx-auto max-w-7xl px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2">
-            {/* LOGOTIPO / ISOTIPO OFICIAL */}
-            <img src="/Isotipeblackmode.png" alt="OG" className="size-7 object-contain" />
-            <span className="font-bold text-white text-sm">OutletGo</span>
+          <div className="flex items-center gap-3">
+            <img src="/Logotipeblackmode.png" alt="OutletGo Logo" className="h-9 w-auto object-contain" />
           </div>
           <p>© {new Date().getFullYear()} OutletGo. Todos los derechos reservados. Hecho en Argentina.</p>
           <div className="flex gap-4 text-slate-400">

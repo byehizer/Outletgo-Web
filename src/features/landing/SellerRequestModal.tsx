@@ -167,7 +167,7 @@ export function SellerRequestModal({ open, onClose }: SellerRequestModalProps) {
             <header className="space-y-1">
               <div className="flex items-center gap-2">
                 {/* ISOTIPO OFICIAL WHITE MODE */}
-                <img src="/Isotipewhitemode.png" alt="OutletGo Isotype" className="size-7 object-contain" />
+                <img src="/Isotipewhitemode.png" alt="OutletGo Isotype" className="w-7 h-7 object-contain" />
                 <h2 id={titleId} className="font-display text-xl font-bold text-slate-900 tracking-tight">
                   Registrá tu Comercio
                 </h2>
