@@ -20,7 +20,15 @@ function parseStoredUser(raw: string): User | null {
     if (typeof id !== 'string' || typeof email !== 'string' || typeof name !== 'string') {
       return null;
     }
-    if (typeof role !== 'string' || !isRole(role)) {
+
+    let mappedRole = role;
+    if (mappedRole === 'OUTLET_OWNER') {
+      mappedRole = 'SELLER';
+    } else if (mappedRole === 'CLIENT') {
+      mappedRole = 'BUYER';
+    }
+
+    if (typeof mappedRole !== 'string' || !isRole(mappedRole)) {
       return null;
     }
     if (typeof isActive !== 'boolean') {
@@ -32,7 +40,7 @@ function parseStoredUser(raw: string): User | null {
     return {
       id,
       email,
-      role,
+      role: mappedRole,
       name,
       storeId: normalizedStoreId,
       avatarUrl: normalizedAvatar,
