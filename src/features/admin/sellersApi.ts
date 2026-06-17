@@ -566,6 +566,27 @@ export async function fetchSellerAccountById(id: string): Promise<SellerAccount>
   return account;
 }
 
+export async function resetSellerPassword(id: string, password: string): Promise<void> {
+  const sellerId = id.trim();
+  if (!sellerId) {
+    throw new ApiError(400, null, 'ID de vendedor inválido.');
+  }
+
+  if (import.meta.env.DEV) {
+    await devDelay(undefined, 200);
+    if (password.length < 8) {
+      throw new ApiError(400, null, 'La contraseña debe tener al menos 8 caracteres.');
+    }
+    return;
+  }
+
+  await apiClient.post<void>(
+    `${ADMIN_SELLERS_API_PATH}/${encodeURIComponent(sellerId)}/reset-password`,
+    { password },
+  );
+}
+
+
 /** Usado por hooks/páginas en DEV para refrescar listado. */
 export function buildDevSellerAccountsPageForHook(
   params: FetchSellerAccountsParams,

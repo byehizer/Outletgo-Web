@@ -12,7 +12,7 @@ import { cn } from '../../lib/cn';
 
 import type { SellerAccount } from '../../types/seller-account';
 
-import { createSellerAccount, updateSellerAccount } from './sellersApi';
+import { createSellerAccount, updateSellerAccount, resetSellerPassword } from './sellersApi';
 
 const cuitDigitsRefine = (raw: string) => raw.replace(/\D/g, '').length === 11;
 
@@ -36,6 +36,14 @@ const sellerCreateFormSchema = sellerFormBaseSchema.extend({
 
 const sellerEditFormSchema = sellerFormBaseSchema.extend({
   logoUrl: z.string().nullable().optional(),
+  resetPassword: z
+    .string()
+    .optional()
+    .or(z.literal(''))
+    .refine(
+      (val) => !val || val.length >= 8,
+      'La nueva contraseña debe tener al menos 8 caracteres.',
+    ),
 });
 
 type SellerCreateFormValues = z.infer<typeof sellerCreateFormSchema>;
@@ -85,6 +93,7 @@ function editDefaultValues(seller: SellerAccount): SellerEditFormValues {
     address: seller.store.address,
     description: seller.store.description,
     logoUrl: seller.store.logoUrl,
+    resetPassword: '',
   };
 }
 
@@ -102,6 +111,7 @@ function editEmptyDefaultValues(): SellerEditFormValues {
     address: '',
     description: '',
     logoUrl: null,
+    resetPassword: '',
   };
 }
 
@@ -112,6 +122,7 @@ export function SellerFormModal(props: SellerFormModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
   const [stagingSessionId, setStagingSessionId] = useState(newStagingSessionId);
 
   const isCreate = mode === 'create';
@@ -144,6 +155,7 @@ export function SellerFormModal(props: SellerFormModalProps) {
     }
     setSubmitError(null);
     setShowPassword(false);
+    setShowResetPassword(false);
     setStagingSessionId(newStagingSessionId());
     if (isCreate) {
       reset(createDefaultValues());
@@ -239,6 +251,10 @@ export function SellerFormModal(props: SellerFormModalProps) {
           latitude,
           longitude,
         });
+
+        if (v.resetPassword && v.resetPassword.trim()) {
+          await resetSellerPassword(seller.id, v.resetPassword.trim());
+        }
       }
       onSuccess();
     } catch (error: unknown) {
@@ -406,36 +422,76 @@ export function SellerFormModal(props: SellerFormModalProps) {
           </div>
 
           {!isCreate ? (
-            <div className="space-y-2">
-              <p className="text-xs font-medium text-[var(--text-secondary)]">
-                Logo de la tienda <span className="text-[var(--text-muted)]">(opcional)</span>
-              </p>
-              <div className="flex items-center gap-4">
-                {logoPreview ? (
-                  <img
-                    src={logoPreview}
-                    alt="Logo"
-                    className="size-16 rounded-lg border border-[var(--border)] object-cover"
+            <>
+              <div className="space-y-2 border-t border-[var(--border)] pt-4">
+                <label
+                  htmlFor="seller-form-reset-password"
+                  className="text-xs font-semibold text-[var(--text-secondary)] block"
+                >
+                  Restablecer contraseña
+                </label>
+                <p className="text-xs text-[var(--text-muted)]">
+                  Dejá este campo vacío si no deseás cambiar la contraseña del vendedor.
+                </p>
+                <div className="relative mt-2">
+                  <input
+                    id="seller-form-reset-password"
+                    type={showResetPassword ? 'text' : 'password'}
+                    placeholder="Nueva contraseña (mínimo 8 caracteres)"
+                    className={cn(
+                      inputClass(Boolean((errors as any).resetPassword)),
+                      'pr-10',
+                    )}
+                    {...register('resetPassword' as any)}
+                    autoComplete="new-password"
                   />
-                ) : (
-                  <div className="flex size-16 items-center justify-center rounded-lg border border-dashed border-[var(--border)] text-xs text-[var(--text-muted)]" aria-hidden>
-                    Sin logo
+                  <button
+                    type="button"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                    onClick={() => setShowResetPassword((v) => !v)}
+                    aria-label={showResetPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  >
+                    {showResetPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                  </button>
+                </div>
+                {(errors as any).resetPassword ? (
+                  <p role="alert" className="text-xs text-danger">
+                    {((errors as any).resetPassword).message}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-[var(--text-secondary)]">
+                  Logo de la tienda <span className="text-[var(--text-muted)]">(opcional)</span>
+                </p>
+                <div className="flex items-center gap-4">
+                  {logoPreview ? (
+                    <img
+                      src={logoPreview}
+                      alt="Logo"
+                      className="size-16 rounded-lg border border-[var(--border)] object-cover"
+                    />
+                  ) : (
+                    <div className="flex size-16 items-center justify-center rounded-lg border border-dashed border-[var(--border)] text-xs text-[var(--text-muted)]" aria-hidden>
+                      Sin logo
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <ImageDropzone
+                      uploader={backendImageUploader}
+                      maxFiles={1}
+                      stagingSessionId={stagingSessionId}
+                      onUrlsChange={(urls) => {
+                        setValue('logoUrl', urls[0] ?? null, { shouldDirty: true });
+                      }}
+                      disabled={isSubmitting}
+                      className="max-w-full"
+                    />
                   </div>
-                )}
-                <div className="flex-1">
-                  <ImageDropzone
-                    uploader={backendImageUploader}
-                    maxFiles={1}
-                    stagingSessionId={stagingSessionId}
-                    onUrlsChange={(urls) => {
-                      setValue('logoUrl', urls[0] ?? null, { shouldDirty: true });
-                    }}
-                    disabled={isSubmitting}
-                    className="max-w-full"
-                  />
                 </div>
               </div>
-            </div>
+            </>
           ) : null}
 
           {isCreate ? (
