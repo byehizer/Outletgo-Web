@@ -1,4 +1,4 @@
-import { Flag, Headphones, LayoutDashboard, MapPin, Percent, Shield, ShoppingCart, Star, UserCheck, Users } from 'lucide-react';
+import { Flag, Headphones, LayoutDashboard, MapPin, Percent, Shield, ShoppingCart, Star, UserCheck, Users, Image } from 'lucide-react';
 
 import { ROUTES } from '../../lib/constants';
 
@@ -7,6 +7,7 @@ import type { ShellNavItem } from './navTypes';
 /** Panel admin — más ítems al implementar reportes. */
 export const adminNavItems: ShellNavItem[] = [
   { to: ROUTES.adminRoot, label: 'Resumen', icon: LayoutDashboard },
+  { to: '/admin/banners', label: 'Banners y Campañas', icon: Image },
   { to: ROUTES.adminProducts, label: 'Moderación', icon: Shield },
   { to: ROUTES.adminReviews, label: 'Reseñas', icon: Star },
   { to: ROUTES.adminReports, label: 'Reportes', icon: Flag },

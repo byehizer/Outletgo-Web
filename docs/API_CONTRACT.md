@@ -2301,6 +2301,70 @@ Muestra un estado de confirmación de éxito en el modal informando que la solic
 
 ---
 
+## 20. Banners y Campañas — Admin
+
+### POST /api/admin/banners
+**Quién lo usa:** Admin  
+**Cuándo se llama:** Al hacer clic en "Guardar" en el formulario de creación de un nuevo banner promocional.
+
+**Request:**
+- Body:
+```typescript
+{
+  title: string;
+  description: string;
+  imageUrl: string;
+  type: 'CAMPAIGN' | 'STORE' | 'PRODUCT';
+  startDate: string; // ISO 8601
+  endDate: string; // ISO 8601
+  storeIds: string[]; // UUIDs
+  productIds: string[]; // UUIDs
+}
+```
+
+**Respuesta esperada:**
+```typescript
+{
+  id: string;
+  title: string;
+  description: string;
+  imageUrl: string;
+  type: 'CAMPAIGN' | 'STORE' | 'PRODUCT';
+  status: 'ACTIVE' | 'PAUSED' | 'EXPIRED';
+  startDate: string;
+  endDate: string;
+  createdAt: string;
+}
+```
+
+---
+
+### GET /api/admin/banners
+**Quién lo usa:** Admin  
+**Cuándo se llama:** Al cargar la lista de banners en la vista de administración (`/admin/banners`).
+
+**Request:**
+- Params (query):
+```
+page: number (0-based)
+size: number
+```
+
+**Respuesta esperada:**
+```typescript
+Page<{
+  id: string;
+  title: string;
+  type: 'CAMPAIGN' | 'STORE' | 'PRODUCT';
+  status: 'ACTIVE' | 'PAUSED' | 'EXPIRED';
+  startDate: string;
+  endDate: string;
+  createdAt: string;
+}>
+```
+
+---
+
 ## Decisiones de arquitectura relevantes
 
 ### 1. El frontend no se conecta a Supabase directamente

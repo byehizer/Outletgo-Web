@@ -16,6 +16,8 @@ import { SellersListPage } from '../pages/admin/sellers/SellersListPage';
 import { AdminSellerDetailPage } from '../pages/admin/sellers/AdminSellerDetailPage';
 import { PickupPointsListPage } from '../pages/admin/pickup-points/PickupPointsListPage';
 import { ServiceFeeRulesListPage } from '../pages/admin/service-fee-rules/ServiceFeeRulesListPage';
+import { BannersListPage } from '../pages/admin/banners/BannersListPage';
+import { BannerFormPage } from '../pages/admin/banners/BannerFormPage';
 import { CallbackPage } from '../pages/auth/CallbackPage';
 import { LoginPage } from '../pages/auth/LoginPage';
 import { RecoverPasswordPage } from '../pages/auth/RecoverPasswordPage';
@@ -93,6 +95,8 @@ export function AppRouter() {
               <Route path="support" element={<SupportInboxPage />} />
               <Route path="pickup-points" element={<PickupPointsListPage />} />
               <Route path="service-fee-rules" element={<ServiceFeeRulesListPage />} />
+              <Route path="banners" element={<BannersListPage />} />
+              <Route path="banners/new" element={<BannerFormPage />} />
             </Route>
           </Route>
         </Route>
