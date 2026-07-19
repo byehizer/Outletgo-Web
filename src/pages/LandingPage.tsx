@@ -273,23 +273,28 @@ export function LandingPage() {
             </span>
           </h1>
           <p className="max-w-xl mx-auto md:mx-0 text-base sm:text-lg text-slate-600 leading-relaxed">
-            Comprá excedentes, discontinuos y prendas de segunda selección de las mejores marcas de ropa y calzado. Disfrutá de un <strong>único carrito de compras multitienda</strong> con envío rápido a domicilio en CABA o retiro unificado gratis en nuestros puntos de entrega.
+            Comprá excedentes, discontinuos y calzado directo de fábrica <strong>desde una sola unidad</strong>. Olvidate del caos de las filas y la inseguridad de las bolsas en la calle: disfrutá de un <strong>único carrito de compras multitienda</strong> con envío express en el día o retiro unificado gratis.
           </p>
 
           {/* Badges de Descarga */}
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 pt-4">
-            <a
-              href="#download-section"
-              onClick={(e) => handleScrollToSection(e, 'download-section')}
-              className="inline-flex h-12 items-center gap-3 rounded-xl bg-slate-900 px-5 text-white hover:bg-slate-800 transition shadow-lg shadow-slate-900/10 group"
-            >
-              <Smartphone className="size-5 text-[#2B8FD4]" />
-              <div className="text-left leading-tight">
-                <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Descargar la App</p>
-                <p className="text-xs font-black">Comprar en el Outlet</p>
-              </div>
-              <ArrowRight className="size-4 ml-1 opacity-60 group-hover:translate-x-1 transition-transform" />
-            </a>
+            <div className="relative group">
+              <a
+                href="#download-section"
+                onClick={(e) => handleScrollToSection(e, 'download-section')}
+                className="inline-flex h-12 items-center gap-3 rounded-xl bg-slate-900 px-5 text-white hover:bg-slate-800 transition shadow-lg shadow-slate-900/10 group"
+              >
+                <Smartphone className="size-5 text-[#2B8FD4]" />
+                <div className="text-left leading-tight">
+                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Descargar la App</p>
+                  <p className="text-xs font-black">Comprar en el Outlet</p>
+                </div>
+                <ArrowRight className="size-4 ml-1 opacity-60 group-hover:translate-x-1 transition-transform" />
+              </a>
+              <span className="absolute -top-3.5 -right-3 bg-red-500 text-white text-[9px] font-extrabold px-2 py-0.5 rounded-full animate-bounce shadow-md tracking-wider">
+                ¡Envío Gratis!
+              </span>
+            </div>
 
             <button
               type="button"
@@ -586,9 +591,9 @@ export function LandingPage() {
             <div className="size-12 rounded-xl bg-[#2B8FD4]/10 text-[#2B8FD4] flex items-center justify-center">
               <ShoppingBag className="size-6" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900">Carrito Multitienda Único</h3>
+            <h3 className="text-lg font-bold text-slate-900">Búsqueda Inteligente y Carrito Único</h3>
             <p className="text-sm text-slate-600 leading-relaxed">
-              ¿Prendas de Flores, Avellaneda y Palermo? Armá tu outfit seleccionando artículos de diferentes comercios en un único carrito. Pagá todo consolidado en una sola transacción segura con Mercado Pago.
+              Buscá prendas por fotos o filtrá simultáneamente por talle, color y precio entre cientos de marcas. Agregá un jean de Flores y un buzo de Avellaneda en un único carrito y pagá una sola transacción consolidada.
             </p>
           </div>
 
@@ -597,9 +602,9 @@ export function LandingPage() {
             <div className="size-12 rounded-xl bg-[#2B8FD4]/10 text-[#2B8FD4] flex items-center justify-center">
               <Truck className="size-6" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900">Envío en CABA o Retiro Gratis</h3>
+            <h3 className="text-lg font-bold text-slate-900">Logística Express Unificada</h3>
             <p className="text-sm text-slate-600 leading-relaxed">
-              Recibí todas tus prendas consolidadas en tu domicilio de CABA y alrededores en una sola entrega, o retiralas gratis (sin costo de envío) en cualquiera de nuestros puntos físicos unificados.
+              Nuestra red logística express tercerizada pasa a buscar tus compras por cada local de Flores/Avellaneda, las unifica en nuestro centro logístico y te las entrega en el día con seguimiento online en tiempo real.
             </p>
           </div>
 
@@ -608,10 +613,171 @@ export function LandingPage() {
             <div className="size-12 rounded-xl bg-[#2B8FD4]/10 text-[#2B8FD4] flex items-center justify-center">
               <TrendingDown className="size-6" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900">Descuentos de Outlet Real</h3>
+            <h3 className="text-lg font-bold text-slate-900">Validación Social Visual</h3>
             <p className="text-sm text-slate-600 leading-relaxed">
-              Accedé directamente al inventario remanente y excedentes que las marcas de moda necesitan liquidar. Conseguí la mejor calidad en indumentaria y calzado original con descuentos de hasta el 70% real.
+              Decile adiós a las fotos falsas. Nuestro sistema in-app exige a las compradoras subir fotos reales y transparentes de las prendas adquiridas para calificar la calidad y el calce del talle real.
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* SECCIÓN NUEVA: PROBADOR COMUNITARIO (RESEÑAS B2C CON FOTOS REALES) */}
+      <section id="probador-social" className="mx-auto max-w-7xl px-6 py-20 border-t border-slate-200/50 space-y-12 animate-in fade-in duration-300">
+        <div className="text-center space-y-4 max-w-2xl mx-auto">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-600">
+            <Sparkle className="size-3.5" /> Probador Comunitario
+          </div>
+          <h2 className="font-display text-3xl font-extrabold text-slate-900">
+            La comunidad valida la calidad y el talle real
+          </h2>
+          <p className="text-slate-600 text-sm sm:text-base">
+            Decile adiós a la incertidumbre. En OutletGo, las compradoras suben fotos reales de las prendas recibidas y evalúan las medidas reales para que compres con total confianza.
+          </p>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-3">
+          {/* Card Reseña 1 */}
+          <div className="rounded-2xl border border-slate-200/60 bg-white p-5 flex flex-col justify-between hover:shadow-lg transition-all duration-300">
+            <div className="space-y-4">
+              <div className="aspect-[4/3] w-full rounded-xl bg-slate-100 overflow-hidden relative">
+                <img 
+                  src="https://picsum.photos/seed/review1/400/300" 
+                  alt="Remera Oversize Real" 
+                  className="w-full h-full object-cover" 
+                />
+                <span className="absolute top-2 left-2 bg-emerald-500 text-white text-[9px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                  Foto Real de Usuaria
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                <span className="bg-slate-100 text-slate-800 text-[9px] font-bold px-2 py-0.5 rounded-md">
+                  Talle: Fiel a la Tabla
+                </span>
+                <span className="bg-slate-100 text-slate-800 text-[9px] font-bold px-2 py-0.5 rounded-md">
+                  Tela: Algodón Grueso
+                </span>
+                <span className="bg-emerald-50 text-emerald-700 text-[9px] font-bold px-2 py-0.5 rounded-md">
+                  ✓ Compra Verificada
+                </span>
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-1">
+                  <span className="text-sm font-bold text-slate-950">Sofía M.</span>
+                  <span className="text-[10px] text-slate-400 font-medium">@sofi_lavorano</span>
+                </div>
+                <div className="flex text-amber-400">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <svg key={i} className="size-3.5 fill-current" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed italic pt-1">
+                  "Mido 1.65m y pedí talle M. Queda perfecto oversize, no se deforma al lavar y las costuras están impecables. ¡Volveré a comprar seguro!"
+                </p>
+              </div>
+            </div>
+            <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
+              <span>Remera Oversize Algodón</span>
+              <span className="font-bold text-[#2B8FD4]">Moda Flores Local</span>
+            </div>
+          </div>
+
+          {/* Card Reseña 2 */}
+          <div className="rounded-2xl border border-slate-200/60 bg-white p-5 flex flex-col justify-between hover:shadow-lg transition-all duration-300">
+            <div className="space-y-4">
+              <div className="aspect-[4/3] w-full rounded-xl bg-slate-100 overflow-hidden relative">
+                <img 
+                  src="https://picsum.photos/seed/review2/400/300" 
+                  alt="Zapatillas Real" 
+                  className="w-full h-full object-cover" 
+                />
+                <span className="absolute top-2 left-2 bg-emerald-500 text-white text-[9px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                  Foto Real de Usuaria
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                <span className="bg-slate-100 text-slate-800 text-[9px] font-bold px-2 py-0.5 rounded-md">
+                  Talle: Pedir un número más
+                </span>
+                <span className="bg-slate-100 text-slate-800 text-[9px] font-bold px-2 py-0.5 rounded-md">
+                  Suela: Goma Antideslizante
+                </span>
+                <span className="bg-emerald-50 text-emerald-700 text-[9px] font-bold px-2 py-0.5 rounded-md">
+                  ✓ Compra Verificada
+                </span>
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-1">
+                  <span className="text-sm font-bold text-slate-950">Micaela G.</span>
+                  <span className="text-[10px] text-slate-400 font-medium">@mica.gomez</span>
+                </div>
+                <div className="flex text-amber-400">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <svg key={i} className="size-3.5 fill-current" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                  <svg className="size-3.5 text-slate-200 fill-current" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed italic pt-1">
+                  "Las zapatillas son súper livianas y la suela es de goma real. Calzo 38 pero pedí 39 y me anduvieron bárbaro, sigan el consejo de pedir un número más."
+                </p>
+              </div>
+            </div>
+            <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
+              <span>Zapatillas Urban Canvas</span>
+              <span className="font-bold text-[#2B8FD4]">Calzados Avellaneda</span>
+            </div>
+          </div>
+
+          {/* Card Reseña 3 */}
+          <div className="rounded-2xl border border-slate-200/60 bg-white p-5 flex flex-col justify-between hover:shadow-lg transition-all duration-300">
+            <div className="space-y-4">
+              <div className="aspect-[4/3] w-full rounded-xl bg-slate-100 overflow-hidden relative">
+                <img 
+                  src="https://picsum.photos/seed/review3/400/300" 
+                  alt="Buzo Real" 
+                  className="w-full h-full object-cover" 
+                />
+                <span className="absolute top-2 left-2 bg-emerald-500 text-white text-[9px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                  Foto Real de Usuaria
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                <span className="bg-slate-100 text-slate-800 text-[9px] font-bold px-2 py-0.5 rounded-md">
+                  Talle: Exacto
+                </span>
+                <span className="bg-slate-100 text-slate-800 text-[9px] font-bold px-2 py-0.5 rounded-md">
+                  Tela: Frisa muy abrigada
+                </span>
+                <span className="bg-emerald-50 text-emerald-700 text-[9px] font-bold px-2 py-0.5 rounded-md">
+                  ✓ Compra Verificada
+                </span>
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-1">
+                  <span className="text-sm font-bold text-slate-950">Camila R.</span>
+                  <span className="text-[10px] text-slate-400 font-medium">@cami_rodriguez</span>
+                </div>
+                <div className="flex text-amber-400">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <svg key={i} className="size-3.5 fill-current" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <p className="text-xs text-slate-600 leading-relaxed italic pt-1">
+                  "Buscaba un buzo abrigado y este es de frisa pesada premium. Súper suave por dentro y el color gris es idéntico a la foto de catálogo. ¡Me encantó!"
+                </p>
+              </div>
+            </div>
+            <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
+              <span>Buzo Frisa Premium</span>
+              <span className="font-bold text-[#2B8FD4]">Moda Flores Local</span>
+            </div>
           </div>
         </div>
       </section>
@@ -662,29 +828,47 @@ export function LandingPage() {
               <Store className="size-3.5" /> Canal de Liquidación de Stock Textil
             </div>
             <h2 className="font-display text-3xl md:text-4xl font-extrabold text-white leading-tight">
-              Liquidá tu sobrestock de indumentaria sin canibalizar tu local físico.
+              Liquidá tu sobrestock sin canibalizar tu local y liberá tu WhatsApp.
             </h2>
             <p className="text-slate-300 text-sm md:text-base leading-relaxed">
-              OutletGo le brinda a tu marca la plataforma perfecta para vender de forma discreta y masiva tus remanentes, prendas de colecciones pasadas o discontinuas, recuperando liquidez de inmediato y liberando espacio de almacenamiento en tus percheros.
+              ¿Cansado de responder 100 mensajes repetitivos por día consultando talles y stock? OutletGo le brinda a tu local la herramienta digital llave en mano para vender tu excedente de prendas y calzado de forma autónoma. Tus clientes minoristas compran sin fricciones y vos ordenás tu mostrador sin cambiar tu método tradicional de cobro.
             </p>
+
+            {/* Video Tutorial B2B */}
+            <div className="w-full rounded-2xl border border-white/10 bg-white/5 p-4 space-y-3">
+              <p className="text-xs font-bold text-white tracking-wider flex items-center gap-1.5">
+                <span className="size-2 rounded-full bg-[#2B8FD4] animate-pulse" />
+                VIDEO DEMO: CÓMO FUNCIONA EL CATÁLOGO ESPEJO EN 30 SEGUNDOS
+              </p>
+              <div className="aspect-[16/9] w-full rounded-xl overflow-hidden bg-slate-950 relative border border-white/15">
+                <iframe
+                  className="absolute inset-0 w-full h-full"
+                  src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                  title="Demo OutletGo"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </div>
+            </div>
+
             <div className="space-y-3 pt-2">
               <div className="flex items-start gap-3">
                 <div className="size-5 rounded-full bg-[#2B8FD4]/20 text-[#5AAEE0] flex items-center justify-center mt-0.5 text-xs font-bold">
                   ✓
                 </div>
-                <p className="text-sm text-slate-300"><span className="font-semibold text-white">Modelo por Comisión:</span> Cero costo fijo o mensual. Solo cobramos un porcentaje sobre ventas completadas.</p>
+                <p className="text-sm text-slate-300"><span className="font-semibold text-white">Modelo por Comisión:</span> Cero costo fijo o mensual. Solo cobramos un 5% de comisión sobre ventas completadas (sin riesgo financiero inicial).</p>
               </div>
               <div className="flex items-start gap-3">
                 <div className="size-5 rounded-full bg-[#2B8FD4]/20 text-[#5AAEE0] flex items-center justify-center mt-0.5 text-xs font-bold">
                   ✓
                 </div>
-                <p className="text-sm text-slate-300"><span className="font-semibold text-white">Logística de Recolección Integrada:</span> Preparás el pedido en tu local comercial y nuestro transportista asociado pasa a retirarlo.</p>
+                <p className="text-sm text-slate-300"><span className="font-semibold text-white">Logística de Recolección Integrada:</span> Preparás el pedido en tu local comercial y nuestro transportista asociado pasa a retirarlo de forma inmediata.</p>
               </div>
               <div className="flex items-start gap-3">
                 <div className="size-5 rounded-full bg-[#2B8FD4]/20 text-[#5AAEE0] flex items-center justify-center mt-0.5 text-xs font-bold">
                   ✓
                 </div>
-                <p className="text-sm text-slate-300"><span className="font-semibold text-white">Control de Catálogo:</span> Panel administrativo completo para gestionar talles, colores y cantidades en stock.</p>
+                <p className="text-sm text-slate-300"><span className="font-semibold text-white">Control de Catálogo Espejo:</span> Panel administrativo completo para gestionar talles, colores y cantidades en stock de forma ultra-simple.</p>
               </div>
             </div>
           </div>
@@ -710,6 +894,119 @@ export function LandingPage() {
               </p>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* SECCIÓN NUEVA: PUENTE AL BLOG CORPORATIVO B2C */}
+      <section id="blog" className="mx-auto max-w-7xl px-6 py-20 border-t border-slate-200/50 space-y-12 animate-in fade-in duration-300">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div className="space-y-3 max-w-xl">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 text-xs font-semibold text-indigo-600">
+              <Sparkle className="size-3.5" /> Blog Oficial de OutletGo
+            </div>
+            <h2 className="font-display text-3xl font-extrabold text-slate-900">
+              Inspiración, Tendencias y Consejos Textiles
+            </h2>
+            <p className="text-slate-600 text-sm">
+              Descubrí cómo exprimir tu presupuesto, combinar tus prendas discontinuas de Avellaneda y comprar con inteligencia digital.
+            </p>
+          </div>
+          <button 
+            type="button"
+            onClick={() => warning("¡Próximamente! El Blog de tendencias unificado estará disponible en nuestro dominio principal muy pronto.")}
+            className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 hover:bg-slate-50 transition shrink-0"
+          >
+            Ver todos los artículos
+          </button>
+        </div>
+
+        <div className="grid gap-8 md:grid-cols-3">
+          {/* Artículo 1 */}
+          <article className="group flex flex-col justify-between rounded-2xl border border-slate-100 bg-white p-5 hover:shadow-md hover:border-indigo-500/20 transition duration-300">
+            <div className="space-y-4">
+              <div className="aspect-[16/9] w-full rounded-xl bg-slate-100 overflow-hidden relative">
+                <img 
+                  src="https://picsum.photos/seed/blog1/400/225" 
+                  alt="Avellaneda compras" 
+                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
+                />
+                <span className="absolute top-2 left-2 bg-[#2B8FD4] text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
+                  Guías de Compra
+                </span>
+              </div>
+              <div className="space-y-2">
+                <span className="text-[10px] text-slate-400 font-semibold">12 de Abril, 2026 · Por Ehizer Valero</span>
+                <h3 className="text-base font-bold text-slate-900 group-hover:text-[#2B8FD4] transition leading-snug">
+                  Cómo comprar en Avellaneda sin morir en el intento: La Guía Digital definitiva
+                </h3>
+                <p className="text-xs text-slate-500 line-clamp-3">
+                  Olvidate de caminar bajo el sol arrastrando bolsas. Te explicamos cómo funciona el nuevo circuito consolidado y cómo comprar por unidad a precio directo de fábrica desde tu sillón.
+                </p>
+              </div>
+            </div>
+            <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+              <span className="text-xs font-bold text-[#2B8FD4]">Leer artículo</span>
+              <ArrowRight className="size-3.5 text-[#2B8FD4] group-hover:translate-x-1 transition-transform" />
+            </div>
+          </article>
+
+          {/* Artículo 2 */}
+          <article className="group flex flex-col justify-between rounded-2xl border border-slate-100 bg-white p-5 hover:shadow-md hover:border-indigo-500/20 transition duration-300">
+            <div className="space-y-4">
+              <div className="aspect-[16/9] w-full rounded-xl bg-slate-100 overflow-hidden relative">
+                <img 
+                  src="https://picsum.photos/seed/blog2/400/225" 
+                  alt="Tendencias Outfits" 
+                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
+                />
+                <span className="absolute top-2 left-2 bg-pink-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
+                  Tendencias
+                </span>
+              </div>
+              <div className="space-y-2">
+                <span className="text-[10px] text-slate-400 font-semibold">08 de Abril, 2026 · Por Adam Armoza</span>
+                <h3 className="text-base font-bold text-slate-900 group-hover:text-pink-500 transition leading-snug">
+                  5 prendas discontinuas que son tendencia este invierno (y cómo conseguirlas a -60%)
+                </h3>
+                <p className="text-xs text-slate-500 line-clamp-3">
+                  Recreamos los outfits virales de TikTok utilizando saldos de stock y colecciones pasadas de marcas nacionales. Moda circular, sustentable y accesible.
+                </p>
+              </div>
+            </div>
+            <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+              <span className="text-xs font-bold text-pink-500">Leer artículo</span>
+              <ArrowRight className="size-3.5 text-pink-500 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </article>
+
+          {/* Artículo 3 */}
+          <article className="group flex flex-col justify-between rounded-2xl border border-slate-100 bg-white p-5 hover:shadow-md hover:border-indigo-500/20 transition duration-300">
+            <div className="space-y-4">
+              <div className="aspect-[16/9] w-full rounded-xl bg-slate-100 overflow-hidden relative">
+                <img 
+                  src="https://picsum.photos/seed/blog3/400/225" 
+                  alt="Logística de locales" 
+                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
+                />
+                <span className="absolute top-2 left-2 bg-success text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
+                  Pymes Textiles
+                </span>
+              </div>
+              <div className="space-y-2">
+                <span className="text-[10px] text-slate-400 font-semibold">01 de Abril, 2026 · Por José Valero</span>
+                <h3 className="text-base font-bold text-slate-900 group-hover:text-success transition leading-snug">
+                  El costo oculto de vender por WhatsApp: Por qué las Pymes se están mudando a OutletGo
+                </h3>
+                <p className="text-xs text-slate-500 line-clamp-3">
+                  Un análisis del tiempo promedio perdido respondiendo mensajes repetitivos de talles y coordinando motofletes. La automatización es el salvavidas de los comercios familiares.
+                </p>
+              </div>
+            </div>
+            <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+              <span className="text-xs font-bold text-success">Leer artículo</span>
+              <ArrowRight className="size-3.5 text-success group-hover:translate-x-1 transition-transform" />
+            </div>
+          </article>
         </div>
       </section>
 
