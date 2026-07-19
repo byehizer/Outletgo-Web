@@ -259,25 +259,60 @@ export function AdminOrderDetailPage() {
 
           <section className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-6">
             <h2 className="font-display text-base font-semibold text-[var(--text-primary)]">
-              Datos del comprador
+              Datos del comprador y Entrega
             </h2>
-            <dl className="mt-4 space-y-3 text-sm">
+            <dl className="mt-4 space-y-4 text-sm">
               <div>
-                <dt className="sr-only">Nombre</dt>
-                <dd className="font-medium text-[var(--text-primary)]">
+                <dt className="text-xs text-[var(--text-muted)] font-semibold uppercase">Comprador</dt>
+                <dd className="font-medium text-[var(--text-primary)] mt-0.5">
                   {order.buyer.displayName?.trim() || 'Sin nombre'}
                 </dd>
                 <dd className="text-[var(--text-muted)]">{order.buyer.email}</dd>
               </div>
+              
               <div>
-                <dt className="text-xs text-[var(--text-muted)]">Preferencia Mercado Pago</dt>
-                <dd className="font-mono text-xs text-[var(--text-muted)]">{order.mpPreferenceId}</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-[var(--text-muted)]">Total de la orden</dt>
-                <dd className="font-display text-2xl font-bold text-[var(--text-primary)]">
-                  {formatARS(order.totalArs)}
+                <dt className="text-xs text-[var(--text-muted)] font-semibold uppercase">Método de Entrega</dt>
+                <dd className="font-medium text-[var(--text-primary)] mt-0.5">
+                  {order.shippingMethod === 'ENVIO_CORREO' 
+                    ? '🚚 Envío a Domicilio (Reparto Propio)' 
+                    : order.shippingMethod === 'RETIRO_EN_PUNTO' 
+                      ? '📍 Retiro en Punto OutletGo' 
+                      : 'No especificado'}
                 </dd>
+              </div>
+
+              {order.shippingMethod === 'ENVIO_CORREO' && order.deliveryAddress ? (
+                <div>
+                  <dt className="text-xs text-[var(--text-muted)] font-semibold uppercase">Dirección de Envío</dt>
+                  <dd className="font-medium text-[var(--text-primary)] mt-0.5">
+                    {order.deliveryAddress}
+                  </dd>
+                  <p className="mt-1 text-xs text-[var(--text-muted)]">
+                    * Coordinar envío con cadete asignado vía WhatsApp compartiendo estos datos.
+                  </p>
+                </div>
+              ) : null}
+
+              {order.shippingMethod === 'RETIRO_EN_PUNTO' && order.pickupPointId ? (
+                <div>
+                  <dt className="text-xs text-[var(--text-muted)] font-semibold uppercase">Punto de Retiro</dt>
+                  <dd className="font-medium text-[var(--text-primary)] mt-0.5">
+                    {order.pickupPointId === 'punto-1' ? 'OutletGo Palermo (Thames 1540)' : 'OutletGo Villa Crespo (Corrientes 5200)'}
+                  </dd>
+                </div>
+              ) : null}
+
+              <div className="grid grid-cols-2 gap-4 border-t border-[var(--border)] pt-3">
+                <div>
+                  <dt className="text-xs text-[var(--text-muted)]">Preferencia Mercado Pago</dt>
+                  <dd className="font-mono text-xs text-[var(--text-muted)] truncate max-w-[180px]">{order.mpPreferenceId}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-[var(--text-muted)]">Total de la orden</dt>
+                  <dd className="font-display text-lg font-bold text-[var(--text-primary)]">
+                    {formatARS(order.totalArs)}
+                  </dd>
+                </div>
               </div>
             </dl>
           </section>

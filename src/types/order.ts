@@ -158,6 +158,9 @@ export type AdminOrder = {
   mpPreferenceId: string;
   buyer: OrderBuyer & { id: string };
   stores: AdminOrderStore[];
+  shippingMethod?: 'RETIRO_EN_PUNTO' | 'ENVIO_CORREO' | null;
+  deliveryAddress?: string | null;
+  pickupPointId?: string | null;
 };
 
 export type UpdateOrderStatusDTO = {
