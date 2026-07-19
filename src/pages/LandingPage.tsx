@@ -81,12 +81,64 @@ const PICKUP_POINTS = [
   },
 ];
 
+// Artículos del Blog Corporativo B2C
+const BLOG_ARTICLES = [
+  {
+    id: 'blog-1',
+    title: 'Cómo comprar en Avellaneda sin morir en el intento: La Guía Digital definitiva',
+    category: 'Guías de Compra',
+    date: '12 de Abril, 2026',
+    author: 'Por Ehizer Valero',
+    image: '/review_oversize_tee.png',
+    color: '#2B8FD4',
+    content: [
+      "Seguro te pasó más de una vez. Querés renovar tu placard pero pensar en ir un sábado por la mañana a Flores o Avellaneda te genera un estrés inmediato: filas interminables, veredas intransitables, compras mínimas forzadas de 15 prendas iguales y tener que manejar efectivo.",
+      "OutletGo nace para destruir ese dolor. Consolidamos en una sola app móvil los catálogos y percheros físicos de los mayoristas más destacados de la zona. A través de nuestro motor de búsqueda avanzado con filtros de color, talle y precio, podés seleccionar prendas individuales de diferentes tiendas.",
+      "El verdadero secreto es el checkout: pagás una única transacción por Mercado Pago y nuestro pool de logística express pasa por cada local a retirar tus compras, las une en el centro de consolidación y te las entrega en tu domicilio en CABA en el día con seguimiento en tiempo real. ¡Comodidad digital pura!"
+    ]
+  },
+  {
+    id: 'blog-2',
+    title: '¿Qué significan realmente los símbolos de tu ropa? Guía práctica para descifrar las etiquetas de lavado',
+    category: 'Cuidado Textil',
+    date: '08 de Abril, 2026',
+    author: 'Por Adam Armoza',
+    image: '/review_hoodie.png',
+    color: '#EC4899',
+    content: [
+      "Seguro te pasó más de una vez. Estrenás esa prenda que tanto te gusta, te encanta cómo te calza y, después del primer paso por el lavarropas, sale con un talle menos, desteñida o con las costuras sutilmente reviradas. La primera reacción suele ser culpar a la calidad de la confección o al programa del electrodoméstico, pero la respuesta a este misterio doméstico suele estar escondida en esa pequeña tira de tela blanca que todos tendemos a cortar apenas estrenamos algo: la etiqueta de cuidado textil.",
+      "Las etiquetas no están ahí por capricho normativo de los diseñadores de indumentaria. Son, literalmente, el manual de instrucciones de la prenda. Como el mercado nacional utiliza una enorme variedad de tejidos combinados, cada textil reacciona de forma diferente a la temperatura del agua, la fuerza del centrifugado y los productos de limpieza.",
+      "Para que dejes de adivinar y protejas la vida útil de tu placard, armamos esta guía sencilla para descifrar los cuatro símbolos universales que toda persona debería conocer.",
+      "1. El recipiente de agua (El lavado básico): Si el recipiente tiene un número (ej. 30° o 40°): Indica la temperatura máxima del agua que soporta el tejido. Lavar un buzo de algodón peinado a 60° afloja las fibras y achica la prenda de forma irreversible. Si tiene líneas abajo: Una línea horizontal significa que el lavado debe ser moderado (ciclo para ropa delicada); dos líneas exigen un ciclo extremadamente suave y un centrifugado mínimo. Si aparece una mano: Significa que el textil no tolera el movimiento del tambor del lavarropas. Requiere lavado a mano, agua fría y nada de retorcer la prenda para escurrirla.",
+      "2. El triángulo (El uso de blanqueadores): Un triángulo vacío: Permite el uso de cualquier blanqueador cuando sea necesario. Un triángulo con líneas diagonales: Significa que solo podés usar blanqueadores a base de oxígeno, libres de cloro, para no quemar las fibras textiles. Un triángulo con una cruz (X) encima: Prohibición absoluta. Usar lavandina en esta prenda dañará el tinte original, dejando manchas amarillentas o desgastando el tejido hasta romperlo.",
+      "3. El cuadrado con un círculo (El secado): Un punto dentro del círculo: Permite el secado a temperatura baja (ciclo suave). Dos puntos dentro del círculo: Soporta temperatura normal o alta. El símbolo tachado con una cruz: La prenda debe secarse de manera tradicional. Lo ideal para estos tejidos es colgarlos a la sombra, del revés, para evitar que la luz directa del sol se coma el brillo del color.",
+      "4. La plancha (El toque final): Un punto en la plancha: Temperatura baja (máximo 110°C). Ideal para telas acrílicas, nylon o viscosa. Dos puntos: Temperatura media (máximo 150°C), recomendada para lanas y mezclas de poliéster. Tres puntos: Temperatura alta (hasta 200°C), necesaria para tejidos pesados y rígidos como el lino o el jean puro.",
+      "Aprender a dedicarle un segundo a revisar estos pequeños iconos antes de programar el lavado te ahorra dolores de cabeza y cuida la estética de tus outfits por años. Al final del día, el mejor placard no es el que tiene más cantidad de cosas, sino el que se mantiene como nuevo gracias a un cuidado inteligente y consciente."
+    ]
+  },
+  {
+    id: 'blog-3',
+    title: 'El costo oculto de vender por WhatsApp: Por qué las Pymes se están mudando a OutletGo',
+    category: 'Pymes Textiles',
+    date: '01 de Abril, 2026',
+    author: 'Por José Valero',
+    image: '/review_sneakers.png',
+    color: '#10B981',
+    content: [
+      "Como dueño de un local textil, tu recurso más valioso es el tiempo. Sin embargo, un análisis de la rutina comercial en Avellaneda revela que las pymes familiares dedican más de 4 horas diarias a responder consultas repetitivas de stock: '¿Tenés en talle L?', '¿Qué colores quedan?', '¿Me pasás las medidas?' y coordinar motofletes de forma externa.",
+      "Este canal de venta informal por WhatsApp genera una fricción inmensa, quiebres de stock continuos y pérdida de clientes por demoras en la respuesta.",
+      "OutletGo funciona como un 'Catálogo Espejo' inteligente: el local sube sus prendas discontinuas o saldos en 2 clics y los clientes consultan stock y talles de forma automática. Además, delegás la entrega a nuestro transportista express, liberando tu mostrador y tus chats para lo verdaderamente importante."
+    ]
+  }
+];
+
 export function LandingPage() {
   const { isAuthenticated, user } = useAuth();
   const { warning } = useToast();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [sellerModalOpen, setSellerModalOpen] = useState(false);
+  const [selectedArticle, setSelectedArticle] = useState<typeof BLOG_ARTICLES[0] | null>(null);
 
   // Helper de smooth scroll
   const handleScrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
@@ -176,6 +228,7 @@ export function LandingPage() {
             <a href="#compradores" onClick={(e) => handleScrollToSection(e, 'compradores')} className="hover:text-[#2B8FD4] transition">Compradores</a>
             <a href="#puntos-retiro" onClick={(e) => handleScrollToSection(e, 'puntos-retiro')} className="hover:text-[#2B8FD4] transition">Puntos de Retiro</a>
             <a href="#tiendas" onClick={(e) => handleScrollToSection(e, 'tiendas')} className="hover:text-[#2B8FD4] transition">Vender en OutletGo</a>
+            <a href="#blog" onClick={(e) => handleScrollToSection(e, 'blog')} className="hover:text-[#2B8FD4] transition">Blog</a>
             <a href="#faq" onClick={(e) => handleScrollToSection(e, 'faq')} className="hover:text-[#2B8FD4] transition">FAQ</a>
             <a href={`mailto:${SUPPORT_EMAIL}`} className="hover:text-[#2B8FD4] transition flex items-center gap-1.5">
               <Mail className="size-4" /> Soporte
@@ -232,6 +285,7 @@ export function LandingPage() {
               <a href="#compradores" onClick={(e) => { setMobileMenuOpen(false); handleScrollToSection(e, 'compradores'); }} className="hover:text-[#2B8FD4]">Compradores</a>
               <a href="#puntos-retiro" onClick={(e) => { setMobileMenuOpen(false); handleScrollToSection(e, 'puntos-retiro'); }} className="hover:text-[#2B8FD4]">Puntos de Retiro</a>
               <a href="#tiendas" onClick={(e) => { setMobileMenuOpen(false); handleScrollToSection(e, 'tiendas'); }} className="hover:text-[#2B8FD4]">Vender en OutletGo</a>
+              <a href="#blog" onClick={(e) => { setMobileMenuOpen(false); handleScrollToSection(e, 'blog'); }} className="hover:text-[#2B8FD4]">Blog</a>
               <a href="#faq" onClick={(e) => { setMobileMenuOpen(false); handleScrollToSection(e, 'faq'); }} className="hover:text-[#2B8FD4]">FAQ</a>
               <a href={`mailto:${SUPPORT_EMAIL}`} className="hover:text-[#2B8FD4] flex items-center gap-2">
                 <Mail className="size-5" /> Soporte
@@ -641,7 +695,7 @@ export function LandingPage() {
             <div className="space-y-4">
               <div className="aspect-[4/3] w-full rounded-xl bg-slate-100 overflow-hidden relative">
                 <img 
-                  src="https://picsum.photos/seed/review1/400/300" 
+                  src="/review_oversize_tee.png" 
                   alt="Remera Oversize Real" 
                   className="w-full h-full object-cover" 
                 />
@@ -688,7 +742,7 @@ export function LandingPage() {
             <div className="space-y-4">
               <div className="aspect-[4/3] w-full rounded-xl bg-slate-100 overflow-hidden relative">
                 <img 
-                  src="https://picsum.photos/seed/review2/400/300" 
+                  src="/review_sneakers.png" 
                   alt="Zapatillas Real" 
                   className="w-full h-full object-cover" 
                 />
@@ -738,7 +792,7 @@ export function LandingPage() {
             <div className="space-y-4">
               <div className="aspect-[4/3] w-full rounded-xl bg-slate-100 overflow-hidden relative">
                 <img 
-                  src="https://picsum.photos/seed/review3/400/300" 
+                  src="/review_hoodie.png" 
                   alt="Buzo Real" 
                   className="w-full h-full object-cover" 
                 />
@@ -843,7 +897,7 @@ export function LandingPage() {
               <div className="aspect-[16/9] w-full rounded-xl overflow-hidden bg-slate-950 relative border border-white/15">
                 <iframe
                   className="absolute inset-0 w-full h-full"
-                  src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                  src="https://www.youtube.com/embed/8tCq3330N1o"
                   title="Demo OutletGo"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
@@ -921,92 +975,42 @@ export function LandingPage() {
         </div>
 
         <div className="grid gap-8 md:grid-cols-3">
-          {/* Artículo 1 */}
-          <article className="group flex flex-col justify-between rounded-2xl border border-slate-100 bg-white p-5 hover:shadow-md hover:border-indigo-500/20 transition duration-300">
-            <div className="space-y-4">
-              <div className="aspect-[16/9] w-full rounded-xl bg-slate-100 overflow-hidden relative">
-                <img 
-                  src="https://picsum.photos/seed/blog1/400/225" 
-                  alt="Avellaneda compras" 
-                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
-                />
-                <span className="absolute top-2 left-2 bg-[#2B8FD4] text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
-                  Guías de Compra
-                </span>
+          {BLOG_ARTICLES.map((article) => (
+            <article 
+              key={article.id}
+              onClick={() => setSelectedArticle(article)}
+              className="group flex flex-col justify-between rounded-2xl border border-slate-100 bg-white p-5 hover:shadow-md hover:border-indigo-500/20 cursor-pointer transition duration-300"
+            >
+              <div className="space-y-4">
+                <div className="aspect-[16/9] w-full rounded-xl bg-slate-100 overflow-hidden relative">
+                  <img 
+                    src={article.image} 
+                    alt={article.title} 
+                    className="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
+                  />
+                  <span 
+                    className="absolute top-2 left-2 text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider"
+                    style={{ backgroundColor: article.color }}
+                  >
+                    {article.category}
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  <span className="text-[10px] text-slate-400 font-semibold">{article.date} · {article.author}</span>
+                  <h3 className="text-base font-bold text-slate-900 group-hover:text-indigo-600 transition leading-snug">
+                    {article.title}
+                  </h3>
+                  <p className="text-xs text-slate-500 line-clamp-3">
+                    {article.content[0]}
+                  </p>
+                </div>
               </div>
-              <div className="space-y-2">
-                <span className="text-[10px] text-slate-400 font-semibold">12 de Abril, 2026 · Por Ehizer Valero</span>
-                <h3 className="text-base font-bold text-slate-900 group-hover:text-[#2B8FD4] transition leading-snug">
-                  Cómo comprar en Avellaneda sin morir en el intento: La Guía Digital definitiva
-                </h3>
-                <p className="text-xs text-slate-500 line-clamp-3">
-                  Olvidate de caminar bajo el sol arrastrando bolsas. Te explicamos cómo funciona el nuevo circuito consolidado y cómo comprar por unidad a precio directo de fábrica desde tu sillón.
-                </p>
+              <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+                <span className="text-xs font-bold" style={{ color: article.color }}>Leer artículo</span>
+                <ArrowRight className="size-3.5 group-hover:translate-x-1 transition-transform" style={{ color: article.color }} />
               </div>
-            </div>
-            <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
-              <span className="text-xs font-bold text-[#2B8FD4]">Leer artículo</span>
-              <ArrowRight className="size-3.5 text-[#2B8FD4] group-hover:translate-x-1 transition-transform" />
-            </div>
-          </article>
-
-          {/* Artículo 2 */}
-          <article className="group flex flex-col justify-between rounded-2xl border border-slate-100 bg-white p-5 hover:shadow-md hover:border-indigo-500/20 transition duration-300">
-            <div className="space-y-4">
-              <div className="aspect-[16/9] w-full rounded-xl bg-slate-100 overflow-hidden relative">
-                <img 
-                  src="https://picsum.photos/seed/blog2/400/225" 
-                  alt="Tendencias Outfits" 
-                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
-                />
-                <span className="absolute top-2 left-2 bg-pink-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
-                  Tendencias
-                </span>
-              </div>
-              <div className="space-y-2">
-                <span className="text-[10px] text-slate-400 font-semibold">08 de Abril, 2026 · Por Adam Armoza</span>
-                <h3 className="text-base font-bold text-slate-900 group-hover:text-pink-500 transition leading-snug">
-                  5 prendas discontinuas que son tendencia este invierno (y cómo conseguirlas a -60%)
-                </h3>
-                <p className="text-xs text-slate-500 line-clamp-3">
-                  Recreamos los outfits virales de TikTok utilizando saldos de stock y colecciones pasadas de marcas nacionales. Moda circular, sustentable y accesible.
-                </p>
-              </div>
-            </div>
-            <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
-              <span className="text-xs font-bold text-pink-500">Leer artículo</span>
-              <ArrowRight className="size-3.5 text-pink-500 group-hover:translate-x-1 transition-transform" />
-            </div>
-          </article>
-
-          {/* Artículo 3 */}
-          <article className="group flex flex-col justify-between rounded-2xl border border-slate-100 bg-white p-5 hover:shadow-md hover:border-indigo-500/20 transition duration-300">
-            <div className="space-y-4">
-              <div className="aspect-[16/9] w-full rounded-xl bg-slate-100 overflow-hidden relative">
-                <img 
-                  src="https://picsum.photos/seed/blog3/400/225" 
-                  alt="Logística de locales" 
-                  className="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
-                />
-                <span className="absolute top-2 left-2 bg-success text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
-                  Pymes Textiles
-                </span>
-              </div>
-              <div className="space-y-2">
-                <span className="text-[10px] text-slate-400 font-semibold">01 de Abril, 2026 · Por José Valero</span>
-                <h3 className="text-base font-bold text-slate-900 group-hover:text-success transition leading-snug">
-                  El costo oculto de vender por WhatsApp: Por qué las Pymes se están mudando a OutletGo
-                </h3>
-                <p className="text-xs text-slate-500 line-clamp-3">
-                  Un análisis del tiempo promedio perdido respondiendo mensajes repetitivos de talles y coordinando motofletes. La automatización es el salvavidas de los comercios familiares.
-                </p>
-              </div>
-            </div>
-            <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
-              <span className="text-xs font-bold text-success">Leer artículo</span>
-              <ArrowRight className="size-3.5 text-success group-hover:translate-x-1 transition-transform" />
-            </div>
-          </article>
+            </article>
+          ))}
         </div>
       </section>
 
@@ -1093,6 +1097,70 @@ export function LandingPage() {
         open={sellerModalOpen}
         onClose={() => setSellerModalOpen(false)}
       />
+
+      {/* MODAL DETALLE DE ARTÍCULO DE BLOG */}
+      {selectedArticle && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="relative w-full max-w-2xl max-h-[85vh] flex flex-col rounded-3xl border border-slate-200 bg-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Header del Modal */}
+            <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/50">
+              <span 
+                className="text-[10px] font-bold px-2.5 py-1 rounded-full uppercase text-white shadow-sm"
+                style={{ backgroundColor: selectedArticle.color }}
+              >
+                {selectedArticle.category}
+              </span>
+              <button
+                type="button"
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition"
+                onClick={() => setSelectedArticle(null)}
+                aria-label="Cerrar artículo"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+
+            {/* Contenido del Artículo */}
+            <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6">
+              <div className="aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-100 relative shadow-sm border border-slate-100">
+                <img 
+                  src={selectedArticle.image} 
+                  alt={selectedArticle.title} 
+                  className="w-full h-full object-cover" 
+                />
+              </div>
+
+              <div className="space-y-2">
+                <h2 className="text-xl md:text-2xl font-extrabold text-slate-900 leading-tight">
+                  {selectedArticle.title}
+                </h2>
+                <div className="flex items-center gap-2 text-xs text-slate-400">
+                  <span className="font-semibold text-slate-600">{selectedArticle.author}</span>
+                  <span>·</span>
+                  <span>{selectedArticle.date}</span>
+                </div>
+              </div>
+
+              <div className="space-y-4 text-sm sm:text-base text-slate-700 leading-relaxed font-normal">
+                {selectedArticle.content.map((paragraph, idx) => (
+                  <p key={idx}>{paragraph}</p>
+                ))}
+              </div>
+            </div>
+
+            {/* Footer del Modal */}
+            <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-end">
+              <button
+                type="button"
+                className="inline-flex h-10 items-center justify-center rounded-xl bg-slate-900 px-5 text-xs font-bold text-white hover:bg-slate-800 transition"
+                onClick={() => setSelectedArticle(null)}
+              >
+                Cerrar Lectura
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
