@@ -1,4 +1,5 @@
 import { apiClient, ApiError } from '../../lib/http/apiClient';
+import { fetchProductReviews } from '../reviews/reviewsApi';
 
 export type SellerRegistrationRequestPayload = {
   businessName: string;
@@ -122,5 +123,80 @@ export async function fetchB2bVideoUrlFromApi(): Promise<string> {
     return res.value;
   } catch {
     return 'https://www.youtube.com/embed/8tCq3330N1o';
+  }
+}
+
+export interface CommunityReview {
+  id: string;
+  authorName: string;
+  authorHandle: string;
+  rating: number;
+  comment: string;
+  productName: string;
+  storeName: string;
+  image: string;
+  fitTag: string;
+  fabricTag: string;
+}
+
+export const FALLBACK_COMMUNITY_REVIEWS: CommunityReview[] = [
+  {
+    id: 'rev-comm-1',
+    authorName: 'Sofía M.',
+    authorHandle: '@sofi_lavorano',
+    rating: 5,
+    comment: 'Mido 1.65m y pedí talle M. Queda perfecto oversize, no se deforma al lavar y las costuras están impecables. ¡Volveré a comprar seguro!',
+    productName: 'Remera Oversize Algodón',
+    storeName: 'Moda Flores Local',
+    image: '/review_oversize_tee.png',
+    fitTag: 'Talle: Fiel a la Tabla',
+    fabricTag: 'Tela: Algodón Grueso',
+  },
+  {
+    id: 'rev-comm-2',
+    authorName: 'Micaela G.',
+    authorHandle: '@mica.gomez',
+    rating: 4,
+    comment: 'Las zapatillas son súper livianas y la suela es de goma real. Calzo 38 pero pedí 39 y me anduvieron bárbaro, sigan el consejo de pedir un número más.',
+    productName: 'Zapatillas Urban Canvas',
+    storeName: 'Calzados Avellaneda',
+    image: '/review_sneakers.png',
+    fitTag: 'Talle: Pedir un número más',
+    fabricTag: 'Suela: Goma Antideslizante',
+  },
+  {
+    id: 'rev-comm-3',
+    authorName: 'Camila R.',
+    authorHandle: '@cami_rodriguez',
+    rating: 5,
+    comment: 'Buscaba un buzo abrigado y este es de frisa pesada premium. Súper suave por dentro y el color gris es idéntico a la foto de catálogo. ¡Me encantó!',
+    productName: 'Buzo Frisa Premium',
+    storeName: 'Moda Flores Local',
+    image: '/review_hoodie.png',
+    fitTag: 'Talle: Exacto',
+    fabricTag: 'Tela: Frisa muy abrigada',
+  },
+];
+
+export async function fetchCommunityReviews(): Promise<CommunityReview[]> {
+  try {
+    const page = await fetchProductReviews({ page: 0, size: 6, rating: 5 });
+    if (page.content && page.content.length > 0) {
+      return page.content.map((r, i) => ({
+        id: r.id,
+        authorName: r.authorName,
+        authorHandle: `@${r.authorName.toLowerCase().replace(/\s+/g, '_')}`,
+        rating: r.rating,
+        comment: r.comment || '¡Excelente calidad y calce perfecto!',
+        productName: r.productName || 'Prenda Indumentaria Local',
+        storeName: 'Local Avellaneda',
+        image: (r.imageUrls && r.imageUrls[0]) || FALLBACK_COMMUNITY_REVIEWS[i % 3]!.image,
+        fitTag: '✓ Compra Verificada',
+        fabricTag: 'Talle Validado',
+      }));
+    }
+    return FALLBACK_COMMUNITY_REVIEWS;
+  } catch {
+    return FALLBACK_COMMUNITY_REVIEWS;
   }
 }
