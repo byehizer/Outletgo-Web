@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Save, Sparkle } from 'lucide-react';
+import { ArrowLeft, Save } from 'lucide-react';
 
 import {
   createBlog,
@@ -117,8 +117,8 @@ export function AdminBlogFormPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-slate-200 p-6 md:p-8 shadow-sm space-y-6">
-        <div className="flex items-center gap-2 text-xs font-bold text-indigo-600 uppercase tracking-wider">
-          <Sparkle className="size-4" /> Editor de Contenidos CMS
+        <div className="text-xs font-bold text-indigo-600 uppercase tracking-wider">
+          Editor de Contenidos CMS
         </div>
 
         <h1 className="text-2xl font-extrabold text-slate-900">

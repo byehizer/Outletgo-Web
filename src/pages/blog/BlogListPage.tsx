@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BookOpen, Search, Sparkle, X } from 'lucide-react';
+import { ArrowRight, BookOpen, Search, X } from 'lucide-react';
 
 import {
   fetchBlogs,
@@ -59,9 +59,6 @@ export function BlogListPage() {
       {/* HERO DEL BLOG */}
       <section className="bg-gradient-to-b from-white to-slate-100/70 border-b border-slate-200/60 py-12 md:py-16">
         <div className="mx-auto max-w-5xl px-6 text-center space-y-6">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3.5 py-1 text-xs font-semibold text-indigo-600">
-            <Sparkle className="size-3.5" /> Blog Oficial & Novedades Textiles
-          </div>
           <h1 className="font-display text-3xl sm:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
             Tendencias, Guías de Compra e Inteligencia Comercial
           </h1>

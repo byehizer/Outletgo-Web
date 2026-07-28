@@ -15,7 +15,6 @@ import {
   Clock,
   ShoppingBag,
   Truck,
-  Sparkle,
 } from 'lucide-react';
 
 import { useAuth } from '../hooks/useAuth';
@@ -276,9 +275,6 @@ export function LandingPage() {
       {/* HERO SECTION */}
       <section className="relative mx-auto max-w-7xl px-6 pt-16 pb-24 md:pt-24 md:pb-32 flex flex-col md:flex-row items-center gap-12">
         <div className="flex-1 space-y-6 text-center md:text-left">
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-[#2B8FD4]/20 bg-[#2B8FD4]/5 px-3.5 py-1 text-xs font-semibold text-[#2B8FD4]">
-            <Sparkle className="size-3.5" /> Outlet de Moda & Indumentaria Local
-          </div>
           <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-slate-900 leading-[1.1]">
             El stock de tus marcas,<br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#2B8FD4] via-[#1A3F7A] to-slate-950 drop-shadow-sm">
@@ -637,9 +633,6 @@ export function LandingPage() {
       {/* SECCIÓN NUEVA: PROBADOR COMUNITARIO (RESEÑAS B2C CON FOTOS REALES) */}
       <section id="probador-social" className="mx-auto max-w-7xl px-6 py-20 border-t border-slate-200/50 space-y-12 animate-in fade-in duration-300">
         <div className="text-center space-y-4 max-w-2xl mx-auto">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-600">
-            <Sparkle className="size-3.5" /> Probador Comunitario
-          </div>
           <h2 className="font-display text-3xl font-extrabold text-slate-900">
             La comunidad valida la calidad y el talle real
           </h2>
@@ -832,9 +825,6 @@ export function LandingPage() {
       <section id="blog" className="mx-auto max-w-7xl px-6 py-20 border-t border-slate-200/50 space-y-12 animate-in fade-in duration-300">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div className="space-y-3 max-w-xl">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 text-xs font-semibold text-indigo-600">
-              <Sparkle className="size-3.5" /> Blog Oficial de OutletGo
-            </div>
             <h2 className="font-display text-3xl font-extrabold text-slate-900">
               Inspiración, Tendencias y Consejos Textiles
             </h2>
