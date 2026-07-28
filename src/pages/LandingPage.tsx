@@ -948,7 +948,7 @@ export function LandingPage() {
       <footer className="border-t border-slate-800 bg-slate-950 py-12 text-center text-xs text-slate-500">
         <div className="mx-auto max-w-7xl px-6 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <img src="/Logotipeblackmode.png" alt="OutletGo Logo" className="h-9 w-auto object-contain" />
+            <img src="/Logotipeblackmode.png" alt="OutletGo Logo" className="h-16 md:h-20 w-auto object-contain" />
           </div>
           <p>© {new Date().getFullYear()} OutletGo. Todos los derechos reservados. Hecho en Argentina.</p>
           <div className="flex gap-4 text-slate-400">
