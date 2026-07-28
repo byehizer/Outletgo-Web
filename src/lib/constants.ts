@@ -27,6 +27,9 @@ export const ROUTES = {
   sellerProductNew: '/seller/products/new',
   /** Paso 11 — página de prueba `ImageDropzone`; no está en sidebar. */
   sellerUploadDemo: '/seller/upload-demo',
+  /** Portal Público de Blogs */
+  blog: '/blog',
+  blogDetail: '/blog/:id',
   adminRoot: '/admin',
   adminSellers: '/admin/sellers',
   adminBuyers: '/admin/buyers',
@@ -44,6 +47,10 @@ export const ROUTES = {
   adminPickupPoints: '/admin/pickup-points',
   /** Gestión de Tarifas de Servicio y Comisiones */
   adminServiceFeeRules: '/admin/service-fee-rules',
+  /** CMS de Gestión de Blogs Admin */
+  adminBlogs: '/admin/blogs',
+  adminBlogNew: '/admin/blogs/new',
+  adminBlogEdit: '/admin/blogs/:id/edit',
   forbidden: '/forbidden',
 } as const;
 

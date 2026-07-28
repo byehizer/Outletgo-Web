@@ -35,6 +35,10 @@ import { ReviewsListPage } from '../pages/seller/reviews/ReviewsListPage';
 import { DashboardPage } from '../pages/seller/dashboard/DashboardPage';
 import { StoreProfilePage } from '../pages/seller/store/StoreProfilePage';
 
+import { BlogListPage } from '../pages/blog/BlogListPage';
+import { BlogDetailPage } from '../pages/blog/BlogDetailPage';
+import { AdminBlogsListPage } from '../pages/admin/blogs/AdminBlogsListPage';
+import { AdminBlogFormPage } from '../pages/admin/blogs/AdminBlogFormPage';
 import { LandingPage } from '../pages/LandingPage';
 import { ProtectedRoute } from './ProtectedRoute';
 import { RoleGate } from './RoleGate';
@@ -44,6 +48,8 @@ export function AppRouter() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path={ROUTES.blog} element={<BlogListPage />} />
+        <Route path={ROUTES.blogDetail} element={<BlogDetailPage />} />
         <Route path={ROUTES.login} element={<LoginPage />} />
         <Route path={ROUTES.recover} element={<RecoverPasswordPage />} />
         <Route path={ROUTES.authCallback} element={<CallbackPage />} />
@@ -97,6 +103,9 @@ export function AppRouter() {
               <Route path="service-fee-rules" element={<ServiceFeeRulesListPage />} />
               <Route path="banners" element={<BannersListPage />} />
               <Route path="banners/new" element={<BannerFormPage />} />
+              <Route path="blogs" element={<AdminBlogsListPage />} />
+              <Route path="blogs/new" element={<AdminBlogFormPage />} />
+              <Route path="blogs/:id/edit" element={<AdminBlogFormPage />} />
             </Route>
           </Route>
         </Route>

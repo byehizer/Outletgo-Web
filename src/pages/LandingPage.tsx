@@ -187,7 +187,7 @@ export function LandingPage() {
             <a href="#compradores" onClick={(e) => handleScrollToSection(e, 'compradores')} className="hover:text-[#2B8FD4] transition">Compradores</a>
             <a href="#puntos-retiro" onClick={(e) => handleScrollToSection(e, 'puntos-retiro')} className="hover:text-[#2B8FD4] transition">Puntos de Retiro</a>
             <a href="#tiendas" onClick={(e) => handleScrollToSection(e, 'tiendas')} className="hover:text-[#2B8FD4] transition">Vender en OutletGo</a>
-            <a href="#blog" onClick={(e) => handleScrollToSection(e, 'blog')} className="hover:text-[#2B8FD4] transition">Blog</a>
+            <Link to={ROUTES.blog} className="hover:text-[#2B8FD4] transition">Blog</Link>
             <a href="#faq" onClick={(e) => handleScrollToSection(e, 'faq')} className="hover:text-[#2B8FD4] transition">FAQ</a>
             <a href={`mailto:${SUPPORT_EMAIL}`} className="hover:text-[#2B8FD4] transition flex items-center gap-1.5">
               <Mail className="size-4" /> Soporte
@@ -244,7 +244,7 @@ export function LandingPage() {
               <a href="#compradores" onClick={(e) => { setMobileMenuOpen(false); handleScrollToSection(e, 'compradores'); }} className="hover:text-[#2B8FD4]">Compradores</a>
               <a href="#puntos-retiro" onClick={(e) => { setMobileMenuOpen(false); handleScrollToSection(e, 'puntos-retiro'); }} className="hover:text-[#2B8FD4]">Puntos de Retiro</a>
               <a href="#tiendas" onClick={(e) => { setMobileMenuOpen(false); handleScrollToSection(e, 'tiendas'); }} className="hover:text-[#2B8FD4]">Vender en OutletGo</a>
-              <a href="#blog" onClick={(e) => { setMobileMenuOpen(false); handleScrollToSection(e, 'blog'); }} className="hover:text-[#2B8FD4]">Blog</a>
+              <Link to={ROUTES.blog} onClick={() => setMobileMenuOpen(false)} className="hover:text-[#2B8FD4]">Blog</Link>
               <a href="#faq" onClick={(e) => { setMobileMenuOpen(false); handleScrollToSection(e, 'faq'); }} className="hover:text-[#2B8FD4]">FAQ</a>
               <a href={`mailto:${SUPPORT_EMAIL}`} className="hover:text-[#2B8FD4] flex items-center gap-2">
                 <Mail className="size-5" /> Soporte
@@ -842,13 +842,12 @@ export function LandingPage() {
               Descubrí cómo exprimir tu presupuesto, combinar tus prendas discontinuas de Avellaneda y comprar con inteligencia digital.
             </p>
           </div>
-          <button 
-            type="button"
-            onClick={() => warning("¡Próximamente! El Blog de tendencias unificado estará disponible en nuestro dominio principal muy pronto.")}
+          <Link 
+            to={ROUTES.blog}
             className="inline-flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 hover:bg-slate-50 transition shrink-0"
           >
             Ver todos los artículos
-          </button>
+          </Link>
         </div>
 
         <div className="grid gap-8 md:grid-cols-3">

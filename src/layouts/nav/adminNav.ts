@@ -1,4 +1,4 @@
-import { Flag, Headphones, LayoutDashboard, MapPin, Percent, Shield, ShoppingCart, Star, UserCheck, Users, Image } from 'lucide-react';
+import { Flag, Headphones, LayoutDashboard, MapPin, Percent, Shield, ShoppingCart, Star, UserCheck, Users, Image, BookOpen } from 'lucide-react';
 
 import { ROUTES } from '../../lib/constants';
 
@@ -8,6 +8,7 @@ import type { ShellNavItem } from './navTypes';
 export const adminNavItems: ShellNavItem[] = [
   { to: ROUTES.adminRoot, label: 'Resumen', icon: LayoutDashboard },
   { to: '/admin/banners', label: 'Banners y Campañas', icon: Image },
+  { to: ROUTES.adminBlogs, label: 'Gestión de Blogs', icon: BookOpen },
   { to: ROUTES.adminProducts, label: 'Moderación', icon: Shield },
   { to: ROUTES.adminReviews, label: 'Reseñas', icon: Star },
   { to: ROUTES.adminReports, label: 'Reportes', icon: Flag },
