@@ -1,4 +1,4 @@
-import { Eye, Loader2, Pencil, Plus, Power, PowerOff, Search } from 'lucide-react';
+import { Eye, Loader2, Pencil, Plus, Power, PowerOff, Search, CheckCircle2, XCircle, Clock, Building2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -14,6 +14,11 @@ import {
   fetchSellerAccounts,
   toggleSellerStatus,
 } from '../../../features/admin/sellersApi';
+import {
+  fetchSellerRequests,
+  updateSellerRequestStatus,
+  SellerRegistrationRequestItem,
+} from '../../../features/landing/landingSellerRequestsApi';
 import { RatingStars } from '../../../features/reviews/RatingStars';
 import { useDebouncedValue } from '../../../hooks/useDebouncedValue';
 import { useToast } from '../../../hooks/useToast';
@@ -432,32 +437,167 @@ export function SellersListPage() {
     }
   }, [reactivateTarget, bumpList, success, showError]);
 
+  const [activeTab, setActiveTab] = useState<'accounts' | 'requests'>('accounts');
+  const [requestsList, setRequestsList] = useState<SellerRegistrationRequestItem[]>([]);
+  const [loadingRequests, setLoadingRequests] = useState(false);
+
+  const loadRequests = useCallback(async () => {
+    setLoadingRequests(true);
+    const res = await fetchSellerRequests();
+    setRequestsList(res);
+    setLoadingRequests(false);
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'requests') {
+      loadRequests();
+    }
+  }, [activeTab, loadRequests]);
+
+  const handleStatusChange = async (id: string, status: 'APPROVED' | 'REJECTED') => {
+    await updateSellerRequestStatus(id, status);
+    success(status === 'APPROVED' ? 'Solicitud aprobada correctamente.' : 'Solicitud rechazada.');
+    loadRequests();
+  };
+
   return (
     <div className="space-y-8">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="font-display text-display-md text-[var(--text-primary)]">
-            Vendedores
-            {data != null ? (
-              <span className="ml-2 text-lg font-semibold text-[var(--text-muted)]">
-                ({data.totalElements})
-              </span>
-            ) : null}
+            Gestión de Vendedores
           </h1>
           <p className="mt-2 text-sm text-[var(--text-muted)]">
-            Gestioná las cuentas de vendedores y sus tiendas.
+            Administrá cuentas activas de tiendas y revisá solicitudes de alta enviadas desde la Landing Page.
           </p>
         </div>
-        <button
-          type="button"
-          className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-white transition hover:bg-brand/90"
-          onClick={() => setModal({ kind: 'create' })}
-        >
-          <Plus className="size-4" aria-hidden />
-          Nuevo vendedor
-        </button>
+        {activeTab === 'accounts' && (
+          <button
+            type="button"
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-white transition hover:bg-brand/90"
+            onClick={() => setModal({ kind: 'create' })}
+          >
+            <Plus className="size-4" aria-hidden />
+            Nuevo vendedor
+          </button>
+        )}
       </header>
 
+      {/* SELECTOR DE PESTAÑAS */}
+      <div className="flex items-center gap-2 border-b border-[var(--border)] pb-1">
+        <button
+          type="button"
+          onClick={() => setActiveTab('accounts')}
+          className={cn(
+            'flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-t-xl transition border-b-2 -mb-[5px]',
+            activeTab === 'accounts'
+              ? 'border-brand text-brand bg-brand/5'
+              : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+          )}
+        >
+          <Building2 className="size-4" />
+          <span>Cuentas de Vendedores ({data?.totalElements || 0})</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('requests')}
+          className={cn(
+            'flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-t-xl transition border-b-2 -mb-[5px]',
+            activeTab === 'requests'
+              ? 'border-brand text-brand bg-brand/5'
+              : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+          )}
+        >
+          <Clock className="size-4" />
+          <span>Solicitudes de Alta B2B Landing ({requestsList.filter(r => r.status === 'PENDING').length} pendientes)</span>
+        </button>
+      </div>
+
+      {activeTab === 'requests' ? (
+        <section className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-bold text-slate-800">Solicitudes de Registro B2B (Landing Page)</h2>
+            <button
+              onClick={loadRequests}
+              className="text-xs font-semibold text-brand hover:underline"
+            >
+              Refrescar listado
+            </button>
+          </div>
+
+          {loadingRequests ? (
+            <div className="p-8 text-center text-xs text-slate-400">Cargando solicitudes de tiendas...</div>
+          ) : requestsList.length === 0 ? (
+            <div className="p-8 text-center text-xs text-slate-500">No hay solicitudes de alta registradas aún.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-slate-600">
+                <thead className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase border-b border-slate-200">
+                  <tr>
+                    <th className="px-4 py-3">Comercio / Marca</th>
+                    <th className="px-4 py-3">CUIT</th>
+                    <th className="px-4 py-3">Contacto</th>
+                    <th className="px-4 py-3">Email & Teléfono</th>
+                    <th className="px-4 py-3">Fecha</th>
+                    <th className="px-4 py-3">Estado</th>
+                    <th className="px-4 py-3 text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {requestsList.map((req) => (
+                    <tr key={req.id} className="hover:bg-slate-50/80 transition">
+                      <td className="px-4 py-3 font-bold text-slate-900">{req.businessName}</td>
+                      <td className="px-4 py-3 font-mono text-slate-700">{req.cuit}</td>
+                      <td className="px-4 py-3 font-semibold text-slate-800">{req.contactName}</td>
+                      <td className="px-4 py-3 space-y-0.5">
+                        <p className="font-semibold text-slate-800">{req.email}</p>
+                        <p className="text-[11px] text-slate-400">{req.phone}</p>
+                      </td>
+                      <td className="px-4 py-3 text-slate-400">
+                        {new Date(req.createdAt).toLocaleDateString('es-AR')}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={cn(
+                            'text-[10px] font-bold px-2 py-0.5 rounded-md border',
+                            req.status === 'APPROVED' && 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                            req.status === 'REJECTED' && 'bg-red-50 text-red-700 border-red-200',
+                            req.status === 'PENDING' && 'bg-amber-50 text-amber-700 border-amber-200'
+                          )}
+                        >
+                          {req.status === 'APPROVED' && 'APROBADO'}
+                          {req.status === 'REJECTED' && 'RECHAZADO'}
+                          {req.status === 'PENDING' && 'PENDIENTE'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        {req.status === 'PENDING' && (
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() => handleStatusChange(req.id, 'APPROVED')}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-600 text-white rounded-lg text-[11px] font-bold hover:bg-emerald-700 transition"
+                              title="Aprobar Solicitud"
+                            >
+                              <CheckCircle2 className="size-3.5" /> Aprobar
+                            </button>
+                            <button
+                              onClick={() => handleStatusChange(req.id, 'REJECTED')}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-200 text-slate-700 rounded-lg text-[11px] font-bold hover:bg-slate-300 transition"
+                              title="Rechazar Solicitud"
+                            >
+                              <XCircle className="size-3.5" /> Rechazar
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      ) : (
       <section className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
           <div className="relative min-w-[min(100%,20rem)] flex-1">
@@ -534,6 +674,7 @@ export function SellersListPage() {
           ) : null}
         </div>
       </section>
+      )}
 
       {modal?.kind === 'create' ? (
         <SellerFormModal
