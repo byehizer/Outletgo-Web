@@ -5,6 +5,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { BannerImageUploader } from '../../../components/BannerImageUploader';
 import { createAdminBanner } from '../../../features/admin/adminBannersApi';
 import { useToast } from '../../../hooks/useToast';
+import { apiClient } from '../../../lib/http/apiClient';
 
 // MOCKS PARA SELECCIÓN EN DESARROLLO
 const DEV_STORES_MOCK = [
@@ -60,6 +61,7 @@ export function BannerFormPage() {
   const [cropH, setCropH] = useState(30);
 
   const [isDragging, setIsDragging] = useState(false);
+  const [uploadingCrop, setUploadingCrop] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
@@ -246,8 +248,22 @@ export function BannerFormPage() {
     setIsDragging(false);
   };
 
-  // Recorte en alta definición utilizando resolución nativa del archivo
-  const handleApplyCrop = () => {
+  // Convierte DataURL a File para subirlo al backend
+  const dataUrlToFile = (dataUrl: string, filename: string): File => {
+    const parts = dataUrl.split(',');
+    const header = parts[0] ?? '';
+    const data = parts[1] ?? '';
+    const mime = header.match(/:(.*?);/)?.[1] ?? 'image/jpeg';
+    const binary = atob(data);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return new File([bytes], filename, { type: mime });
+  };
+
+  // Recorte en alta definición y subida al backend para obtener URL real
+  const handleApplyCrop = async () => {
     const img = imageRef.current;
     if (!img) return;
 
@@ -264,11 +280,30 @@ export function BannerFormPage() {
     if (!ctx) return;
 
     ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
-    const croppedUrl = cropCanvas.toDataURL('image/jpeg', 0.92);
+    const croppedDataUrl = cropCanvas.toDataURL('image/jpeg', 0.92);
 
-    setImageUrl(croppedUrl);
-    setShowCropModal(false);
-    showToastSuccess('Banner encuadrado con éxito.');
+    // Subir la imagen recortada al backend y obtener una URL real
+    setUploadingCrop(true);
+    try {
+      const file = dataUrlToFile(croppedDataUrl, `banner-${Date.now()}.jpg`);
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await apiClient.post<{ url: string }>('/api/uploads/product-image', formData);
+      if (res?.url) {
+        setImageUrl(res.url);
+        setShowCropModal(false);
+        showToastSuccess('Banner encuadrado y subido con éxito.');
+      } else {
+        throw new Error('URL no recibida del servidor.');
+      }
+    } catch {
+      // Fallback: usar la base64 temporalmente si el upload falla
+      setImageUrl(croppedDataUrl);
+      setShowCropModal(false);
+      showToastSuccess('Banner encuadrado localmente (sin subida al servidor).');
+    } finally {
+      setUploadingCrop(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -588,10 +623,15 @@ export function BannerFormPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={handleApplyCrop}
-                  className="h-9 px-4 rounded-lg bg-brand text-xs font-semibold text-white hover:bg-brand-focus transition flex items-center gap-1.5 shadow-sm"
+                  onClick={() => void handleApplyCrop()}
+                  disabled={uploadingCrop}
+                  className="h-9 px-4 rounded-lg bg-brand text-xs font-semibold text-white hover:bg-brand-focus transition flex items-center gap-1.5 shadow-sm disabled:opacity-50"
                 >
-                  <Check className="size-4" /> Confirmar Encuadre
+                  {uploadingCrop ? (
+                    <><Loader2 className="size-3.5 animate-spin" /> Subiendo...</>
+                  ) : (
+                    <><Check className="size-4" /> Confirmar Encuadre</>
+                  )}
                 </button>
               </div>
             </div>
