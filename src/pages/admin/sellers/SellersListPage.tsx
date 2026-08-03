@@ -41,7 +41,7 @@ type SellersListAction =
   | { type: 'FETCH_ERR'; payload: string };
 
 type SellersPageModal =
-  | { kind: 'create'; initialValues?: { businessName?: string; cuit?: string; email?: string } }
+  | { kind: 'create'; initialValues?: { businessName?: string; cuit?: string; email?: string; description?: string } }
   | { kind: 'edit'; seller: SellerAccount }
   | { kind: 'deactivate'; seller: SellerAccount }
   | null;
@@ -468,7 +468,8 @@ export function SellersListPage() {
       const matchCuit = req.cuit?.toLowerCase().includes(q);
       const matchEmail = req.email?.toLowerCase().includes(q);
       const matchPhone = req.phone?.toLowerCase().includes(q);
-      return Boolean(matchBusiness || matchContact || matchCuit || matchEmail || matchPhone);
+      const matchNotes = req.notes?.toLowerCase().includes(q);
+      return Boolean(matchBusiness || matchContact || matchCuit || matchEmail || matchPhone || matchNotes);
     });
   }, [requestsList, requestsSearchQuery, requestsStatusFilter]);
 
@@ -482,6 +483,7 @@ export function SellersListPage() {
           businessName: reqItem.businessName,
           cuit: reqItem.cuit,
           email: reqItem.email,
+          description: reqItem.notes,
         },
       });
     } else {
@@ -598,6 +600,7 @@ export function SellersListPage() {
                     <th className="px-4 py-3">CUIT</th>
                     <th className="px-4 py-3">Contacto</th>
                     <th className="px-4 py-3">Email & Teléfono</th>
+                    <th className="px-4 py-3">Comentarios / Notas</th>
                     <th className="px-4 py-3">Fecha</th>
                     <th className="px-4 py-3">Estado</th>
                     <th className="px-4 py-3 text-right">Acciones</th>
@@ -612,6 +615,15 @@ export function SellersListPage() {
                       <td className="px-4 py-3 space-y-0.5">
                         <p className="font-semibold text-[var(--text-primary)]">{req.email}</p>
                         <p className="text-[11px] text-[var(--text-muted)]">{req.phone}</p>
+                      </td>
+                      <td className="px-4 py-3 max-w-xs text-xs">
+                        {req.notes ? (
+                          <span className="text-[var(--text-secondary)] italic bg-[var(--bg-surface)] px-2 py-1 rounded-md border border-[var(--border)] block leading-relaxed line-clamp-2" title={req.notes}>
+                            "{req.notes}"
+                          </span>
+                        ) : (
+                          <span className="text-[var(--text-muted)]">—</span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-[var(--text-muted)]">
                         {new Date(req.createdAt).toLocaleDateString('es-AR')}
