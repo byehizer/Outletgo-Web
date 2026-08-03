@@ -15,6 +15,8 @@ import {
   Clock,
   ShoppingBag,
   Truck,
+  Sparkles,
+  BookOpen,
 } from 'lucide-react';
 
 import { useAuth } from '../hooks/useAuth';
@@ -641,69 +643,77 @@ export function LandingPage() {
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
-          {communityReviews.map((rev) => (
-            <div 
-              key={rev.id}
-              className="rounded-2xl border border-slate-200/60 bg-white p-5 flex flex-col justify-between hover:shadow-lg transition-all duration-300 space-y-4"
-            >
-              <div className="space-y-3">
-                {/* 1. Foto del Producto */}
-                <div className="aspect-[4/3] w-full rounded-xl bg-slate-100 overflow-hidden relative border border-slate-100 shadow-sm">
-                  <img 
-                    src={rev.image} 
-                    alt={rev.productName} 
-                    className="w-full h-full object-cover" 
-                  />
-                  <span className="absolute top-2 left-2 bg-emerald-500 text-white text-[9px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
-                    Foto Real del Producto
-                  </span>
-                </div>
-
-                {/* 2. Información del Producto y Local */}
-                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                  <div>
-                    <h4 className="text-sm font-bold text-slate-900 leading-snug">{rev.productName}</h4>
-                    <span className="text-[11px] font-semibold text-[#2B8FD4]">{rev.storeName}</span>
+        {communityReviews.length === 0 ? (
+          <div className="rounded-2xl border border-slate-200/60 bg-white p-12 text-center space-y-2">
+            <Sparkles className="size-8 mx-auto text-slate-300" />
+            <p className="text-sm font-bold text-slate-700">No hay reseñas comunitarias disponibles por el momento.</p>
+            <p className="text-xs text-slate-500">Las valoraciones reales de compradoras aparecerán aquí a medida que se completen nuevas compras.</p>
+          </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-3">
+            {communityReviews.map((rev) => (
+              <div 
+                key={rev.id}
+                className="rounded-2xl border border-slate-200/60 bg-white p-5 flex flex-col justify-between hover:shadow-lg transition-all duration-300 space-y-4"
+              >
+                <div className="space-y-3">
+                  {/* 1. Foto del Producto */}
+                  <div className="aspect-[4/3] w-full rounded-xl bg-slate-100 overflow-hidden relative border border-slate-100 shadow-sm">
+                    <img 
+                      src={rev.image} 
+                      alt={rev.productName} 
+                      className="w-full h-full object-cover" 
+                    />
+                    <span className="absolute top-2 left-2 bg-emerald-500 text-white text-[9px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                      Foto Real del Producto
+                    </span>
                   </div>
-                  <span className="bg-emerald-50 text-emerald-700 text-[9px] font-bold px-2 py-0.5 rounded-md border border-emerald-200/50 shrink-0">
-                    ✓ Compra Verificada
-                  </span>
-                </div>
 
-                {/* Badges de Calce y Tabla */}
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  <span className="bg-slate-100 text-slate-800 text-[9px] font-bold px-2 py-0.5 rounded-md">
-                    {rev.fitTag}
-                  </span>
-                  <span className="bg-slate-100 text-slate-800 text-[9px] font-bold px-2 py-0.5 rounded-md">
-                    {rev.fabricTag}
-                  </span>
-                </div>
-
-                {/* 3. Reseña del Cliente */}
-                <div className="space-y-1.5 pt-2 border-t border-slate-100">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold text-slate-950">{rev.authorName}</span>
-                      <span className="text-[10px] text-slate-400 font-medium">{rev.authorHandle}</span>
+                  {/* 2. Información del Producto y Local */}
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-900 leading-snug">{rev.productName}</h4>
+                      <span className="text-[11px] font-semibold text-[#2B8FD4]">{rev.storeName}</span>
                     </div>
-                    <div className="flex text-amber-400">
-                      {Array.from({ length: rev.rating }).map((_, i) => (
-                        <svg key={i} className="size-3.5 fill-current" viewBox="0 0 20 20" fill="currentColor">
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                      ))}
-                    </div>
+                    <span className="bg-emerald-50 text-emerald-700 text-[9px] font-bold px-2 py-0.5 rounded-md border border-emerald-200/50 shrink-0">
+                      ✓ Compra Verificada
+                    </span>
                   </div>
-                  <p className="text-xs text-slate-600 leading-relaxed italic pt-1">
-                    "{rev.comment}"
-                  </p>
+
+                  {/* Badges de Calce y Tabla */}
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    <span className="bg-slate-100 text-slate-800 text-[9px] font-bold px-2 py-0.5 rounded-md">
+                      {rev.fitTag}
+                    </span>
+                    <span className="bg-slate-100 text-slate-800 text-[9px] font-bold px-2 py-0.5 rounded-md">
+                      {rev.fabricTag}
+                    </span>
+                  </div>
+
+                  {/* 3. Reseña del Cliente */}
+                  <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-slate-950">{rev.authorName}</span>
+                        <span className="text-[10px] text-slate-400 font-medium">{rev.authorHandle}</span>
+                      </div>
+                      <div className="flex text-amber-400">
+                        {Array.from({ length: rev.rating }).map((_, i) => (
+                          <svg key={i} className="size-3.5 fill-current" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-600 leading-relaxed italic pt-1">
+                      "{rev.comment}"
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* SECCIÓN NUEVA: NUESTROS PUNTOS DE RETIRO */}
@@ -840,44 +850,52 @@ export function LandingPage() {
           </Link>
         </div>
 
-        <div className="grid gap-8 md:grid-cols-3">
-          {blogs.map((article) => (
-            <article 
-              key={article.id}
-              onClick={() => setSelectedArticle(article)}
-              className="group flex flex-col justify-between rounded-2xl border border-slate-100 bg-white p-5 hover:shadow-md hover:border-indigo-500/20 cursor-pointer transition duration-300"
-            >
-              <div className="space-y-4">
-                <div className="aspect-[16/9] w-full rounded-xl bg-slate-100 overflow-hidden relative">
-                  <img 
-                    src={article.image} 
-                    alt={article.title} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
-                  />
-                  <span 
-                    className="absolute top-2 left-2 text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider"
-                    style={{ backgroundColor: article.color }}
-                  >
-                    {article.category}
-                  </span>
+        {blogs.length === 0 ? (
+          <div className="rounded-2xl border border-slate-100 bg-white p-12 text-center space-y-2">
+            <BookOpen className="size-8 mx-auto text-slate-300" />
+            <p className="text-sm font-bold text-slate-700">No hay artículos de blog disponibles por el momento.</p>
+            <p className="text-xs text-slate-500">Próximamente publicaremos guías de compra, tendencias textiles y novedades.</p>
+          </div>
+        ) : (
+          <div className="grid gap-8 md:grid-cols-3">
+            {blogs.map((article) => (
+              <article 
+                key={article.id}
+                onClick={() => setSelectedArticle(article)}
+                className="group flex flex-col justify-between rounded-2xl border border-slate-100 bg-white p-5 hover:shadow-md hover:border-indigo-500/20 cursor-pointer transition duration-300"
+              >
+                <div className="space-y-4">
+                  <div className="aspect-[16/9] w-full rounded-xl bg-slate-100 overflow-hidden relative">
+                    <img 
+                      src={article.image} 
+                      alt={article.title} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition duration-500" 
+                    />
+                    <span 
+                      className="absolute top-2 left-2 text-white text-[9px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider"
+                      style={{ backgroundColor: article.color }}
+                    >
+                      {article.category}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    <span className="text-[10px] text-slate-400 font-semibold">{article.date} · {article.author}</span>
+                    <h3 className="text-base font-bold text-slate-900 group-hover:text-indigo-600 transition leading-snug">
+                      {article.title}
+                    </h3>
+                    <p className="text-xs text-slate-500 line-clamp-3">
+                      {article.content[0]}
+                    </p>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <span className="text-[10px] text-slate-400 font-semibold">{article.date} · {article.author}</span>
-                  <h3 className="text-base font-bold text-slate-900 group-hover:text-indigo-600 transition leading-snug">
-                    {article.title}
-                  </h3>
-                  <p className="text-xs text-slate-500 line-clamp-3">
-                    {article.content[0]}
-                  </p>
+                <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+                  <span className="text-xs font-bold" style={{ color: article.color }}>Leer artículo</span>
+                  <ArrowRight className="size-3.5 group-hover:translate-x-1 transition-transform" style={{ color: article.color }} />
                 </div>
-              </div>
-              <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
-                <span className="text-xs font-bold" style={{ color: article.color }}>Leer artículo</span>
-                <ArrowRight className="size-3.5 group-hover:translate-x-1 transition-transform" style={{ color: article.color }} />
-              </div>
-            </article>
-          ))}
-        </div>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* FAQ SECTION */}

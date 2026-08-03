@@ -97,9 +97,11 @@ export const FALLBACK_BLOG_ARTICLES: BlogArticle[] = [
 
 export async function fetchBlogsFromApi(): Promise<BlogArticle[]> {
   try {
-    return await apiClient.get<BlogArticle[]>('/blogs');
+    const data = await apiClient.get<BlogArticle[]>('/blogs');
+    if (data && data.length > 0) return data;
+    return import.meta.env.DEV ? FALLBACK_BLOG_ARTICLES : [];
   } catch {
-    return FALLBACK_BLOG_ARTICLES;
+    return import.meta.env.DEV ? FALLBACK_BLOG_ARTICLES : [];
   }
 }
 
@@ -187,13 +189,13 @@ export async function fetchCommunityReviews(): Promise<CommunityReview[]> {
         comment: r.comment || '¡Excelente calidad y calce perfecto!',
         productName: r.productName || 'Prenda Indumentaria Local',
         storeName: 'Local Avellaneda',
-        image: (r.imageUrls && r.imageUrls[0]) || FALLBACK_COMMUNITY_REVIEWS[i % 3]!.image,
+        image: (r.imageUrls && r.imageUrls[0]) || (import.meta.env.DEV ? FALLBACK_COMMUNITY_REVIEWS[i % 3]!.image : ''),
         fitTag: '✓ Compra Verificada',
         fabricTag: 'Talle Validado',
       }));
     }
-    return FALLBACK_COMMUNITY_REVIEWS;
+    return import.meta.env.DEV ? FALLBACK_COMMUNITY_REVIEWS : [];
   } catch {
-    return FALLBACK_COMMUNITY_REVIEWS;
+    return import.meta.env.DEV ? FALLBACK_COMMUNITY_REVIEWS : [];
   }
 }

@@ -120,9 +120,9 @@ export async function fetchBlogs(query = '', category = ''): Promise<BlogArticle
   let list: BlogArticle[] = [];
   try {
     const apiBlogs = await apiClient.get<BlogArticle[]>('/blogs');
-    list = apiBlogs;
+    list = apiBlogs && apiBlogs.length > 0 ? apiBlogs : (import.meta.env.DEV ? getStoredBlogs() : []);
   } catch {
-    list = getStoredBlogs();
+    list = import.meta.env.DEV ? getStoredBlogs() : [];
   }
 
   return list.filter((item) => {
@@ -190,9 +190,11 @@ export async function deleteBlog(id: string): Promise<boolean> {
 
 export async function fetchBlogCategories(): Promise<BlogCategory[]> {
   try {
-    return await apiClient.get<BlogCategory[]>('/blogs/categories');
+    const apiCats = await apiClient.get<BlogCategory[]>('/blogs/categories');
+    if (apiCats && apiCats.length > 0) return apiCats;
+    return import.meta.env.DEV ? getStoredCategories() : [];
   } catch {
-    return getStoredCategories();
+    return import.meta.env.DEV ? getStoredCategories() : [];
   }
 }
 
