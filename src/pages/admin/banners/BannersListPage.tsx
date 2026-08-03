@@ -184,7 +184,7 @@ export function BannersListPage() {
             <div className="aspect-video w-full rounded-lg overflow-hidden bg-[var(--bg-surface)] border border-[var(--border)] relative flex items-center justify-center">
               {hasValidVideoUrl ? (
                 <iframe
-                  src={videoUrl}
+                  src={toEmbedUrl(videoUrl)}
                   title="Vista previa del video"
                   className="w-full h-full"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
