@@ -68,7 +68,22 @@ export async function fetchAdminBanners(page = 0, size = 10): Promise<Page<Admin
       size,
     };
   }
-  return apiClient.get<Page<AdminBanner>>(`/api/admin/banners?page=${page}&size=${size}`);
+  try {
+    const res = await apiClient.get<Page<AdminBanner>>(`/api/admin/banners?page=${page}&size=${size}`);
+    return {
+      content: Array.isArray(res?.content) ? res.content : [],
+      totalElements: res?.totalElements || 0,
+      number: res?.number || page,
+      size: res?.size || size,
+    };
+  } catch {
+    return {
+      content: [],
+      totalElements: 0,
+      number: page,
+      size,
+    };
+  }
 }
 
 export async function createAdminBanner(req: CreateBannerRequest): Promise<AdminBanner> {

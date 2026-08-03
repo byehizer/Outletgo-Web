@@ -17,22 +17,33 @@ export function BannersListPage() {
 
   useEffect(() => {
     async function loadData() {
+      setLoading(true);
       try {
-        const [pageData, vUrl] = await Promise.all([
-          fetchAdminBanners(0, 50),
-          fetchB2bVideoUrlFromApi(),
-        ]);
-        setBanners(pageData.content);
-        if (vUrl) setVideoUrl(vUrl);
+        const pageData = await fetchAdminBanners(0, 50);
+        if (pageData && Array.isArray(pageData.content)) {
+          setBanners(pageData.content);
+        } else {
+          setBanners([]);
+        }
       } catch (err) {
-        console.error(err);
-        showToastError('No se pudieron cargar los datos.');
+        console.error('Error al cargar banners:', err);
+        setBanners([]);
+      }
+
+      try {
+        const vUrl = await fetchB2bVideoUrlFromApi();
+        if (vUrl && typeof vUrl === 'string') {
+          setVideoUrl(vUrl);
+        }
+      } catch (err) {
+        console.error('Error al cargar URL de video B2B:', err);
       } finally {
         setLoading(false);
       }
     }
+
     void loadData();
-  }, [showToastError]);
+  }, []);
 
   const handleSaveVideo = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +65,7 @@ export function BannersListPage() {
         <div>
           <h1 className="font-display text-display-md text-[var(--text-primary)]">Banners y Campañas</h1>
           <p className="mt-1 text-sm text-[var(--text-muted)]">
-            Gestioná los banners promocionales dinámicos, campanas para la app móvil y el video institucional B2B.
+            Gestioná los banners promocionales dinámicos, campañas para la app móvil y el video institucional B2B.
           </p>
         </div>
         <Link
@@ -119,7 +130,7 @@ export function BannersListPage() {
         <div className="flex h-48 items-center justify-center">
           <Loader2 className="size-8 animate-spin text-[var(--text-muted)]" />
         </div>
-      ) : banners.length === 0 ? (
+      ) : !Array.isArray(banners) || banners.length === 0 ? (
         <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-12 text-center">
           <Image className="mx-auto size-12 text-[var(--text-muted)]" />
           <h3 className="mt-4 text-sm font-semibold text-[var(--text-primary)]">No hay banners creados</h3>
