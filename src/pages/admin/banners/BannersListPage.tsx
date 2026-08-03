@@ -1,8 +1,13 @@
-import { Image, Calendar, Plus, Tag, Loader2, Video, VideoOff, Save } from 'lucide-react';
+import { Image, Calendar, Plus, Tag, Loader2, Video, VideoOff, Save, Trash2, Power, AlertCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { fetchAdminBanners, type AdminBanner } from '../../../features/admin/adminBannersApi';
+import {
+  fetchAdminBanners,
+  toggleAdminBannerStatus,
+  deleteAdminBanner,
+  type AdminBanner,
+} from '../../../features/admin/adminBannersApi';
 import { fetchB2bVideoUrlFromApi, updateB2bVideoUrlInApi } from '../../../features/landing/landingApi';
 import { formatDate } from '../../../lib/format';
 import { useToast } from '../../../hooks/useToast';
@@ -12,39 +17,40 @@ export function BannersListPage() {
   const [loading, setLoading] = useState(true);
   const [videoUrl, setVideoUrl] = useState('');
   const [savingVideo, setSavingVideo] = useState(false);
+  const [deleteBannerId, setDeleteBannerId] = useState<string | null>(null);
 
   const { success: showToastSuccess, error: showToastError } = useToast();
 
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true);
-      try {
-        const pageData = await fetchAdminBanners(0, 50);
-        if (pageData && Array.isArray(pageData.content)) {
-          setBanners(pageData.content);
-        } else {
-          setBanners([]);
-        }
-      } catch (err) {
-        console.error('Error al cargar banners:', err);
+  async function loadData() {
+    setLoading(true);
+    try {
+      const pageData = await fetchAdminBanners(0, 50);
+      if (pageData && Array.isArray(pageData.content)) {
+        setBanners(pageData.content);
+      } else {
         setBanners([]);
       }
-
-      try {
-        const vUrl = await fetchB2bVideoUrlFromApi();
-        if (vUrl && typeof vUrl === 'string') {
-          setVideoUrl(vUrl);
-        } else {
-          setVideoUrl('');
-        }
-      } catch (err) {
-        console.error('Error al cargar URL de video B2B:', err);
-        setVideoUrl('');
-      } finally {
-        setLoading(false);
-      }
+    } catch (err) {
+      console.error('Error al cargar banners:', err);
+      setBanners([]);
     }
 
+    try {
+      const vUrl = await fetchB2bVideoUrlFromApi();
+      if (vUrl && typeof vUrl === 'string') {
+        setVideoUrl(vUrl);
+      } else {
+        setVideoUrl('');
+      }
+    } catch (err) {
+      console.error('Error al cargar URL de video B2B:', err);
+      setVideoUrl('');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
     void loadData();
   }, []);
 
@@ -58,6 +64,28 @@ export function BannersListPage() {
       showToastError('No se pudo guardar la URL del video.');
     } finally {
       setSavingVideo(false);
+    }
+  };
+
+  const handleToggleStatus = async (banner: AdminBanner) => {
+    try {
+      await toggleAdminBannerStatus(banner.id, banner.status);
+      showToastSuccess(`Banner "${banner.title}" actualizado.`);
+      void loadData();
+    } catch {
+      showToastError('No se pudo cambiar el estado del banner.');
+    }
+  };
+
+  const handleDeleteBanner = async () => {
+    if (!deleteBannerId) return;
+    try {
+      await deleteAdminBanner(deleteBannerId);
+      showToastSuccess('Banner eliminado correctamente.');
+      setDeleteBannerId(null);
+      void loadData();
+    } catch {
+      showToastError('Ocurrió un error al eliminar el banner.');
     }
   };
 
@@ -146,7 +174,7 @@ export function BannersListPage() {
       ) : !Array.isArray(banners) || banners.length === 0 ? (
         <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-12 text-center">
           <Image className="mx-auto size-12 text-[var(--text-muted)]" />
-          <h3 className="mt-4 text-sm font-semibold text-[var(--text-primary)]">No hay banners creados</h3>
+          <h3 className="mt-4 text-sm font-semibold text-[var(--text-primary)]">No hay banners ni campañas creadas</h3>
           <p className="mt-2 text-xs text-[var(--text-muted)]">
             Comenzá creando una campaña promocional para que aparezca en el home de la app.
           </p>
@@ -171,6 +199,7 @@ export function BannersListPage() {
                   <th className="px-6 py-4 font-semibold text-[var(--text-secondary)]">Vigencia</th>
                   <th className="px-6 py-4 font-semibold text-[var(--text-secondary)]">Estado</th>
                   <th className="px-6 py-4 font-semibold text-[var(--text-secondary)]">Creado</th>
+                  <th className="px-6 py-4 font-semibold text-[var(--text-secondary)] text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[var(--border)]">
@@ -220,10 +249,61 @@ export function BannersListPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-xs text-[var(--text-muted)]">
                       {banner.createdAt ? formatDate(banner.createdAt) : '—'}
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => handleToggleStatus(banner)}
+                          className={`p-2 rounded-lg transition ${
+                            banner.status === 'ACTIVE'
+                              ? 'text-warning hover:bg-warning/10'
+                              : 'text-success hover:bg-success/10'
+                          }`}
+                          title={banner.status === 'ACTIVE' ? 'Pausar campaña' : 'Activar campaña'}
+                        >
+                          <Power className="size-4" />
+                        </button>
+                        <button
+                          onClick={() => setDeleteBannerId(banner.id)}
+                          className="p-2 text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition"
+                          title="Eliminar banner"
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE CONFIRMACIÓN DE ELIMINACIÓN */}
+      {deleteBannerId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="w-full max-w-sm bg-[var(--bg-card)] rounded-2xl p-6 shadow-2xl border border-[var(--border)] space-y-4 text-center">
+            <div className="size-12 rounded-full bg-red-500/15 text-red-400 flex items-center justify-center mx-auto border border-red-500/20">
+              <AlertCircle className="size-6" />
+            </div>
+            <h3 className="text-base font-bold text-[var(--text-primary)]">¿Eliminar banner?</h3>
+            <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+              Esta acción eliminará el banner promocional. Dejará de visualizarse en la app móvil.
+            </p>
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={() => setDeleteBannerId(null)}
+                className="flex-1 h-10 rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-card)]"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDeleteBanner}
+                className="flex-1 h-10 rounded-lg bg-red-600 text-xs font-semibold text-white hover:bg-red-700"
+              >
+                Sí, Eliminar
+              </button>
+            </div>
           </div>
         </div>
       )}
