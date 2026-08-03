@@ -1,8 +1,8 @@
-import { ArrowLeft, Loader2, Search, Crop, Check, X } from 'lucide-react';
+import { ArrowLeft, Loader2, Search, Crop, Check, X, Smartphone } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
-import { ImageDropzone } from '../../../components/ImageDropzone';
+import { BannerImageUploader } from '../../../components/BannerImageUploader';
 import { createAdminBanner } from '../../../features/admin/adminBannersApi';
 import { useToast } from '../../../hooks/useToast';
 
@@ -23,6 +23,8 @@ const DEV_PRODUCTS_MOCK = [
   { id: 'prod-5', name: 'Botas de Gamuza Invierno', storeName: 'Zapatoteca CABA' },
   { id: 'prod-6', name: 'Remera Algodón Negra', storeName: 'Urban Sport' },
 ];
+
+type AspectRatioMode = '3:1' | '16:9' | '1:1' | 'FREE';
 
 export function BannerFormPage() {
   const navigate = useNavigate();
@@ -46,14 +48,17 @@ export function BannerFormPage() {
   // Crop State
   const [rawImageSrc, setRawImageSrc] = useState<string | null>(null);
   const [showCropModal, setShowCropModal] = useState(false);
+  const [aspectMode, setAspectMode] = useState<AspectRatioMode>('3:1');
+  
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
 
-  // Coordenadas de encuadre en porcentaje (de 0 a 100)
-  const [cropX, setCropX] = useState(10);
-  const [cropY, setCropY] = useState(10);
-  const [cropW, setCropW] = useState(80);
-  const [cropH, setCropH] = useState(50);
+  // Coordenadas de encuadre en porcentaje (0 a 100)
+  const [cropX, setCropX] = useState(5);
+  const [cropY, setCropY] = useState(25);
+  const [cropW, setCropW] = useState(90);
+  const [cropH, setCropH] = useState(30);
+
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -79,13 +84,46 @@ export function BannerFormPage() {
     );
   };
 
-  // Carga de la imagen original para recortar
-  const handleImageUploaded = (res: { url: string }) => {
-    setRawImageSrc(res.url);
+  // Carga de la imagen original para encuadres
+  const handleImageSelected = (rawUrl: string) => {
+    setRawImageSrc(rawUrl);
+    applyAspectPreset('3:1');
     setShowCropModal(true);
   };
 
-  // Dibujo dinámico de la imagen y la máscara de encuadre en el Canvas
+  const handleRemoveImage = () => {
+    setImageUrl('');
+    setRawImageSrc(null);
+    showToastSuccess('Imagen eliminada.');
+  };
+
+  // Aplicar preajustes de aspecto
+  const applyAspectPreset = (mode: AspectRatioMode) => {
+    setAspectMode(mode);
+    if (mode === '3:1') {
+      setCropW(90);
+      setCropH(30);
+      setCropX(5);
+      setCropY(35);
+    } else if (mode === '16:9') {
+      setCropW(85);
+      setCropH(47.8);
+      setCropX(7.5);
+      setCropY(26);
+    } else if (mode === '1:1') {
+      setCropW(60);
+      setCropH(60);
+      setCropX(20);
+      setCropY(20);
+    } else if (mode === 'FREE') {
+      setCropW(100);
+      setCropH(100);
+      setCropX(0);
+      setCropY(0);
+    }
+  };
+
+  // Renderizado interactivo en el Canvas
   useEffect(() => {
     if (!showCropModal || !rawImageSrc) return;
 
@@ -96,7 +134,7 @@ export function BannerFormPage() {
       imageRef.current = img;
       drawCanvas();
     };
-  }, [showCropModal, rawImageSrc, cropX, cropY, cropW, cropH]);
+  }, [showCropModal, rawImageSrc, cropX, cropY, cropW, cropH, aspectMode]);
 
   const drawCanvas = () => {
     const canvas = canvasRef.current;
@@ -106,9 +144,8 @@ export function BannerFormPage() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Ajustar dimensiones del canvas preservando aspect ratio de la imagen
-    const maxW = 500;
-    const maxH = 350;
+    const maxW = 550;
+    const maxH = 380;
     let w = img.width;
     let h = img.height;
 
@@ -124,32 +161,43 @@ export function BannerFormPage() {
     canvas.width = w;
     canvas.height = h;
 
-    // 1. Dibujar Imagen base
+    // Imagen base
     ctx.drawImage(img, 0, 0, w, h);
 
-    // 2. Dibujar máscara semitransparente (sombra)
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    // Máscara oscura
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
     ctx.fillRect(0, 0, w, h);
 
-    // 3. Limpiar el area de recorte
+    // Recorte claro
     const rx = (cropX / 100) * w;
     const ry = (cropY / 100) * h;
     const rw = (cropW / 100) * w;
     const rh = (cropH / 100) * h;
 
-    ctx.drawImage(img, (cropX / 100) * img.width, (cropY / 100) * img.height, (cropW / 100) * img.width, (cropH / 100) * img.height, rx, ry, rw, rh);
+    ctx.drawImage(
+      img,
+      (cropX / 100) * img.width,
+      (cropY / 100) * img.height,
+      (cropW / 100) * img.width,
+      (cropH / 100) * img.height,
+      rx,
+      ry,
+      rw,
+      rh
+    );
 
-    // 4. Dibujar borde del rectángulo de encuadre
+    // Borde de selección
     ctx.strokeStyle = '#2B8FD4';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2.5;
     ctx.strokeRect(rx, ry, rw, rh);
 
     // Esquinas táctiles
     ctx.fillStyle = '#2B8FD4';
-    ctx.fillRect(rx - 4, ry - 4, 8, 8);
-    ctx.fillRect(rx + rw - 4, ry - 4, 8, 8);
-    ctx.fillRect(rx - 4, ry + rh - 4, 8, 8);
-    ctx.fillRect(rx + rw - 4, ry + rh - 4, 8, 8);
+    const sz = 8;
+    ctx.fillRect(rx - sz / 2, ry - sz / 2, sz, sz);
+    ctx.fillRect(rx + rw - sz / 2, ry - sz / 2, sz, sz);
+    ctx.fillRect(rx - sz / 2, ry + rh - sz / 2, sz, sz);
+    ctx.fillRect(rx + rw - sz / 2, ry + rh - sz / 2, sz, sz);
   };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -165,7 +213,6 @@ export function BannerFormPage() {
     const rw = (cropW / 100) * canvas.width;
     const rh = (cropH / 100) * canvas.height;
 
-    // Verificar si hizo clic dentro del rectangulo de recorte
     if (x >= rx && x <= rx + rw && y >= ry && y <= ry + rh) {
       setIsDragging(true);
       setDragStart({ x, y });
@@ -199,16 +246,16 @@ export function BannerFormPage() {
     setIsDragging(false);
   };
 
-  // Ejecuta el recorte real usando Canvas e inserta la imagen en Base64
+  // Recorte en alta definición utilizando resolución nativa del archivo
   const handleApplyCrop = () => {
     const img = imageRef.current;
     if (!img) return;
 
     const cropCanvas = document.createElement('canvas');
-    const sx = (cropX / 100) * img.width;
-    const sy = (cropY / 100) * img.height;
-    const sw = (cropW / 100) * img.width;
-    const sh = (cropH / 100) * img.height;
+    const sx = (cropX / 100) * img.naturalWidth;
+    const sy = (cropY / 100) * img.naturalHeight;
+    const sw = (cropW / 100) * img.naturalWidth;
+    const sh = (cropH / 100) * img.naturalHeight;
 
     cropCanvas.width = sw;
     cropCanvas.height = sh;
@@ -217,11 +264,11 @@ export function BannerFormPage() {
     if (!ctx) return;
 
     ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
-    const croppedUrl = cropCanvas.toDataURL('image/jpeg', 0.9);
+    const croppedUrl = cropCanvas.toDataURL('image/jpeg', 0.92);
 
     setImageUrl(croppedUrl);
     setShowCropModal(false);
-    showToastSuccess('Imagen encuadrada con éxito.');
+    showToastSuccess('Banner encuadrado con éxito.');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -345,26 +392,17 @@ export function BannerFormPage() {
           </div>
         </section>
 
-        {/* Imagen del Banner */}
+        {/* Carga e Imagen del Banner */}
         <section className="space-y-4">
           <h3 className="font-display text-base font-semibold text-[var(--text-primary)]">Imagen del Banner</h3>
-          <div className="max-w-xl">
-            <ImageDropzone
-              onUploaded={handleImageUploaded}
-              onUrlsChange={(urls) => {
-                if (urls[0]) {
-                  setRawImageSrc(urls[0]);
-                  setShowCropModal(true);
-                }
-              }}
-              onError={(msg) => showToastError(msg)}
-            />
-          </div>
-          {imageUrl && (
-            <div className="mt-4 max-w-sm rounded-lg border border-[var(--border)] overflow-hidden">
-              <img src={imageUrl} alt="Preview" className="h-40 w-full object-cover" />
-            </div>
-          )}
+          <BannerImageUploader
+            currentUrl={imageUrl}
+            onImageSelected={handleImageSelected}
+            onRemoveImage={handleRemoveImage}
+            onOpenCropper={() => setShowCropModal(true)}
+            onError={(msg) => showToastError(msg)}
+            maxMb={50}
+          />
         </section>
 
         {/* Selección Muchos a Muchos */}
@@ -454,81 +492,106 @@ export function BannerFormPage() {
         </div>
       </form>
 
-      {/* MODAL DE ENCUADRE DE IMAGEN (CROP TOOL) */}
+      {/* MODAL DE ENCUADRE DE BANNER CON PROPORCIÓN PREDETERMINADA */}
       {showCropModal && rawImageSrc && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
-          <div className="w-full max-w-xl bg-[var(--bg-card)] rounded-2xl p-6 shadow-2xl border border-[var(--border)] space-y-4 animate-in zoom-in-95 duration-200 text-center">
-            <div className="flex items-center justify-between border-b border-[var(--border)] pb-3 text-left">
-              <h3 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-1.5">
-                <Crop className="size-4 text-brand" /> Encuadrar Imagen del Banner
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
+          <div className="w-full max-w-2xl bg-[var(--bg-card)] rounded-2xl p-6 shadow-2xl border border-[var(--border)] space-y-4 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-[var(--border)] pb-3">
+              <h3 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-2">
+                <Crop className="size-4 text-brand" /> Encuadrar Banner (Proporción Óptima)
               </h3>
               <button
                 onClick={() => setShowCropModal(false)}
-                className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded-lg"
               >
                 <X className="size-4" />
               </button>
             </div>
 
-            <p className="text-xs text-[var(--text-muted)] text-left">
-              Arrastrá el recuadro azul para encuadrar la porción de la imagen que querés publicar en la app.
+            <p className="text-xs text-[var(--text-muted)]">
+              Arrastrá la caja azul sobre tu imagen. El área se mantiene fijada en la proporción ideal para que nunca se deforme en la App.
             </p>
 
-            {/* Canvas Interactivo de Recorte */}
-            <div className="flex justify-center bg-slate-950/40 rounded-lg p-2 border border-[var(--border)] overflow-hidden">
+            {/* Canvas Interactivo */}
+            <div className="flex justify-center bg-slate-950/60 rounded-xl p-3 border border-[var(--border)] overflow-hidden">
               <canvas
                 ref={canvasRef}
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
                 onMouseLeave={handleMouseUp}
-                className="cursor-move max-w-full rounded-md"
+                className="cursor-move max-w-full rounded-md shadow-inner"
               />
             </div>
 
-            {/* Ajustes Rápidos del Encuadre */}
-            <div className="flex flex-wrap items-center justify-between gap-3 text-left bg-[var(--bg-surface)] p-3 rounded-lg border border-[var(--border)]">
-              <div className="space-y-1">
-                <span className="block text-[10px] font-bold text-[var(--text-muted)] uppercase">Proporciones fijas</span>
-                <div className="flex gap-1.5">
+            {/* Preajustes de Aspecto */}
+            <div className="flex flex-wrap items-center justify-between gap-3 bg-[var(--bg-surface)] p-3.5 rounded-xl border border-[var(--border)]">
+              <div className="space-y-1.5">
+                <span className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                  Proporciones Recomendadas
+                </span>
+                <div className="flex flex-wrap gap-1.5">
                   <button
                     type="button"
-                    onClick={() => { setCropW(90); setCropH(30); }}
-                    className="px-2.5 py-1 text-[10px] font-semibold bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-primary)] rounded hover:bg-brand hover:text-white"
+                    onClick={() => applyAspectPreset('3:1')}
+                    className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition flex items-center gap-1.5 ${
+                      aspectMode === '3:1'
+                        ? 'bg-brand text-white border-brand shadow-xs'
+                        : 'bg-[var(--bg-card)] border-[var(--border)] text-[var(--text-primary)] hover:border-brand/50'
+                    }`}
                   >
-                    Horizontal (3:1)
+                    <Smartphone className="size-3.5" /> Banner App (3:1)
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setCropW(80); setCropH(45); }}
-                    className="px-2.5 py-1 text-[10px] font-semibold bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-primary)] rounded hover:bg-brand hover:text-white"
+                    onClick={() => applyAspectPreset('16:9')}
+                    className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition ${
+                      aspectMode === '16:9'
+                        ? 'bg-brand text-white border-brand shadow-xs'
+                        : 'bg-[var(--bg-card)] border-[var(--border)] text-[var(--text-primary)] hover:border-brand/50'
+                    }`}
                   >
-                    Estándar (16:9)
+                    Panorámico (16:9)
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setCropW(70); setCropH(70); }}
-                    className="px-2.5 py-1 text-[10px] font-semibold bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-primary)] rounded hover:bg-brand hover:text-white"
+                    onClick={() => applyAspectPreset('1:1')}
+                    className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition ${
+                      aspectMode === '1:1'
+                        ? 'bg-brand text-white border-brand shadow-xs'
+                        : 'bg-[var(--bg-card)] border-[var(--border)] text-[var(--text-primary)] hover:border-brand/50'
+                    }`}
                   >
                     Cuadrado (1:1)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => applyAspectPreset('FREE')}
+                    className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition ${
+                      aspectMode === 'FREE'
+                        ? 'bg-brand text-white border-brand shadow-xs'
+                        : 'bg-[var(--bg-card)] border-[var(--border)] text-[var(--text-primary)] hover:border-brand/50'
+                    }`}
+                  >
+                    100% Completa
                   </button>
                 </div>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 self-end">
                 <button
                   type="button"
                   onClick={() => setShowCropModal(false)}
-                  className="h-9 px-4 rounded-lg bg-[var(--bg-surface)] border border-[var(--border)] text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-card)]"
+                  className="h-9 px-4 rounded-lg bg-[var(--bg-surface)] border border-[var(--border)] text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-card)] transition"
                 >
                   Cancelar
                 </button>
                 <button
                   type="button"
                   onClick={handleApplyCrop}
-                  className="h-9 px-4 rounded-lg bg-brand text-xs font-semibold text-white hover:bg-brand/90 flex items-center gap-1"
+                  className="h-9 px-4 rounded-lg bg-brand text-xs font-semibold text-white hover:bg-brand-focus transition flex items-center gap-1.5 shadow-sm"
                 >
-                  <Check className="size-3.5" /> Confirmar Encuadre
+                  <Check className="size-4" /> Confirmar Encuadre
                 </button>
               </div>
             </div>
