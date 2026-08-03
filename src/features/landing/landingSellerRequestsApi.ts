@@ -44,7 +44,8 @@ export async function submitSellerRegistrationRequest(
   try {
     return await apiClient.post<SellerRegistrationRequestItem>(
       '/api/landing/seller-requests',
-      data
+      data,
+      { skipAuth: true }
     );
   } catch {
     // Fallback a localStorage para desarrollo local sin backend conectado
