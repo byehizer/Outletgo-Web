@@ -54,11 +54,48 @@ export function BannersListPage() {
     void loadData();
   }, []);
 
+  const toEmbedUrl = (url: string): string => {
+    if (!url) return '';
+    const cleanUrl = url.trim();
+
+    // YouTube youtu.be/ID
+    if (cleanUrl.includes('youtu.be/')) {
+      const parts = cleanUrl.split('youtu.be/');
+      const id = parts[1]?.split('?')[0]?.split('/')[0];
+      if (id) return `https://www.youtube.com/embed/${id}`;
+    }
+
+    // YouTube watch?v=ID
+    if (cleanUrl.includes('youtube.com/watch')) {
+      try {
+        const urlObj = new URL(cleanUrl);
+        const id = urlObj.searchParams.get('v');
+        if (id) return `https://www.youtube.com/embed/${id}`;
+      } catch {
+        // Fallback split
+        const parts = cleanUrl.split('v=');
+        const id = parts[1]?.split('&')[0];
+        if (id) return `https://www.youtube.com/embed/${id}`;
+      }
+    }
+
+    // Vimeo vimeo.com/ID
+    if (cleanUrl.includes('vimeo.com/') && !cleanUrl.includes('player.vimeo.com')) {
+      const parts = cleanUrl.split('vimeo.com/');
+      const id = parts[1]?.split('?')[0]?.split('/')[0];
+      if (id) return `https://player.vimeo.com/video/${id}`;
+    }
+
+    return cleanUrl;
+  };
+
   const handleSaveVideo = async (e: React.FormEvent) => {
     e.preventDefault();
     setSavingVideo(true);
     try {
-      await updateB2bVideoUrlInApi(videoUrl.trim());
+      const normalizedUrl = toEmbedUrl(videoUrl);
+      setVideoUrl(normalizedUrl);
+      await updateB2bVideoUrlInApi(normalizedUrl);
       showToastSuccess('URL del Video B2B actualizada correctamente.');
     } catch {
       showToastError('No se pudo guardar la URL del video.');
