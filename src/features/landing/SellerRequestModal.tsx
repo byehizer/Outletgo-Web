@@ -77,18 +77,25 @@ export function SellerRequestModal({ open, onClose }: SellerRequestModalProps) {
     setIsSuccess(false);
   }, [open, reset]);
 
+  const hasFocusedRef = useRef(false);
+
   useEffect(() => {
     if (!open) {
+      hasFocusedRef.current = false;
       return;
     }
 
-    const previous = document.activeElement as HTMLElement | null;
+    if (!hasFocusedRef.current) {
+      const root = panelRef.current;
+      const first =
+        root?.querySelector<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled])',
+        ) ?? root;
+      first?.focus({ preventScroll: true });
+      hasFocusedRef.current = true;
+    }
+
     const root = panelRef.current;
-    const first =
-      root?.querySelector<HTMLElement>(
-        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled])',
-      ) ?? root;
-    first?.focus({ preventScroll: true });
 
     const onDocKeyDown = (ev: globalThis.KeyboardEvent) => {
       if (!root) {
@@ -107,7 +114,6 @@ export function SellerRequestModal({ open, onClose }: SellerRequestModalProps) {
     return () => {
       document.removeEventListener('keydown', onDocKeyDown);
       document.body.style.overflow = prevOverflow;
-      previous?.focus?.({ preventScroll: true });
     };
   }, [open, isSubmitting, onClose]);
 

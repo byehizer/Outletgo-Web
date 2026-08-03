@@ -122,6 +122,8 @@ export function LandingPage() {
 
   // Auto-ciclar pasos del simulador
   useEffect(() => {
+    if (sellerModalOpen) return;
+
     autoCycleRef.current = setInterval(() => {
       setSimulatorStep((prev) => {
         const next = ((prev + 1) % 3) as 0 | 1 | 2;
@@ -136,7 +138,7 @@ export function LandingPage() {
     return () => {
       if (autoCycleRef.current) clearInterval(autoCycleRef.current);
     };
-  }, []);
+  }, [sellerModalOpen]);
 
   const handleStepSelect = (step: 0 | 1 | 2) => {
     setSimulatorStep(step);
