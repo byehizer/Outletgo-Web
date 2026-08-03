@@ -440,6 +440,8 @@ export function SellersListPage() {
   const [activeTab, setActiveTab] = useState<'accounts' | 'requests'>('accounts');
   const [requestsList, setRequestsList] = useState<SellerRegistrationRequestItem[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(false);
+  const [requestsSearchQuery, setRequestsSearchQuery] = useState('');
+  const [requestsStatusFilter, setRequestsStatusFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('ALL');
 
   const loadRequests = useCallback(async () => {
     setLoadingRequests(true);
@@ -453,6 +455,22 @@ export function SellersListPage() {
       loadRequests();
     }
   }, [activeTab, loadRequests]);
+
+  const filteredRequests = useMemo(() => {
+    const q = requestsSearchQuery.trim().toLowerCase();
+    return requestsList.filter((req) => {
+      if (requestsStatusFilter !== 'ALL' && req.status !== requestsStatusFilter) {
+        return false;
+      }
+      if (!q) return true;
+      const matchBusiness = req.businessName?.toLowerCase().includes(q);
+      const matchContact = req.contactName?.toLowerCase().includes(q);
+      const matchCuit = req.cuit?.toLowerCase().includes(q);
+      const matchEmail = req.email?.toLowerCase().includes(q);
+      const matchPhone = req.phone?.toLowerCase().includes(q);
+      return Boolean(matchBusiness || matchContact || matchCuit || matchEmail || matchPhone);
+    });
+  }, [requestsList, requestsSearchQuery, requestsStatusFilter]);
 
   const handleStatusChange = async (id: string, status: 'APPROVED' | 'REJECTED') => {
     await updateSellerRequestStatus(id, status);
@@ -492,7 +510,7 @@ export function SellersListPage() {
             'flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-t-xl transition border-b-2 -mb-[5px]',
             activeTab === 'accounts'
               ? 'border-brand text-brand bg-brand/5'
-              : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+              : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]'
           )}
         >
           <Building2 className="size-4" />
@@ -505,7 +523,7 @@ export function SellersListPage() {
             'flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-t-xl transition border-b-2 -mb-[5px]',
             activeTab === 'requests'
               ? 'border-brand text-brand bg-brand/5'
-              : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+              : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]'
           )}
         >
           <Clock className="size-4" />
@@ -515,24 +533,54 @@ export function SellersListPage() {
 
       {activeTab === 'requests' ? (
         <section className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-slate-800">Solicitudes de Registro B2B (Landing Page)</h2>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="text-sm font-bold text-[var(--text-primary)]">
+              Solicitudes de Registro B2B ({filteredRequests.length} mostradas)
+            </h2>
             <button
               onClick={loadRequests}
-              className="text-xs font-semibold text-brand hover:underline"
+              className="text-xs font-semibold text-brand hover:underline self-start sm:self-auto"
             >
               Refrescar listado
             </button>
           </div>
 
+          {/* BUSCADOR Y FILTROS */}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[var(--text-muted)]" />
+              <input
+                type="search"
+                value={requestsSearchQuery}
+                onChange={(e) => setRequestsSearchQuery(e.target.value)}
+                placeholder="Buscar por comercio, CUIT, contacto, email o teléfono..."
+                className="h-10 w-full rounded-lg border border-[var(--border)] bg-[var(--bg-input)] py-2 pl-10 pr-3 text-sm text-[var(--text-primary)] outline-none transition focus:border-[var(--border-focus)] placeholder:text-[var(--text-muted)]"
+              />
+            </div>
+            <select
+              value={requestsStatusFilter}
+              onChange={(e) => setRequestsStatusFilter(e.target.value as 'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED')}
+              className="h-10 rounded-lg border border-[var(--border)] bg-[var(--bg-input)] px-3 text-xs font-semibold text-[var(--text-primary)] outline-none focus:border-[var(--border-focus)]"
+            >
+              <option value="ALL">Todos los Estados</option>
+              <option value="PENDING">Solo Pendientes</option>
+              <option value="APPROVED">Solo Aprobadas</option>
+              <option value="REJECTED">Solo Rechazadas</option>
+            </select>
+          </div>
+
           {loadingRequests ? (
-            <div className="p-8 text-center text-xs text-slate-400">Cargando solicitudes de tiendas...</div>
-          ) : requestsList.length === 0 ? (
-            <div className="p-8 text-center text-xs text-slate-500">No hay solicitudes de alta registradas aún.</div>
+            <div className="p-8 text-center text-xs text-[var(--text-muted)]">Cargando solicitudes de tiendas...</div>
+          ) : filteredRequests.length === 0 ? (
+            <div className="p-8 text-center text-xs text-[var(--text-muted)]">
+              {requestsSearchQuery || requestsStatusFilter !== 'ALL'
+                ? 'No se encontraron solicitudes que coincidan con la búsqueda o filtro.'
+                : 'No hay solicitudes de alta registradas aún.'}
+            </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-600">
-                <thead className="bg-slate-50 text-[11px] font-bold text-slate-500 uppercase border-b border-slate-200">
+            <div className="overflow-x-auto rounded-lg border border-[var(--border)]">
+              <table className="w-full text-left text-xs text-[var(--text-secondary)]">
+                <thead className="bg-[var(--bg-surface)] text-[11px] font-bold text-[var(--text-muted)] uppercase border-b border-[var(--border)]">
                   <tr>
                     <th className="px-4 py-3">Comercio / Marca</th>
                     <th className="px-4 py-3">CUIT</th>
@@ -543,26 +591,26 @@ export function SellersListPage() {
                     <th className="px-4 py-3 text-right">Acciones</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {requestsList.map((req) => (
-                    <tr key={req.id} className="hover:bg-slate-50/80 transition">
-                      <td className="px-4 py-3 font-bold text-slate-900">{req.businessName}</td>
-                      <td className="px-4 py-3 font-mono text-slate-700">{req.cuit}</td>
-                      <td className="px-4 py-3 font-semibold text-slate-800">{req.contactName}</td>
+                <tbody className="divide-y divide-[var(--border)]">
+                  {filteredRequests.map((req) => (
+                    <tr key={req.id} className="hover:bg-[var(--bg-surface)] transition">
+                      <td className="px-4 py-3 font-bold text-[var(--text-primary)]">{req.businessName}</td>
+                      <td className="px-4 py-3 font-mono text-[var(--text-secondary)]">{req.cuit}</td>
+                      <td className="px-4 py-3 font-semibold text-[var(--text-primary)]">{req.contactName}</td>
                       <td className="px-4 py-3 space-y-0.5">
-                        <p className="font-semibold text-slate-800">{req.email}</p>
-                        <p className="text-[11px] text-slate-400">{req.phone}</p>
+                        <p className="font-semibold text-[var(--text-primary)]">{req.email}</p>
+                        <p className="text-[11px] text-[var(--text-muted)]">{req.phone}</p>
                       </td>
-                      <td className="px-4 py-3 text-slate-400">
+                      <td className="px-4 py-3 text-[var(--text-muted)]">
                         {new Date(req.createdAt).toLocaleDateString('es-AR')}
                       </td>
                       <td className="px-4 py-3">
                         <span
                           className={cn(
                             'text-[10px] font-bold px-2 py-0.5 rounded-md border',
-                            req.status === 'APPROVED' && 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                            req.status === 'REJECTED' && 'bg-red-50 text-red-700 border-red-200',
-                            req.status === 'PENDING' && 'bg-amber-50 text-amber-700 border-amber-200'
+                            req.status === 'APPROVED' && 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+                            req.status === 'REJECTED' && 'bg-red-500/10 text-red-400 border-red-500/20',
+                            req.status === 'PENDING' && 'bg-amber-500/10 text-amber-400 border-amber-500/20'
                           )}
                         >
                           {req.status === 'APPROVED' && 'APROBADO'}
@@ -572,17 +620,17 @@ export function SellersListPage() {
                       </td>
                       <td className="px-4 py-3 text-right">
                         {req.status === 'PENDING' && (
-                          <div className="flex items-center justify-end gap-1">
+                          <div className="flex items-center justify-end gap-1.5">
                             <button
                               onClick={() => handleStatusChange(req.id, 'APPROVED')}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-600 text-white rounded-lg text-[11px] font-bold hover:bg-emerald-700 transition"
+                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-[11px] font-bold hover:bg-emerald-700 transition shadow-sm"
                               title="Aprobar Solicitud"
                             >
                               <CheckCircle2 className="size-3.5" /> Aprobar
                             </button>
                             <button
                               onClick={() => handleStatusChange(req.id, 'REJECTED')}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-200 text-slate-700 rounded-lg text-[11px] font-bold hover:bg-slate-300 transition"
+                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text-primary)] rounded-lg text-[11px] font-bold hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30 transition"
                               title="Rechazar Solicitud"
                             >
                               <XCircle className="size-3.5" /> Rechazar
