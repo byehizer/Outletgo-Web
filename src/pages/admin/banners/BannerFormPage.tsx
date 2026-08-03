@@ -1,5 +1,5 @@
-import { ArrowLeft, Loader2, Search } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowLeft, Loader2, Search, Crop, Check, X } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 
 import { ImageDropzone } from '../../../components/ImageDropzone';
@@ -41,8 +41,22 @@ export function BannerFormPage() {
   // Search Filter State
   const [storeSearch, setStoreSearch] = useState('');
   const [productSearch, setProductSearch] = useState('');
-
   const [saving, setSaving] = useState(false);
+
+  // Crop State
+  const [rawImageSrc, setRawImageSrc] = useState<string | null>(null);
+  const [showCropModal, setShowCropModal] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const imageRef = useRef<HTMLImageElement | null>(null);
+
+  // Coordenadas de encuadre en porcentaje (de 0 a 100)
+  const [cropX, setCropX] = useState(10);
+  const [cropY, setCropY] = useState(10);
+  const [cropW, setCropW] = useState(80);
+  const [cropH, setCropH] = useState(50);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   // Filtrado de tiendas y productos
   const filteredStores = DEV_STORES_MOCK.filter((s) =>
@@ -63,6 +77,151 @@ export function BannerFormPage() {
     setSelectedProductIds((prev) =>
       prev.includes(id) ? prev.filter((pid) => pid !== id) : [...prev, id]
     );
+  };
+
+  // Carga de la imagen original para recortar
+  const handleImageUploaded = (res: { url: string }) => {
+    setRawImageSrc(res.url);
+    setShowCropModal(true);
+  };
+
+  // Dibujo dinámico de la imagen y la máscara de encuadre en el Canvas
+  useEffect(() => {
+    if (!showCropModal || !rawImageSrc) return;
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.src = rawImageSrc;
+    img.onload = () => {
+      imageRef.current = img;
+      drawCanvas();
+    };
+  }, [showCropModal, rawImageSrc, cropX, cropY, cropW, cropH]);
+
+  const drawCanvas = () => {
+    const canvas = canvasRef.current;
+    const img = imageRef.current;
+    if (!canvas || !img) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Ajustar dimensiones del canvas preservando aspect ratio de la imagen
+    const maxW = 500;
+    const maxH = 350;
+    let w = img.width;
+    let h = img.height;
+
+    if (w > maxW) {
+      h = (maxW / w) * h;
+      w = maxW;
+    }
+    if (h > maxH) {
+      w = (maxH / h) * w;
+      h = maxH;
+    }
+
+    canvas.width = w;
+    canvas.height = h;
+
+    // 1. Dibujar Imagen base
+    ctx.drawImage(img, 0, 0, w, h);
+
+    // 2. Dibujar máscara semitransparente (sombra)
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(0, 0, w, h);
+
+    // 3. Limpiar el area de recorte
+    const rx = (cropX / 100) * w;
+    const ry = (cropY / 100) * h;
+    const rw = (cropW / 100) * w;
+    const rh = (cropH / 100) * h;
+
+    ctx.drawImage(img, (cropX / 100) * img.width, (cropY / 100) * img.height, (cropW / 100) * img.width, (cropH / 100) * img.height, rx, ry, rw, rh);
+
+    // 4. Dibujar borde del rectángulo de encuadre
+    ctx.strokeStyle = '#2B8FD4';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(rx, ry, rw, rh);
+
+    // Esquinas táctiles
+    ctx.fillStyle = '#2B8FD4';
+    ctx.fillRect(rx - 4, ry - 4, 8, 8);
+    ctx.fillRect(rx + rw - 4, ry - 4, 8, 8);
+    ctx.fillRect(rx - 4, ry + rh - 4, 8, 8);
+    ctx.fillRect(rx + rw - 4, ry + rh - 4, 8, 8);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const rx = (cropX / 100) * canvas.width;
+    const ry = (cropY / 100) * canvas.height;
+    const rw = (cropW / 100) * canvas.width;
+    const rh = (cropH / 100) * canvas.height;
+
+    // Verificar si hizo clic dentro del rectangulo de recorte
+    if (x >= rx && x <= rx + rw && y >= ry && y <= ry + rh) {
+      setIsDragging(true);
+      setDragStart({ x, y });
+      setDragOffset({ x: cropX, y: cropY });
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDragging) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const dx = x - dragStart.x;
+    const dy = y - dragStart.y;
+
+    const pctDx = (dx / canvas.width) * 100;
+    const pctDy = (dy / canvas.height) * 100;
+
+    let newX = Math.max(0, Math.min(100 - cropW, dragOffset.x + pctDx));
+    let newY = Math.max(0, Math.min(100 - cropH, dragOffset.y + pctDy));
+
+    setCropX(newX);
+    setCropY(newY);
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Ejecuta el recorte real usando Canvas e inserta la imagen en Base64
+  const handleApplyCrop = () => {
+    const img = imageRef.current;
+    if (!img) return;
+
+    const cropCanvas = document.createElement('canvas');
+    const sx = (cropX / 100) * img.width;
+    const sy = (cropY / 100) * img.height;
+    const sw = (cropW / 100) * img.width;
+    const sh = (cropH / 100) * img.height;
+
+    cropCanvas.width = sw;
+    cropCanvas.height = sh;
+
+    const ctx = cropCanvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+    const croppedUrl = cropCanvas.toDataURL('image/jpeg', 0.9);
+
+    setImageUrl(croppedUrl);
+    setShowCropModal(false);
+    showToastSuccess('Imagen encuadrada con éxito.');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -191,8 +350,13 @@ export function BannerFormPage() {
           <h3 className="font-display text-base font-semibold text-[var(--text-primary)]">Imagen del Banner</h3>
           <div className="max-w-xl">
             <ImageDropzone
-              onUploaded={(res) => setImageUrl(res.url)}
-              onUrlsChange={(urls) => setImageUrl(urls[0] || '')}
+              onUploaded={handleImageUploaded}
+              onUrlsChange={(urls) => {
+                if (urls[0]) {
+                  setRawImageSrc(urls[0]);
+                  setShowCropModal(true);
+                }
+              }}
               onError={(msg) => showToastError(msg)}
             />
           </div>
@@ -289,6 +453,88 @@ export function BannerFormPage() {
           </button>
         </div>
       </form>
+
+      {/* MODAL DE ENCUADRE DE IMAGEN (CROP TOOL) */}
+      {showCropModal && rawImageSrc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
+          <div className="w-full max-w-xl bg-[var(--bg-card)] rounded-2xl p-6 shadow-2xl border border-[var(--border)] space-y-4 animate-in zoom-in-95 duration-200 text-center">
+            <div className="flex items-center justify-between border-b border-[var(--border)] pb-3 text-left">
+              <h3 className="text-sm font-bold text-[var(--text-primary)] flex items-center gap-1.5">
+                <Crop className="size-4 text-brand" /> Encuadrar Imagen del Banner
+              </h3>
+              <button
+                onClick={() => setShowCropModal(false)}
+                className="p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-[var(--text-muted)] text-left">
+              Arrastrá el recuadro azul para encuadrar la porción de la imagen que querés publicar en la app.
+            </p>
+
+            {/* Canvas Interactivo de Recorte */}
+            <div className="flex justify-center bg-slate-950/40 rounded-lg p-2 border border-[var(--border)] overflow-hidden">
+              <canvas
+                ref={canvasRef}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+                className="cursor-move max-w-full rounded-md"
+              />
+            </div>
+
+            {/* Ajustes Rápidos del Encuadre */}
+            <div className="flex flex-wrap items-center justify-between gap-3 text-left bg-[var(--bg-surface)] p-3 rounded-lg border border-[var(--border)]">
+              <div className="space-y-1">
+                <span className="block text-[10px] font-bold text-[var(--text-muted)] uppercase">Proporciones fijas</span>
+                <div className="flex gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => { setCropW(90); setCropH(30); }}
+                    className="px-2.5 py-1 text-[10px] font-semibold bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-primary)] rounded hover:bg-brand hover:text-white"
+                  >
+                    Horizontal (3:1)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setCropW(80); setCropH(45); }}
+                    className="px-2.5 py-1 text-[10px] font-semibold bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-primary)] rounded hover:bg-brand hover:text-white"
+                  >
+                    Estándar (16:9)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setCropW(70); setCropH(70); }}
+                    className="px-2.5 py-1 text-[10px] font-semibold bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-primary)] rounded hover:bg-brand hover:text-white"
+                  >
+                    Cuadrado (1:1)
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowCropModal(false)}
+                  className="h-9 px-4 rounded-lg bg-[var(--bg-surface)] border border-[var(--border)] text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-card)]"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleApplyCrop}
+                  className="h-9 px-4 rounded-lg bg-brand text-xs font-semibold text-white hover:bg-brand/90 flex items-center gap-1"
+                >
+                  <Check className="size-3.5" /> Confirmar Encuadre
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
