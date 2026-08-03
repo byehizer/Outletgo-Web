@@ -106,9 +106,20 @@ export async function fetchBlogsFromApi(): Promise<BlogArticle[]> {
 export async function fetchB2bVideoUrlFromApi(): Promise<string> {
   try {
     const res = await apiClient.get<{ value: string }>('/settings/b2b-video-url');
-    return res.value;
+    return res.value || localStorage.getItem('outletgo_b2b_video_url') || 'https://www.youtube.com/embed/8tCq3330N1o';
   } catch {
-    return 'https://www.youtube.com/embed/8tCq3330N1o';
+    return localStorage.getItem('outletgo_b2b_video_url') || 'https://www.youtube.com/embed/8tCq3330N1o';
+  }
+}
+
+export async function updateB2bVideoUrlInApi(url: string): Promise<boolean> {
+  try {
+    await apiClient.put('/api/admin/settings/b2b-video-url', { value: url });
+    localStorage.setItem('outletgo_b2b_video_url', url);
+    return true;
+  } catch {
+    localStorage.setItem('outletgo_b2b_video_url', url);
+    return true;
   }
 }
 
