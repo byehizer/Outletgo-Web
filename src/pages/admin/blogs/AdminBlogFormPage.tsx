@@ -103,32 +103,32 @@ export function AdminBlogFormPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* HEADER NAV */}
-      <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+      <div className="flex items-center justify-between border-b border-[var(--border)] pb-4">
         <Link
           to={ROUTES.adminBlogs}
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-900 transition"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition"
         >
           <ArrowLeft className="size-4" />
           <span>Volver al listado de blogs</span>
         </Link>
-        <span className="text-xs font-semibold text-slate-400">
+        <span className="text-xs font-medium text-[var(--text-muted)]">
           {isEditing ? `Editando ID: ${id}` : 'Creando Nueva Publicación'}
         </span>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-slate-200 p-6 md:p-8 shadow-sm space-y-6">
-        <div className="text-xs font-bold text-indigo-600 uppercase tracking-wider">
+      <form onSubmit={handleSubmit} className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-6 md:p-8 shadow-sm space-y-6">
+        <div className="text-xs font-semibold text-brand uppercase tracking-wider">
           Editor de Contenidos CMS
         </div>
 
-        <h1 className="text-2xl font-extrabold text-slate-900">
+        <h1 className="font-display text-2xl font-bold text-[var(--text-primary)]">
           {isEditing ? 'Editar Artículo de Blog' : 'Publicar Nuevo Artículo'}
         </h1>
 
         {/* CAMPOS PRINCIPALES */}
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
+            <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
               Título del Artículo *
             </label>
             <input
@@ -136,23 +136,23 @@ export function AdminBlogFormPage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Ej. Guía práctica de compras en Avellaneda 2026..."
-              className="w-full h-11 px-4 rounded-xl border border-slate-300 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              className="w-full h-11 px-4 rounded-lg border border-[var(--border)] bg-[var(--bg-input)] text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] outline-none transition focus:border-[var(--border-focus)]"
               required
             />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
                 Categoría *
               </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full h-11 px-4 rounded-xl border border-slate-300 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full h-11 px-4 rounded-lg border border-[var(--border)] bg-[var(--bg-input)] text-xs text-[var(--text-primary)] outline-none transition focus:border-[var(--border-focus)]"
               >
                 {categories.map((c) => (
-                  <option key={c.id} value={c.name}>
+                  <option key={c.id} value={c.name} className="bg-[var(--bg-card)] text-[var(--text-primary)]">
                     {c.name}
                   </option>
                 ))}
@@ -160,7 +160,7 @@ export function AdminBlogFormPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
                 Autor *
               </label>
               <input
@@ -168,14 +168,14 @@ export function AdminBlogFormPage() {
                 value={author}
                 onChange={(e) => setAuthor(e.target.value)}
                 placeholder="Por Nombre Apellido"
-                className="w-full h-11 px-4 rounded-xl border border-slate-300 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full h-11 px-4 rounded-lg border border-[var(--border)] bg-[var(--bg-input)] text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] outline-none transition focus:border-[var(--border-focus)]"
               />
             </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
                 URL de Imagen de Portada *
               </label>
               <input
@@ -183,12 +183,12 @@ export function AdminBlogFormPage() {
                 value={image}
                 onChange={(e) => setImage(e.target.value)}
                 placeholder="/review_oversize_tee.png o URL https://..."
-                className="w-full h-11 px-4 rounded-xl border border-slate-300 text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                className="w-full h-11 px-4 rounded-lg border border-[var(--border)] bg-[var(--bg-input)] text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] outline-none transition focus:border-[var(--border-focus)]"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
                 Color Temático de Insignia
               </label>
               <div className="flex items-center gap-3">
@@ -196,15 +196,15 @@ export function AdminBlogFormPage() {
                   type="color"
                   value={color}
                   onChange={(e) => setColor(e.target.value)}
-                  className="size-10 rounded-xl cursor-pointer border border-slate-300 p-1"
+                  className="size-10 rounded-lg cursor-pointer border border-[var(--border)] bg-[var(--bg-input)] p-1"
                 />
-                <span className="text-xs font-mono text-slate-600">{color}</span>
+                <span className="text-xs font-mono text-[var(--text-muted)]">{color}</span>
               </div>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
+            <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
               Contenido del Artículo (Separá los párrafos con un salto de línea doble) *
             </label>
             <textarea
@@ -212,26 +212,26 @@ export function AdminBlogFormPage() {
               value={contentRaw}
               onChange={(e) => setContentRaw(e.target.value)}
               placeholder="Escribí aquí el cuerpo de la nota..."
-              className="w-full p-4 rounded-xl border border-slate-300 text-xs leading-relaxed text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              className="w-full p-4 rounded-lg border border-[var(--border)] bg-[var(--bg-input)] text-xs leading-relaxed text-[var(--text-primary)] placeholder-[var(--text-muted)] outline-none transition focus:border-[var(--border-focus)]"
               required
             />
           </div>
         </div>
 
         {/* BOTÓN DE ACCIÓN */}
-        <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+        <div className="flex justify-end gap-3 pt-4 border-t border-[var(--border)]">
           <Link
             to={ROUTES.adminBlogs}
-            className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 px-5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition"
+            className="inline-flex h-10 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-surface)] px-5 text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-card)] transition"
           >
             Cancelar
           </Link>
           <button
             type="submit"
             disabled={loading}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 text-xs font-bold text-white hover:bg-slate-800 transition shadow-sm disabled:opacity-50"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-brand px-6 text-xs font-semibold text-white hover:bg-brand/90 transition shadow-sm disabled:opacity-50"
           >
-            <Save className="size-4 text-emerald-400" />
+            <Save className="size-4" />
             <span>{isEditing ? 'Guardar Cambios' : 'Publicar Artículo'}</span>
           </button>
         </div>
