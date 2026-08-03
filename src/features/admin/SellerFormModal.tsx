@@ -53,6 +53,7 @@ export type SellerFormModalProps =
   | {
       open: boolean;
       mode: 'create';
+      initialValues?: Partial<SellerCreateFormValues>;
       onSuccess: () => void;
       onClose: () => void;
     }
@@ -74,14 +75,14 @@ function normalizeCuit(raw: string): string {
   return raw.replace(/\D/g, '');
 }
 
-function createDefaultValues(): SellerCreateFormValues {
+function createDefaultValues(initialValues?: Partial<SellerCreateFormValues>): SellerCreateFormValues {
   return {
-    email: '',
-    temporaryPassword: '',
-    businessName: '',
-    cuit: '',
-    address: '',
-    description: '',
+    email: initialValues?.email ?? '',
+    temporaryPassword: initialValues?.temporaryPassword ?? '',
+    businessName: initialValues?.businessName ?? '',
+    cuit: initialValues?.cuit ?? '',
+    address: initialValues?.address ?? '',
+    description: initialValues?.description ?? '',
   };
 }
 
@@ -118,6 +119,7 @@ function editEmptyDefaultValues(): SellerEditFormValues {
 export function SellerFormModal(props: SellerFormModalProps) {
   const { open, mode, onSuccess, onClose } = props;
   const seller = mode === 'edit' ? props.seller : undefined;
+  const initialValues = mode === 'create' ? props.initialValues : undefined;
   const titleId = useId();
   const panelRef = useRef<HTMLDivElement>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -138,7 +140,7 @@ export function SellerFormModal(props: SellerFormModalProps) {
   } = useForm<SellerCreateFormValues | SellerEditFormValues>({
     resolver: zodResolver(schema),
     defaultValues: isCreate
-      ? createDefaultValues()
+      ? createDefaultValues(initialValues)
       : seller
         ? editDefaultValues(seller)
         : editEmptyDefaultValues(),
@@ -158,11 +160,11 @@ export function SellerFormModal(props: SellerFormModalProps) {
     setShowResetPassword(false);
     setStagingSessionId(newStagingSessionId());
     if (isCreate) {
-      reset(createDefaultValues());
+      reset(createDefaultValues(initialValues));
     } else if (seller) {
       reset(editDefaultValues(seller));
     }
-  }, [open, isCreate, seller, reset]);
+  }, [open, isCreate, seller, initialValues, reset]);
 
   useEffect(() => {
     if (!open) {

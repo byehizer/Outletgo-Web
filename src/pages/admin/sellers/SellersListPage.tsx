@@ -41,7 +41,7 @@ type SellersListAction =
   | { type: 'FETCH_ERR'; payload: string };
 
 type SellersPageModal =
-  | { kind: 'create' }
+  | { kind: 'create'; initialValues?: { businessName?: string; cuit?: string; email?: string } }
   | { kind: 'edit'; seller: SellerAccount }
   | { kind: 'deactivate'; seller: SellerAccount }
   | null;
@@ -472,9 +472,21 @@ export function SellersListPage() {
     });
   }, [requestsList, requestsSearchQuery, requestsStatusFilter]);
 
-  const handleStatusChange = async (id: string, status: 'APPROVED' | 'REJECTED') => {
-    await updateSellerRequestStatus(id, status);
-    success(status === 'APPROVED' ? 'Solicitud aprobada correctamente.' : 'Solicitud rechazada.');
+  const handleStatusChange = async (reqItem: SellerRegistrationRequestItem, status: 'APPROVED' | 'REJECTED') => {
+    await updateSellerRequestStatus(reqItem.id, status);
+    if (status === 'APPROVED') {
+      success('Solicitud aprobada correctamente. Abrimos el formulario para crear la cuenta de vendedor.');
+      setModal({
+        kind: 'create',
+        initialValues: {
+          businessName: reqItem.businessName,
+          cuit: reqItem.cuit,
+          email: reqItem.email,
+        },
+      });
+    } else {
+      success('Solicitud rechazada.');
+    }
     loadRequests();
   };
 
@@ -622,14 +634,14 @@ export function SellersListPage() {
                         {req.status === 'PENDING' && (
                           <div className="flex items-center justify-end gap-1.5">
                             <button
-                              onClick={() => handleStatusChange(req.id, 'APPROVED')}
+                              onClick={() => handleStatusChange(req, 'APPROVED')}
                               className="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-[11px] font-bold hover:bg-emerald-700 transition shadow-sm"
-                              title="Aprobar Solicitud"
+                              title="Aprobar Solicitud y Crear Vendedor"
                             >
-                              <CheckCircle2 className="size-3.5" /> Aprobar
+                              <CheckCircle2 className="size-3.5" /> Aprobar y Crear
                             </button>
                             <button
-                              onClick={() => handleStatusChange(req.id, 'REJECTED')}
+                              onClick={() => handleStatusChange(req, 'REJECTED')}
                               className="inline-flex items-center gap-1 px-3 py-1.5 bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text-primary)] rounded-lg text-[11px] font-bold hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30 transition"
                               title="Rechazar Solicitud"
                             >
@@ -728,6 +740,7 @@ export function SellersListPage() {
         <SellerFormModal
           open
           mode="create"
+          initialValues={modal.initialValues}
           onClose={() => setModal(null)}
           onSuccess={() => handleModalSuccess('Vendedor creado correctamente')}
         />
