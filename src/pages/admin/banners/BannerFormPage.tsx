@@ -324,10 +324,35 @@ export function BannerFormPage() {
 
     setSaving(true);
     try {
+      let finalImageUrl = imageUrl;
+
+      // Si la imagen aún es un DataURL Base64 (la subida falló durante el encuadre),
+      // intentar subirla ahora antes de enviar el formulario
+      if (finalImageUrl.startsWith('data:')) {
+        showToastError('La imagen no se pudo subir al servidor. Intentando nuevamente...');
+        try {
+          const file = dataUrlToFile(finalImageUrl, `banner-${Date.now()}.jpg`);
+          const formData = new FormData();
+          formData.append('file', file);
+          const res = await apiClient.post<{ url: string }>('/api/uploads/product-image', formData);
+          if (res?.url) {
+            finalImageUrl = res.url;
+            setImageUrl(finalImageUrl);
+          } else {
+            throw new Error('No se recibió URL del servidor de imágenes.');
+          }
+        } catch (uploadErr) {
+          console.error('Re-upload failed:', uploadErr);
+          showToastError('No se pudo subir la imagen al servidor. Verificá tu conexión e intentá nuevamente.');
+          setSaving(false);
+          return;
+        }
+      }
+
       await createAdminBanner({
         title,
         description,
-        imageUrl,
+        imageUrl: finalImageUrl,
         type,
         // Jackson LocalDateTime no acepta el sufijo Z de UTC — enviamos sin timezone
         startDate: new Date(startDate).toISOString().replace('Z', '').split('.')[0],
