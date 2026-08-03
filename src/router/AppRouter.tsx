@@ -103,6 +103,7 @@ export function AppRouter() {
               <Route path="service-fee-rules" element={<ServiceFeeRulesListPage />} />
               <Route path="banners" element={<BannersListPage />} />
               <Route path="banners/new" element={<BannerFormPage />} />
+              <Route path="banners/:id/edit" element={<BannerFormPage />} />
               <Route path="blogs" element={<AdminBlogsListPage />} />
               <Route path="blogs/new" element={<AdminBlogFormPage />} />
               <Route path="blogs/:id/edit" element={<AdminBlogFormPage />} />

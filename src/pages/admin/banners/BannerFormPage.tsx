@@ -1,9 +1,9 @@
 import { ArrowLeft, Loader2, Search, Crop, Check, X, Smartphone } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useParams } from 'react-router-dom';
 
 import { BannerImageUploader } from '../../../components/BannerImageUploader';
-import { createAdminBanner } from '../../../features/admin/adminBannersApi';
+import { createAdminBanner, getAdminBannerById, updateAdminBanner } from '../../../features/admin/adminBannersApi';
 import { useToast } from '../../../hooks/useToast';
 import { apiClient } from '../../../lib/http/apiClient';
 
@@ -29,6 +29,8 @@ type AspectRatioMode = '3:1' | '16:9' | '1:1' | 'FREE';
 
 export function BannerFormPage() {
   const navigate = useNavigate();
+  const { id } = useParams<{ id?: string }>();
+  const isEditing = Boolean(id);
   const { success: showToastSuccess, error: showToastError } = useToast();
 
   // Form State
@@ -40,11 +42,42 @@ export function BannerFormPage() {
   const [endDate, setEndDate] = useState('');
   const [selectedStoreIds, setSelectedStoreIds] = useState<string[]>([]);
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [loadingBanner, setLoadingBanner] = useState(isEditing);
 
   // Search Filter State
   const [storeSearch, setStoreSearch] = useState('');
   const [productSearch, setProductSearch] = useState('');
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (id) {
+      setLoadingBanner(true);
+      getAdminBannerById(id)
+        .then((b) => {
+          if (b) {
+            setTitle(b.title || '');
+            setDescription(b.description || '');
+            setImageUrl(b.imageUrl || '');
+            setType(b.type || 'CAMPAIGN');
+            if (b.startDate) {
+              const d = new Date(b.startDate);
+              setStartDate(!isNaN(d.getTime()) ? d.toISOString().slice(0, 16) : '');
+            }
+            if (b.endDate) {
+              const d = new Date(b.endDate);
+              setEndDate(!isNaN(d.getTime()) ? d.toISOString().slice(0, 16) : '');
+            }
+          }
+        })
+        .catch((err) => {
+          console.error('Error al cargar datos del banner:', err);
+          showToastError('No se pudieron cargar los datos de la campaña.');
+        })
+        .finally(() => {
+          setLoadingBanner(false);
+        });
+    }
+  }, [id]);
 
   // Crop State
   const [rawImageSrc, setRawImageSrc] = useState<string | null>(null);
@@ -349,7 +382,7 @@ export function BannerFormPage() {
         }
       }
 
-      await createAdminBanner({
+      const bannerPayload = {
         title,
         description,
         imageUrl: finalImageUrl,
@@ -359,8 +392,15 @@ export function BannerFormPage() {
         endDate: new Date(endDate).toISOString().replace('Z', '').split('.')[0],
         storeIds: selectedStoreIds,
         productIds: selectedProductIds,
-      });
-      showToastSuccess('Banner promocional creado con éxito.');
+      };
+
+      if (isEditing && id) {
+        await updateAdminBanner(id, bannerPayload);
+        showToastSuccess('Banner promocional actualizado con éxito.');
+      } else {
+        await createAdminBanner(bannerPayload);
+        showToastSuccess('Banner promocional creado con éxito.');
+      }
       navigate('/admin/banners');
     } catch (err: unknown) {
       console.error('Banner creation error:', err);
@@ -372,6 +412,14 @@ export function BannerFormPage() {
     }
   };
 
+  if (loadingBanner) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <Loader2 className="size-8 animate-spin text-brand" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 max-w-4xl">
       <header className="flex items-center gap-3">
@@ -382,8 +430,12 @@ export function BannerFormPage() {
           <ArrowLeft className="size-5" />
         </Link>
         <div>
-          <h1 className="font-display text-display-sm text-[var(--text-primary)]">Nuevo Banner Promocional</h1>
-          <p className="text-sm text-[var(--text-muted)]">Asociá múltiples tiendas y productos a una campaña.</p>
+          <h1 className="font-display text-display-sm text-[var(--text-primary)]">
+            {isEditing ? 'Editar Banner Promocional' : 'Nuevo Banner Promocional'}
+          </h1>
+          <p className="text-sm text-[var(--text-muted)]">
+            {isEditing ? 'Modificá los datos y la gráfica del banner.' : 'Asociá múltiples tiendas y productos a una campaña.'}
+          </p>
         </div>
       </header>
 
@@ -548,6 +600,8 @@ export function BannerFormPage() {
                 <Loader2 className="size-4 animate-spin" />
                 Guardando...
               </>
+            ) : isEditing ? (
+              'Guardar Cambios'
             ) : (
               'Guardar Banner'
             )}

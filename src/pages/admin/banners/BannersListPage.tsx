@@ -1,4 +1,4 @@
-import { Image, Calendar, Plus, Tag, Loader2, Video, VideoOff, Save, Trash2, Power, AlertCircle } from 'lucide-react';
+import { Image, Calendar, Plus, Tag, Loader2, Video, VideoOff, Save, Trash2, Power, AlertCircle, Pencil } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -288,6 +288,13 @@ export function BannersListPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-1">
+                        <Link
+                          to={`/admin/banners/${banner.id}/edit`}
+                          className="p-2 text-[var(--text-muted)] hover:text-brand hover:bg-brand/10 rounded-lg transition"
+                          title="Editar campaña"
+                        >
+                          <Pencil className="size-4" />
+                        </Link>
                         <button
                           onClick={() => handleToggleStatus(banner)}
                           className={`p-2 rounded-lg transition ${

@@ -54,6 +54,14 @@ export async function createAdminBanner(req: CreateBannerRequest): Promise<Admin
   return apiClient.post<AdminBanner>('/api/admin/banners', req);
 }
 
+export async function getAdminBannerById(id: string): Promise<AdminBanner> {
+  return apiClient.get<AdminBanner>(`/api/admin/banners/${id}`);
+}
+
+export async function updateAdminBanner(id: string, req: CreateBannerRequest): Promise<AdminBanner> {
+  return apiClient.put<AdminBanner>(`/api/admin/banners/${id}`, req);
+}
+
 export async function toggleAdminBannerStatus(id: string, currentStatus: string): Promise<boolean> {
   const newStatus = currentStatus === 'ACTIVE' ? 'PAUSED' : 'ACTIVE';
   await apiClient.patch(`/api/admin/banners/${id}/status`, { status: newStatus });
