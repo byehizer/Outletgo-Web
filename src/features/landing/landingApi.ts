@@ -107,16 +107,20 @@ export async function fetchBlogsFromApi(): Promise<BlogArticle[]> {
 
 export async function fetchB2bVideoUrlFromApi(): Promise<string> {
   try {
-    const res = await apiClient.get<{ value: string }>('/settings/b2b-video-url');
-    return res.value || localStorage.getItem('outletgo_b2b_video_url') || 'https://www.youtube.com/embed/8tCq3330N1o';
+    const res = await apiClient.get<any>('/settings/b2b-video-url');
+    if (res && typeof res === 'object') {
+      return res.settingValue || res.value || localStorage.getItem('outletgo_b2b_video_url') || '';
+    }
+    if (typeof res === 'string') return res;
+    return localStorage.getItem('outletgo_b2b_video_url') || '';
   } catch {
-    return localStorage.getItem('outletgo_b2b_video_url') || 'https://www.youtube.com/embed/8tCq3330N1o';
+    return localStorage.getItem('outletgo_b2b_video_url') || '';
   }
 }
 
 export async function updateB2bVideoUrlInApi(url: string): Promise<boolean> {
   try {
-    await apiClient.put('/api/admin/settings/b2b-video-url', { value: url });
+    await apiClient.put('/api/admin/settings/b2b-video-url', { settingKey: 'b2b-video-url', settingValue: url, value: url });
     localStorage.setItem('outletgo_b2b_video_url', url);
     return true;
   } catch {

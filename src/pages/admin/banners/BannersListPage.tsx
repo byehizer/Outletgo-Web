@@ -1,4 +1,4 @@
-import { Image, Calendar, Plus, Tag, Loader2, Video, Save } from 'lucide-react';
+import { Image, Calendar, Plus, Tag, Loader2, Video, VideoOff, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -10,7 +10,7 @@ import { useToast } from '../../../hooks/useToast';
 export function BannersListPage() {
   const [banners, setBanners] = useState<AdminBanner[]>([]);
   const [loading, setLoading] = useState(true);
-  const [videoUrl, setVideoUrl] = useState('https://www.youtube.com/embed/8tCq3330N1o');
+  const [videoUrl, setVideoUrl] = useState('');
   const [savingVideo, setSavingVideo] = useState(false);
 
   const { success: showToastSuccess, error: showToastError } = useToast();
@@ -34,9 +34,12 @@ export function BannersListPage() {
         const vUrl = await fetchB2bVideoUrlFromApi();
         if (vUrl && typeof vUrl === 'string') {
           setVideoUrl(vUrl);
+        } else {
+          setVideoUrl('');
         }
       } catch (err) {
         console.error('Error al cargar URL de video B2B:', err);
+        setVideoUrl('');
       } finally {
         setLoading(false);
       }
@@ -47,7 +50,6 @@ export function BannersListPage() {
 
   const handleSaveVideo = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!videoUrl.trim()) return;
     setSavingVideo(true);
     try {
       await updateB2bVideoUrlInApi(videoUrl.trim());
@@ -58,6 +60,8 @@ export function BannersListPage() {
       setSavingVideo(false);
     }
   };
+
+  const hasValidVideoUrl = Boolean(videoUrl && (videoUrl.startsWith('http://') || videoUrl.startsWith('https://')));
 
   return (
     <div className="space-y-6">
@@ -92,12 +96,11 @@ export function BannersListPage() {
                 type="text"
                 value={videoUrl}
                 onChange={(e) => setVideoUrl(e.target.value)}
-                placeholder="https://www.youtube.com/embed/..."
+                placeholder="Ej. https://www.youtube.com/embed/XXXXX"
                 className="w-full h-10 px-3.5 rounded-lg border border-[var(--border)] bg-[var(--bg-input)] text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] outline-none transition focus:border-[var(--border-focus)]"
-                required
               />
               <p className="text-[11px] text-[var(--text-muted)] mt-1">
-                Ingresá un enlace de incrustación de YouTube o Vimeo (ej: <code className="text-brand">https://www.youtube.com/embed/XXXXX</code>).
+                Ingresá un enlace de incrustación de YouTube o Vimeo (ej: <code className="text-brand">https://www.youtube.com/embed/8tCq3330N1o</code>).
               </p>
             </div>
             <button
@@ -110,17 +113,27 @@ export function BannersListPage() {
             </button>
           </form>
 
-          {/* VISTA PREVIA DEL VIDEO */}
+          {/* VISTA PREVIA DEL VIDEO O ESTADO NO ENCONTRADO */}
           <div className="space-y-2">
             <span className="block text-xs font-semibold text-[var(--text-muted)]">Vista Previa Actual</span>
-            <div className="aspect-video w-full rounded-lg overflow-hidden bg-slate-950 border border-[var(--border)] relative">
-              <iframe
-                src={videoUrl}
-                title="Vista previa del video"
-                className="w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
+            <div className="aspect-video w-full rounded-lg overflow-hidden bg-[var(--bg-surface)] border border-[var(--border)] relative flex items-center justify-center">
+              {hasValidVideoUrl ? (
+                <iframe
+                  src={videoUrl}
+                  title="Vista previa del video"
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : (
+                <div className="p-6 text-center space-y-2">
+                  <VideoOff className="size-8 mx-auto text-[var(--text-muted)]" />
+                  <p className="text-xs font-semibold text-[var(--text-primary)]">Video no configurado o no encontrado</p>
+                  <p className="text-[11px] text-[var(--text-muted)] leading-normal">
+                    Ingresá un enlace válido a la izquierda para publicar el video demo en la Landing Page.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -186,9 +199,9 @@ export function BannersListPage() {
                       <div className="flex flex-col text-xs">
                         <span className="flex items-center gap-1">
                           <Calendar className="size-3" />
-                          {formatDate(banner.startDate)}
+                          {banner.startDate ? formatDate(banner.startDate) : '—'}
                         </span>
-                        <span className="text-[var(--text-muted)] mt-0.5">al {formatDate(banner.endDate)}</span>
+                        <span className="text-[var(--text-muted)] mt-0.5">al {banner.endDate ? formatDate(banner.endDate) : '—'}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -205,7 +218,7 @@ export function BannersListPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-xs text-[var(--text-muted)]">
-                      {formatDate(banner.createdAt)}
+                      {banner.createdAt ? formatDate(banner.createdAt) : '—'}
                     </td>
                   </tr>
                 ))}
