@@ -97,7 +97,7 @@ export const FALLBACK_BLOG_ARTICLES: BlogArticle[] = [
 
 export async function fetchBlogsFromApi(): Promise<BlogArticle[]> {
   try {
-    const data = await apiClient.get<BlogArticle[]>('/blogs');
+    const data = await apiClient.get<BlogArticle[]>('/blogs', { skipAuth: true });
     if (data && data.length > 0) return data;
     return import.meta.env.DEV ? FALLBACK_BLOG_ARTICLES : [];
   } catch {
@@ -107,7 +107,7 @@ export async function fetchBlogsFromApi(): Promise<BlogArticle[]> {
 
 export async function fetchB2bVideoUrlFromApi(): Promise<string> {
   try {
-    const res = await apiClient.get<any>('/settings/b2b-video-url');
+    const res = await apiClient.get<any>('/settings/b2b-video-url', { skipAuth: true });
     if (res && typeof res === 'object') {
       return res.settingValue || res.value || localStorage.getItem('outletgo_b2b_video_url') || '';
     }

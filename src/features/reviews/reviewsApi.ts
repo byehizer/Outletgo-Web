@@ -422,6 +422,6 @@ export async function fetchProductReviews(params: FetchProductReviewsParams): Pr
     qs.set('search', s);
   }
 
-  const raw = await apiClient.get<unknown>(`${SELLER_PRODUCT_REVIEWS_API_PATH}?${qs.toString()}`);
+  const raw = await apiClient.get<unknown>(`${SELLER_PRODUCT_REVIEWS_API_PATH}?${qs.toString()}`, { skipAuth: true });
   return coerceSellerReviewsPage(raw, size);
 }
