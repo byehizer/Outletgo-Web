@@ -329,16 +329,19 @@ export function BannerFormPage() {
         description,
         imageUrl,
         type,
-        startDate: new Date(startDate).toISOString(),
-        endDate: new Date(endDate).toISOString(),
+        // Jackson LocalDateTime no acepta el sufijo Z de UTC — enviamos sin timezone
+        startDate: new Date(startDate).toISOString().replace('Z', '').split('.')[0],
+        endDate: new Date(endDate).toISOString().replace('Z', '').split('.')[0],
         storeIds: selectedStoreIds,
         productIds: selectedProductIds,
       });
       showToastSuccess('Banner promocional creado con éxito.');
       navigate('/admin/banners');
-    } catch (err) {
-      console.error(err);
-      showToastError('No se pudo crear el banner.');
+    } catch (err: unknown) {
+      console.error('Banner creation error:', err);
+      const message =
+        err instanceof Error ? err.message : 'No se pudo crear el banner. Revisá los datos e intentá nuevamente.';
+      showToastError(message);
     } finally {
       setSaving(false);
     }
