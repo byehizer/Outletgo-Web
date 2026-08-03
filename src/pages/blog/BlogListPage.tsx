@@ -37,7 +37,7 @@ export function BlogListPage() {
       <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/Logotipe.png" alt="OutletGo Logo" className="h-8 w-auto object-contain" />
+            <img src="/Logotipewhitemode.png" alt="OutletGo Logo" className="h-10 w-auto object-contain" />
           </Link>
           <nav className="flex items-center gap-6 text-xs font-semibold">
             <Link to="/" className="text-slate-600 hover:text-slate-900 transition">
@@ -201,12 +201,15 @@ export function BlogListPage() {
       </main>
 
       {/* FOOTER */}
-      <footer className="border-t border-slate-200 bg-white py-8 text-center text-xs text-slate-500">
-        <div className="mx-auto max-w-7xl px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p>© {new Date().getFullYear()} OutletGo. Todos los derechos reservados.</p>
-          <div className="flex gap-4">
-            <Link to="/" className="hover:text-slate-900 transition">Inicio</Link>
-            <Link to={ROUTES.blog} className="hover:text-slate-900 transition">Blog</Link>
+      <footer className="border-t border-slate-800 bg-slate-950 py-12 text-center text-xs text-slate-500">
+        <div className="mx-auto max-w-7xl px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-3">
+            <img src="/Logotipeblackmode.png" alt="OutletGo Logo" className="h-16 md:h-20 w-auto object-contain" />
+          </div>
+          <p>© {new Date().getFullYear()} OutletGo. Todos los derechos reservados. Hecho en Argentina.</p>
+          <div className="flex gap-4 text-slate-400">
+            <Link to="/" className="hover:text-white transition">Inicio</Link>
+            <Link to={ROUTES.blog} className="hover:text-white transition">Blog</Link>
           </div>
         </div>
       </footer>
