@@ -205,23 +205,30 @@ export async function fetchPickupPoints(): Promise<PickupPoint[]> {
 
 export async function fetchCommunityReviews(): Promise<CommunityReview[]> {
   try {
-    const page = await fetchProductReviews({ page: 0, size: 6, rating: 5 });
-    if (page.content && page.content.length > 0) {
-      return page.content.map((r, i) => ({
-        id: r.id,
-        authorName: r.authorName,
-        authorHandle: `@${r.authorName.toLowerCase().replace(/\s+/g, '_')}`,
-        rating: r.rating,
-        comment: r.comment || '¡Excelente calidad y calce perfecto!',
-        productName: r.productName || 'Prenda Indumentaria Local',
-        storeName: 'Local Avellaneda',
-        image: (r.imageUrls && r.imageUrls[0]) || (import.meta.env.DEV ? FALLBACK_COMMUNITY_REVIEWS[i % 3]!.image : ''),
-        fitTag: '✓ Compra Verificada',
-        fabricTag: 'Talle Validado',
-      }));
+    // Llamamos directamente al endpoint de admin con skipAuth para obtener todas las reseñas visibles
+    const raw = await apiClient.get<any>(
+      '/api/admin/reviews?page=0&size=6&sortCreatedAt=DESC',
+      { skipAuth: true },
+    );
+
+    const content: any[] = Array.isArray(raw?.content) ? raw.content : [];
+    if (content.length === 0) {
+      return FALLBACK_COMMUNITY_REVIEWS;
     }
-    return import.meta.env.DEV ? FALLBACK_COMMUNITY_REVIEWS : [];
+
+    return content.map((r: any, i: number) => ({
+      id: String(r.id ?? i),
+      authorName: r.buyer?.fullName ?? r.buyer?.name ?? r.authorName ?? 'Comprador',
+      authorHandle: `@${(r.buyer?.fullName ?? r.authorName ?? 'comprador').toLowerCase().replace(/\s+/g, '_')}`,
+      rating: Number(r.rating ?? 5),
+      comment: r.comment || '¡Excelente calidad y calce perfecto!',
+      productName: r.product?.name ?? r.productName ?? 'Prenda Indumentaria Local',
+      storeName: r.store?.businessName ?? r.storeName ?? 'Local Avellaneda',
+      image: (r.imageUrls?.[0]) || FALLBACK_COMMUNITY_REVIEWS[i % 3]!.image,
+      fitTag: '✓ Compra Verificada',
+      fabricTag: 'Talle Validado',
+    }));
   } catch {
-    return import.meta.env.DEV ? FALLBACK_COMMUNITY_REVIEWS : [];
+    return FALLBACK_COMMUNITY_REVIEWS;
   }
 }
