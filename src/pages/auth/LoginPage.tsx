@@ -5,7 +5,6 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 
 import { OutletGoLogo } from '../../components/OutletGoLogo';
 import { loginWithEmailPassword } from '../../features/auth/authApi';
-import { startGoogleOAuth } from '../../features/auth/googleAuth';
 import { loginSchema, type LoginFormValues } from '../../features/auth/loginSchema';
 import {
   getPanelLoginBlockReason,
@@ -28,7 +27,6 @@ export function LoginPage() {
   const location = useLocation();
   const { login, isAuthenticated, user } = useAuth();
   const [formError, setFormError] = useState<string | null>(null);
-  const [isGoogleOAuthLoading, setGoogleOAuthLoading] = useState(false);
 
   const attemptedPath =
     (location.state as LoginLocationState | null)?.from?.pathname ?? undefined;
@@ -76,22 +74,6 @@ export function LoginPage() {
     }
   };
 
-  const onGoogleClick = async () => {
-    setFormError(null);
-    setGoogleOAuthLoading(true);
-    try {
-      await startGoogleOAuth();
-    } catch (error: unknown) {
-      if (error instanceof ApiError) {
-        setFormError(error.message);
-      } else if (error instanceof Error) {
-        setFormError(error.message);
-      } else {
-        setFormError('No se pudo abrir Google. Intentá de nuevo.');
-      }
-      setGoogleOAuthLoading(false);
-    }
-  };
 
   if (isAuthenticated && user) {
     if (user.role === 'BUYER') {
@@ -177,20 +159,6 @@ export function LoginPage() {
           </button>
         </form>
 
-        <button
-          type="button"
-          disabled={isSubmitting || isGoogleOAuthLoading}
-          aria-busy={isGoogleOAuthLoading}
-          className={cn(
-            'mt-4 flex h-10 w-full items-center justify-center rounded-lg border border-[var(--border)] text-sm font-medium transition-colors',
-            isSubmitting || isGoogleOAuthLoading
-              ? 'cursor-not-allowed opacity-60'
-              : 'text-[var(--text-primary)] hover:bg-[var(--bg-input)]',
-          )}
-          onClick={onGoogleClick}
-        >
-          {isGoogleOAuthLoading ? 'Abriendo Google…' : 'Continuar con Google'}
-        </button>
 
         <Link
           className="mt-6 block text-center text-sm font-medium text-[var(--text-link)] underline-offset-4 hover:underline"
