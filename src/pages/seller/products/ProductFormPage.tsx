@@ -279,7 +279,9 @@ export function ProductFormPage() {
                     className="h-11 w-full rounded-lg border border-[var(--border)] bg-[var(--bg-input)] px-3 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--border-focus)]"
                     {...register('tags')}
                   />
-                  <p className="text-xs text-[var(--text-muted)]">Separadas por comas.</p>
+                  <p className="text-xs text-[var(--text-muted)]">
+                    Separadas por comas. La IA (Google Lens) detectará y añadirá etiquetas automáticamente según tus imágenes al guardar.
+                  </p>
                 </div>
               </section>
 
