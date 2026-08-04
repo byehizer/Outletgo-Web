@@ -1,5 +1,4 @@
 import { apiClient, ApiError } from '../../lib/http/apiClient';
-import { fetchProductReviews } from '../reviews/reviewsApi';
 
 export type SellerRegistrationRequestPayload = {
   businessName: string;

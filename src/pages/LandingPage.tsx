@@ -4,11 +4,9 @@ import {
   ArrowRight,
   ChevronDown,
   ChevronUp,
-  Download,
   Mail,
   MapPin,
   Menu,
-  Smartphone,
   Store,
   TrendingDown,
   X,
@@ -266,32 +264,47 @@ export function LandingPage() {
 
           {/* Badges de Descarga */}
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 pt-4">
-            <div className="relative group">
-              <a
-                href="#download-section"
-                onClick={(e) => handleScrollToSection(e, 'download-section')}
-                className="inline-flex h-12 items-center gap-3 rounded-xl bg-slate-900 px-5 text-white hover:bg-slate-800 transition shadow-lg shadow-slate-900/10 group"
-              >
-                <Smartphone className="size-5 text-[#2B8FD4]" />
-                <div className="text-left leading-tight">
-                  <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Descargar la App</p>
-                  <p className="text-xs font-black">Comprar en el Outlet</p>
-                </div>
-                <ArrowRight className="size-4 ml-1 opacity-60 group-hover:translate-x-1 transition-transform" />
-              </a>
-              <span className="absolute -top-3.5 -right-3 bg-red-500 text-white text-[9px] font-extrabold px-2 py-0.5 rounded-full animate-bounce shadow-md tracking-wider">
-                ¡Envío Gratis!
-              </span>
-            </div>
+            {/* Apple App Store Badge */}
+            <button
+              type="button"
+              onClick={() => handleAppStoreClick('App Store')}
+              className="inline-flex h-12 items-center gap-3 rounded-xl bg-slate-900 px-4 text-white hover:bg-slate-800 transition shadow-lg shadow-slate-900/10"
+            >
+              <svg className="size-6 shrink-0" viewBox="0 0 814 1000" fill="white" xmlns="http://www.w3.org/2000/svg">
+                <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.5 135.4-317.3 269-317.3 71 0 130.5 46.4 174.5 46.4 42 0 108.2-49 192.7-49 31.2 0 134.2 2.9 209.3 99.3zm-31-181.3c-37.9 44.5-97.9 79.6-162.1 79.6-6.4 0-12.9-.6-19.3-1.3-4.5-35.3 16.5-74 41.1-101 28.2-30.6 76.2-54.6 117.3-56.6 3.8 38.6-10.2 77.2-36.9 79.3z"/>
+              </svg>
+              <div className="text-left leading-tight">
+                <p className="text-[9px] text-slate-400 font-normal">Consíguelo en el</p>
+                <p className="text-xs font-black text-white">App Store</p>
+              </div>
+            </button>
+
+            {/* Google Play Badge */}
+            <button
+              type="button"
+              onClick={() => handleAppStoreClick('Google Play Store')}
+              className="inline-flex h-12 items-center gap-3 rounded-xl bg-slate-900 px-4 text-white hover:bg-slate-800 transition shadow-lg shadow-slate-900/10"
+            >
+              <svg className="size-6 shrink-0" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                <path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l236.6-235.9L47 0zm414.6 235.7l-65.6-38.3-64.8 64.8 64.8 64.8 66.1-38.3c18.7-10.6 18.7-39.6-.5-53zM104.6 499l280.8-161.2-60.1-60.1L104.6 499z" fill="#EA4335"/>
+                <path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1z" fill="#FBBC04"/>
+                <path d="M47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l236.6-235.9L47 0z" fill="#4285F4"/>
+                <path d="M104.6 499l280.8-161.2-60.1-60.1L104.6 499z" fill="#34A853"/>
+              </svg>
+              <div className="text-left leading-tight">
+                <p className="text-[9px] text-slate-400 font-normal">DISPONIBLE EN</p>
+                <p className="text-xs font-black text-white">Google Play</p>
+              </div>
+            </button>
 
             <button
               type="button"
               onClick={() => setSellerModalOpen(true)}
-              className="inline-flex h-12 items-center gap-3 rounded-xl border border-slate-200 bg-white px-5 text-slate-800 hover:bg-slate-50 transition shadow-sm"
+              className="inline-flex h-12 items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 text-slate-800 hover:bg-slate-50 transition shadow-sm"
             >
               <Store className="size-5 text-[#2B8FD4]" />
               <div className="text-left leading-tight">
-                <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Para Locales y Marcas</p>
+                <p className="text-[9px] text-slate-500 uppercase font-bold tracking-wider">Para Locales y Marcas</p>
                 <p className="text-xs font-bold">Sumá tu Stock</p>
               </div>
             </button>
