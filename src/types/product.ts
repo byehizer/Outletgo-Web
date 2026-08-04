@@ -16,6 +16,7 @@ export type ProductSummary = {
   thumbnailUrl: string | null;
   price: number;
   totalStock: number;
+  lowStockCount?: number;
   status: ProductStatus;
 };
 

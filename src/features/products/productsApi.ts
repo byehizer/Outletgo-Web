@@ -61,6 +61,7 @@ function coerceSummary(o: JsonRecord): ProductSummary {
 
   const price = pickNumber(o.price ?? o.basePrice ?? o.base_price ?? o.amount);
   const totalStock = pickNumber(o.totalStock ?? o.total_stock ?? o.stock ?? o.quantity);
+  const lowStockCount = pickNumber(o.lowStockCount ?? o.low_stock_count);
 
   const statusRaw = pickString(o.status) ?? PRODUCT_STATUS.ACTIVE;
 
@@ -70,6 +71,7 @@ function coerceSummary(o: JsonRecord): ProductSummary {
     thumbnailUrl: thumb ?? null,
     price,
     totalStock,
+    lowStockCount,
     status: coerceStatus(statusRaw),
   };
 }
@@ -77,12 +79,14 @@ function coerceSummary(o: JsonRecord): ProductSummary {
 /** Payload compatible con `coerceSummary()` para armar filas desde el detalle seller (DEV unificado Paso 13–14). */
 export function sellerProductDetailAsListingPayload(detail: SellerProductDetail): Record<string, unknown> {
   const totalStock = detail.variations.reduce((acc, v) => acc + Math.floor(Number.isFinite(v.stock) ? v.stock : 0), 0);
+  const lowStockCount = detail.variations.filter((v) => v.stock <= 5).length;
   return {
     id: detail.id,
     name: detail.name,
     basePrice: detail.basePrice,
     price: detail.basePrice,
     totalStock,
+    lowStockCount,
     status: detail.status,
     images: detail.imageUrls,
   };

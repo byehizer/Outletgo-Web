@@ -247,76 +247,95 @@ export function ProductsListPage() {
 
   const columns: DataColumn<ProductSummary>[] = useMemo(
     (): DataColumn<ProductSummary>[] => [
-    {
-      id: 'image',
-      header: '',
-      align: 'center',
-      className: 'w-[72px]',
-      cell: (row) =>
-        row.thumbnailUrl ? (
-          <img
-            src={row.thumbnailUrl}
-            alt=""
-            className="mx-auto size-12 rounded-md border border-[var(--border)] object-cover"
-          />
-        ) : (
-          <div
-            aria-hidden
-            className="mx-auto flex size-12 items-center justify-center rounded-md border border-dashed border-[var(--border)] bg-[var(--bg-input)] text-[10px] text-[var(--text-muted)]"
-          >
-            —
-          </div>
-        ),
-    },
-    {
-      id: 'name',
-      header: 'Producto',
-      wrap: true,
-      cell: (row) => <span className="font-medium">{row.name || 'Sin nombre'}</span>,
-    },
-    {
-      id: 'price',
-      header: 'Precio',
-      align: 'right',
-      cell: (row) => formatARS(row.price),
-    },
-    {
-      id: 'stock',
-      header: 'Stock',
-      align: 'right',
-      cell: (row) => Math.floor(row.totalStock).toLocaleString('es-AR'),
-    },
-    {
-      id: 'status',
-      header: 'Estado',
-      cell: (row) => (
-        <span
-          className={cn(
-            'inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize',
-            statusBadgeClass[row.status],
-          )}
-        >
-          {PRODUCT_STATUS_LABEL_ES[row.status]}
-        </span>
-      ),
-    },
-    {
-      id: 'actions',
-      header: 'Acciones',
-      align: 'center',
-      cell: (row) => {
-        const busy = busyProductId === row.id;
-        return (
-          <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center">
-            <Link
-              to={sellerProductEditPath(row.id)}
-              className="inline-flex min-h-9 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-input)] px-3 py-1.5 text-xs font-semibold text-[var(--text-primary)] underline-offset-4 hover:bg-[var(--bg-hover)]"
+      {
+        id: 'image',
+        header: '',
+        align: 'center',
+        className: 'w-16',
+        cell: (row) =>
+          row.thumbnailUrl ? (
+            <img
+              src={row.thumbnailUrl}
+              alt=""
+              className="mx-auto size-12 rounded-md border border-[var(--border)] object-cover"
+            />
+          ) : (
+            <div
+              aria-hidden
+              className="mx-auto flex size-12 items-center justify-center rounded-md border border-dashed border-[var(--border)] bg-[var(--bg-input)] text-[10px] text-[var(--text-muted)]"
             >
-              Editar
-            </Link>
+              —
+            </div>
+          ),
+      },
+      {
+        id: 'name',
+        header: 'Producto',
+        wrap: true,
+        className: 'min-w-[200px]',
+        cell: (row) => <span className="font-medium text-[var(--text-primary)]">{row.name || 'Sin nombre'}</span>,
+      },
+      {
+        id: 'price',
+        header: 'Precio',
+        align: 'right',
+        className: 'w-32',
+        cell: (row) => formatARS(row.price),
+      },
+      {
+        id: 'stock',
+        header: 'Stock Total',
+        align: 'right',
+        className: 'w-28',
+        cell: (row) => Math.floor(row.totalStock).toLocaleString('es-AR'),
+      },
+      {
+        id: 'lowStockCount',
+        header: 'Poco Stock (≤ 5)',
+        align: 'center',
+        className: 'w-44',
+        cell: (row) =>
+          row.lowStockCount && row.lowStockCount > 0 ? (
+            <span className="inline-flex items-center gap-1 rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-bold text-amber-400">
+              {row.lowStockCount} {row.lowStockCount === 1 ? 'variante' : 'variantes'}
+            </span>
+          ) : (
+            <span className="text-xs text-[var(--text-muted)]">—</span>
+          ),
+      },
+      {
+        id: 'status',
+        header: 'Estado',
+        align: 'center',
+        className: 'w-36',
+        cell: (row) => (
+          <span
+            className={cn(
+              'inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize',
+              statusBadgeClass[row.status],
+            )}
+          >
+            {PRODUCT_STATUS_LABEL_ES[row.status]}
+          </span>
+        ),
+      },
+      {
+        id: 'actions',
+        header: 'Acciones',
+        align: 'right',
+        className: 'w-60',
+        cell: (row) => {
+          const busy = busyProductId === row.id;
+          return (
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <Link
+                to={sellerProductEditPath(row.id)}
+                className="inline-flex min-h-9 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-input)] px-3 py-1.5 text-xs font-semibold text-[var(--text-primary)] underline-offset-4 hover:bg-[var(--bg-hover)]"
+              >
+                Editar
+              </Link>
 
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              {row.status === PRODUCT_STATUS.ACTIVE ?
+              {row.status === PRODUCT_STATUS.ACTIVE ? (
                 <button
                   type="button"
                   className="inline-flex items-center gap-1.5 rounded-lg border border-warning/35 bg-warning/10 px-3 py-1.5 text-xs font-semibold text-warning hover:bg-warning/15 disabled:cursor-not-allowed disabled:opacity-60"
@@ -326,9 +345,9 @@ export function ProductsListPage() {
                   <Pause className="size-3.5 shrink-0" aria-hidden />
                   Pausar
                 </button>
-              : null}
+              ) : null}
 
-              {row.status === PRODUCT_STATUS.PAUSED_BY_SELLER ?
+              {row.status === PRODUCT_STATUS.PAUSED_BY_SELLER ? (
                 <button
                   type="button"
                   className="inline-flex items-center gap-1.5 rounded-lg border border-success/35 bg-success/10 px-3 py-1.5 text-xs font-semibold text-success hover:bg-success/15 disabled:cursor-not-allowed disabled:opacity-60"
@@ -338,9 +357,9 @@ export function ProductsListPage() {
                   <Play className="size-3.5 shrink-0" aria-hidden />
                   Reactivar
                 </button>
-              : null}
+              ) : null}
 
-              {row.status === PRODUCT_STATUS.DISABLED_BY_ADMIN ?
+              {row.status === PRODUCT_STATUS.DISABLED_BY_ADMIN ? (
                 <button
                   type="button"
                   className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--bg-input)] px-3 py-1.5 text-xs font-semibold text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] disabled:cursor-not-allowed disabled:opacity-60"
@@ -350,7 +369,7 @@ export function ProductsListPage() {
                   <Play className="size-3.5 shrink-0 opacity-70" aria-hidden />
                   Reactivar
                 </button>
-              : null}
+              ) : null}
 
               <button
                 type="button"
@@ -362,10 +381,9 @@ export function ProductsListPage() {
                 Eliminar
               </button>
             </div>
-          </div>
-        );
+          );
+        },
       },
-    },
     ],
     [busyProductId, openDialogClean],
   );
