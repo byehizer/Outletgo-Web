@@ -202,6 +202,31 @@ export async function fetchPickupPoints(): Promise<PickupPoint[]> {
   }
 }
 
+function getProductFallbackImage(name: string): string {
+  const n = name.toLowerCase();
+  if (
+    n.includes('zapatilla') ||
+    n.includes('nike') ||
+    n.includes('sneaker') ||
+    n.includes('calzado') ||
+    n.includes('bota') ||
+    n.includes('zapato')
+  ) {
+    return '/review_sneakers.png';
+  }
+  if (
+    n.includes('buzo') ||
+    n.includes('hoodie') ||
+    n.includes('canguro') ||
+    n.includes('campera') ||
+    n.includes('sweater') ||
+    n.includes('sueter')
+  ) {
+    return '/review_hoodie.png';
+  }
+  return '/review_oversize_tee.png';
+}
+
 export async function fetchCommunityReviews(): Promise<CommunityReview[]> {
   try {
     // Llamamos directamente al endpoint de admin con skipAuth para obtener todas las reseñas visibles
@@ -215,18 +240,24 @@ export async function fetchCommunityReviews(): Promise<CommunityReview[]> {
       return FALLBACK_COMMUNITY_REVIEWS;
     }
 
-    return content.map((r: any, i: number) => ({
-      id: String(r.id ?? i),
-      authorName: r.buyer?.fullName ?? r.buyer?.name ?? r.authorName ?? 'Comprador',
-      authorHandle: `@${(r.buyer?.fullName ?? r.authorName ?? 'comprador').toLowerCase().replace(/\s+/g, '_')}`,
-      rating: Number(r.rating ?? 5),
-      comment: r.comment || '¡Excelente calidad y calce perfecto!',
-      productName: r.product?.name ?? r.productName ?? 'Prenda Indumentaria Local',
-      storeName: r.store?.businessName ?? r.storeName ?? 'Local Avellaneda',
-      image: (r.imageUrls?.[0]) || FALLBACK_COMMUNITY_REVIEWS[i % 3]!.image,
-      fitTag: '✓ Compra Verificada',
-      fabricTag: 'Talle Validado',
-    }));
+    return content.map((r: any, i: number) => {
+      const pName = r.product?.name ?? r.productName ?? 'Prenda Indumentaria Local';
+      const realImage = r.imageUrls?.[0] || r.product?.imageUrl || r.product?.imageUrls?.[0];
+      const image = realImage || getProductFallbackImage(pName);
+
+      return {
+        id: String(r.id ?? i),
+        authorName: r.buyer?.fullName ?? r.buyer?.name ?? r.authorName ?? 'Comprador',
+        authorHandle: `@${(r.buyer?.fullName ?? r.authorName ?? 'comprador').toLowerCase().replace(/\s+/g, '_')}`,
+        rating: Number(r.rating ?? 5),
+        comment: r.comment || '¡Excelente calidad y calce perfecto!',
+        productName: pName,
+        storeName: r.store?.businessName ?? r.storeName ?? 'Local Avellaneda',
+        image,
+        fitTag: '✓ Compra Verificada',
+        fabricTag: 'Talle Validado',
+      };
+    });
   } catch {
     return FALLBACK_COMMUNITY_REVIEWS;
   }
