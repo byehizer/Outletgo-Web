@@ -229,18 +229,18 @@ function getProductFallbackImage(name: string): string {
 
 export async function fetchCommunityReviews(): Promise<CommunityReview[]> {
   try {
-    // Llamamos directamente al endpoint de admin con skipAuth para obtener todas las reseñas visibles
+    // Llamamos directamente al endpoint de admin con skipAuth para obtener las últimas 3 reseñas visibles
     const raw = await apiClient.get<any>(
-      '/api/admin/reviews?page=0&size=6&sortCreatedAt=DESC',
+      '/api/admin/reviews?page=0&size=3&sortCreatedAt=DESC',
       { skipAuth: true },
     );
 
     const content: any[] = Array.isArray(raw?.content) ? raw.content : [];
     if (content.length === 0) {
-      return FALLBACK_COMMUNITY_REVIEWS;
+      return FALLBACK_COMMUNITY_REVIEWS.slice(0, 3);
     }
 
-    return content.map((r: any, i: number) => {
+    return content.slice(0, 3).map((r: any, i: number) => {
       const pName = r.product?.name ?? r.productName ?? 'Prenda Indumentaria Local';
       const realImage = r.imageUrls?.[0] || r.product?.imageUrl || r.product?.imageUrls?.[0];
       const image = realImage || getProductFallbackImage(pName);
@@ -259,6 +259,6 @@ export async function fetchCommunityReviews(): Promise<CommunityReview[]> {
       };
     });
   } catch {
-    return FALLBACK_COMMUNITY_REVIEWS;
+    return FALLBACK_COMMUNITY_REVIEWS.slice(0, 3);
   }
 }
