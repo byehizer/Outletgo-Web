@@ -181,6 +181,28 @@ export const FALLBACK_COMMUNITY_REVIEWS: CommunityReview[] = [
   },
 ];
 
+export interface PickupPoint {
+  id: string;
+  name: string;
+  address: string;
+  neighborhood: string;
+  city: string;
+  lat: number;
+  lng: number;
+  businessHours: string;
+  isActive: boolean;
+}
+
+export async function fetchPickupPoints(): Promise<PickupPoint[]> {
+  try {
+    const data = await apiClient.get<PickupPoint[]>('/shipping/pickup-points', { skipAuth: true });
+    if (data && data.length > 0) return data;
+    return [];
+  } catch {
+    return [];
+  }
+}
+
 export async function fetchCommunityReviews(): Promise<CommunityReview[]> {
   try {
     const page = await fetchProductReviews({ page: 0, size: 6, rating: 5 });

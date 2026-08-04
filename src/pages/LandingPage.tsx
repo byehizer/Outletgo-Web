@@ -25,7 +25,7 @@ import { useToast } from '../hooks/useToast';
 import { cn } from '../lib/cn';
 import { SellerRequestModal } from '../features/landing/SellerRequestModal';
 import { smoothScrollIntoView } from '../lib/formScroll';
-import { fetchBlogsFromApi, fetchB2bVideoUrlFromApi, fetchCommunityReviews, BlogArticle, CommunityReview } from '../features/landing/landingApi';
+import { fetchBlogsFromApi, fetchB2bVideoUrlFromApi, fetchCommunityReviews, fetchPickupPoints, BlogArticle, CommunityReview, PickupPoint } from '../features/landing/landingApi';
 
 // Preguntas frecuentes mock
 const FAQ_ITEMS = [
@@ -51,37 +51,6 @@ const FAQ_ITEMS = [
   },
 ];
 
-// Puntos de retiro consolidados para la sección
-const PICKUP_POINTS = [
-  {
-    name: 'Punto Palermo Soho',
-    address: 'Thames 1800',
-    neighborhood: 'Palermo',
-    city: 'CABA',
-    hours: 'Lunes a Sábado de 10:00 a 20:00hs',
-  },
-  {
-    name: 'Punto Avellaneda Centro',
-    address: 'Av. Mitre 1234',
-    neighborhood: 'Avellaneda',
-    city: 'Gran Buenos Aires',
-    hours: 'Lunes a Viernes de 9:00 a 19:30hs',
-  },
-  {
-    name: 'Punto Flores',
-    address: 'Av. Rivadavia 6500',
-    neighborhood: 'Flores',
-    city: 'CABA',
-    hours: 'Lunes a Viernes de 9:00 a 19:00hs · Sábado de 9:00 a 13:00hs',
-  },
-  {
-    name: 'Punto Villa Crespo',
-    address: 'Av. Corrientes 5200',
-    neighborhood: 'Villa Crespo',
-    city: 'CABA',
-    hours: 'Lunes a Sábado de 10:00 a 19:00hs',
-  },
-];
 
 export function LandingPage() {
   const { isAuthenticated, user } = useAuth();
@@ -92,12 +61,18 @@ export function LandingPage() {
   const [blogs, setBlogs] = useState<BlogArticle[]>([]);
   const [b2bVideoUrl, setB2bVideoUrl] = useState<string>('https://www.youtube.com/embed/8tCq3330N1o');
   const [communityReviews, setCommunityReviews] = useState<CommunityReview[]>([]);
+  const [pickupPoints, setPickupPoints] = useState<PickupPoint[]>([]);
+  const [pickupPointsLoading, setPickupPointsLoading] = useState(true);
   const [selectedArticle, setSelectedArticle] = useState<BlogArticle | null>(null);
 
   useEffect(() => {
     fetchBlogsFromApi().then(setBlogs);
     fetchB2bVideoUrlFromApi().then(setB2bVideoUrl);
     fetchCommunityReviews().then(setCommunityReviews);
+    fetchPickupPoints().then((pts) => {
+      setPickupPoints(pts);
+      setPickupPointsLoading(false);
+    });
   }, []);
 
   // Helper de smooth scroll
@@ -728,29 +703,41 @@ export function LandingPage() {
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {PICKUP_POINTS.map((point) => (
-            <div
-              key={point.name}
-              className="rounded-2xl border border-slate-100 bg-white p-6 flex flex-col justify-between hover:border-[#2B8FD4]/40 hover:shadow-md transition-all duration-300"
-            >
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-[#2B8FD4]">
-                  <MapPin className="size-5 shrink-0" />
-                  <h3 className="text-base font-bold text-slate-900 tracking-tight">{point.name}</h3>
+          {pickupPointsLoading ? (
+            Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="rounded-2xl border border-slate-100 bg-white p-6 animate-pulse space-y-3">
+                <div className="h-4 bg-slate-200 rounded w-3/4" />
+                <div className="h-3 bg-slate-100 rounded w-1/2" />
+                <div className="h-3 bg-slate-100 rounded w-2/3" />
+              </div>
+            ))
+          ) : pickupPoints.length === 0 ? (
+            <p className="col-span-4 text-center text-slate-500 text-sm py-8">Próximamente puntos de retiro disponibles.</p>
+          ) : (
+            pickupPoints.map((point) => (
+              <div
+                key={point.id}
+                className="rounded-2xl border border-slate-100 bg-white p-6 flex flex-col justify-between hover:border-[#2B8FD4]/40 hover:shadow-md transition-all duration-300"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-[#2B8FD4]">
+                    <MapPin className="size-5 shrink-0" />
+                    <h3 className="text-base font-bold text-slate-900 tracking-tight">{point.name}</h3>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm text-slate-700 font-medium">{point.address}</p>
+                    <p className="text-xs text-slate-500">
+                      {point.neighborhood} · {point.city}
+                    </p>
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-slate-700 font-medium">{point.address}</p>
-                  <p className="text-xs text-slate-500">
-                    {point.neighborhood} · {point.city}
-                  </p>
+                <div className="mt-5 pt-4 border-t border-slate-100 flex items-start gap-2 text-[11px] text-slate-500">
+                  <Clock className="size-3.5 text-[#2B8FD4] mt-0.5 shrink-0" />
+                  <p className="leading-relaxed">{point.businessHours}</p>
                 </div>
               </div>
-              <div className="mt-5 pt-4 border-t border-slate-100 flex items-start gap-2 text-[11px] text-slate-500">
-                <Clock className="size-3.5 text-[#2B8FD4] mt-0.5 shrink-0" />
-                <p className="leading-relaxed">{point.hours}</p>
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </section>
 
