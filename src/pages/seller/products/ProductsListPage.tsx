@@ -323,11 +323,11 @@ export function ProductsListPage() {
         id: 'actions',
         header: 'Acciones',
         align: 'right',
-        className: 'w-60',
+        className: 'w-[320px]',
         cell: (row) => {
           const busy = busyProductId === row.id;
           return (
-            <div className="flex flex-wrap items-center justify-end gap-2">
+            <div className="flex items-center justify-end gap-2 whitespace-nowrap">
               <Link
                 to={sellerProductEditPath(row.id)}
                 className="inline-flex min-h-9 items-center justify-center rounded-lg border border-[var(--border)] bg-[var(--bg-input)] px-3 py-1.5 text-xs font-semibold text-[var(--text-primary)] underline-offset-4 hover:bg-[var(--bg-hover)]"
