@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
@@ -86,6 +87,14 @@ export function LoginPage() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[var(--bg-base)] px-4 py-10">
+      <a
+        href="https://outletgo-web.vercel.app/"
+        className="fixed left-4 top-4 flex items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--bg-card)] px-3 py-2 text-sm font-medium text-[var(--text-secondary)] shadow-sm transition-colors hover:bg-[var(--bg-input)] hover:text-[var(--text-primary)]"
+        aria-label="Volver a la página principal"
+      >
+        <ArrowLeft className="size-4" />
+        Volver al inicio
+      </a>
       <div className="w-full max-w-md rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-8 shadow-lg">
         <div className="mb-8 flex flex-col items-center gap-3 text-center">
           <OutletGoLogo className="h-10 sm:h-12" />
