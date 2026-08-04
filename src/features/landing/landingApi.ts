@@ -195,7 +195,7 @@ export interface PickupPoint {
 
 export async function fetchPickupPoints(): Promise<PickupPoint[]> {
   try {
-    const data = await apiClient.get<PickupPoint[]>('/shipping/pickup-points', { skipAuth: true });
+    const data = await apiClient.get<PickupPoint[]>('/api/buyer/shipping/pickup-points', { skipAuth: true });
     if (data && data.length > 0) return data;
     return [];
   } catch {
