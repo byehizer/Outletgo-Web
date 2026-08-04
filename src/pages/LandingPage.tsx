@@ -27,7 +27,7 @@ import { SellerRequestModal } from '../features/landing/SellerRequestModal';
 import { smoothScrollIntoView } from '../lib/formScroll';
 import { fetchBlogsFromApi, fetchB2bVideoUrlFromApi, fetchCommunityReviews, fetchPickupPoints, BlogArticle, CommunityReview, PickupPoint } from '../features/landing/landingApi';
 
-// Preguntas frecuentes mock
+// Preguntas frecuentes mock y configuraciones de Landing Page
 const FAQ_ITEMS = [
   {
     question: '¿Qué es OutletGo?',
