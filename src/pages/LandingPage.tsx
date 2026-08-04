@@ -937,10 +937,10 @@ export function LandingPage() {
             <button
               type="button"
               onClick={() => handleAppStoreClick('App Store')}
-              className="inline-flex h-14 items-center gap-3 rounded-xl border border-white/20 bg-black/30 px-5 hover:bg-black/50 transition group"
+              className="inline-flex h-14 items-center gap-3 rounded-xl border border-white/20 bg-black/30 px-5 hover:bg-black/50 transition"
             >
-              <svg className="size-7 shrink-0" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
-                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+              <svg className="size-7 shrink-0" viewBox="0 0 814 1000" fill="white" xmlns="http://www.w3.org/2000/svg">
+                <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.5 135.4-317.3 269-317.3 71 0 130.5 46.4 174.5 46.4 42 0 108.2-49 192.7-49 31.2 0 134.2 2.9 209.3 99.3zm-31-181.3c-37.9 44.5-97.9 79.6-162.1 79.6-6.4 0-12.9-.6-19.3-1.3-4.5-35.3 16.5-74 41.1-101 28.2-30.6 76.2-54.6 117.3-56.6 3.8 38.6-10.2 77.2-36.9 79.3z"/>
               </svg>
               <div className="flex flex-col items-start leading-tight">
                 <span className="text-[10px] text-white/70 font-normal">Disponible en</span>
@@ -952,14 +952,13 @@ export function LandingPage() {
             <button
               type="button"
               onClick={() => handleAppStoreClick('Google Play Store')}
-              className="inline-flex h-14 items-center gap-3 rounded-xl border border-white/20 bg-black/30 px-5 hover:bg-black/50 transition group"
+              className="inline-flex h-14 items-center gap-3 rounded-xl border border-white/20 bg-black/30 px-5 hover:bg-black/50 transition"
             >
-              <svg className="size-7 shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M3.18 23.76c.3.17.64.22.98.15l13.3-7.66-2.8-2.81-11.48 10.32z" fill="#EA4335"/>
-                <path d="M22.47 10.2l-3.13-1.8-3.14 3.14 3.14 3.14 3.16-1.82c.9-.52.9-2.14-.03-2.66z" fill="#FBBC04"/>
-                <path d="M2.16.49C1.8.66 1.55 1.04 1.55 1.56v20.9c0 .52.25.9.61 1.08l12.14-11.53L2.16.49z" fill="#4285F4"/>
-                <path d="M3.18.28L14.66 11.0l-3.3-3.3L3.18.28z" fill="#34A853"/>
-                <path d="M3.18.28l11.48 10.73-2.8 2.81-11.49-10.7L3.18.28z" fill="#34A853"/>
+              <svg className="size-7 shrink-0" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                <path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1zM47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l236.6-235.9L47 0zm414.6 235.7l-65.6-38.3-64.8 64.8 64.8 64.8 66.1-38.3c18.7-10.6 18.7-39.6-.5-53zM104.6 499l280.8-161.2-60.1-60.1L104.6 499z" fill="#EA4335"/>
+                <path d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1z" fill="#FBBC04"/>
+                <path d="M47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l236.6-235.9L47 0z" fill="#4285F4"/>
+                <path d="M104.6 499l280.8-161.2-60.1-60.1L104.6 499z" fill="#34A853"/>
               </svg>
               <div className="flex flex-col items-start leading-tight">
                 <span className="text-[10px] text-white/70 font-normal">Conseguilo en</span>
