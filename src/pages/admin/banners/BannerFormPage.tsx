@@ -1,14 +1,16 @@
-import { ArrowLeft, Loader2, Search, Crop, Check, X, Smartphone } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { ArrowLeft, Loader2, Search, Crop, Check, X, Smartphone, Store as StoreIcon, Package } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, Link, useParams } from 'react-router-dom';
 
 import { BannerImageUploader } from '../../../components/BannerImageUploader';
 import { createAdminBanner, getAdminBannerById, updateAdminBanner } from '../../../features/admin/adminBannersApi';
+import { fetchAdminProducts } from '../../../features/admin/moderationApi';
+import { fetchSellerAccounts } from '../../../features/admin/sellersApi';
 import { useToast } from '../../../hooks/useToast';
 import { apiClient } from '../../../lib/http/apiClient';
 
-// MOCKS PARA SELECCIÓN EN DESARROLLO
-const DEV_STORES_MOCK = [
+// MOCKS DE RESPALDO SI LA BD ESTÁ VACÍA EN DESARROLLO
+const BACKUP_STORES = [
   { id: 'tienda-1', businessName: 'Palermo Outlets' },
   { id: 'tienda-2', businessName: 'Urban Sport' },
   { id: 'tienda-3', businessName: 'Zapatoteca CABA' },
@@ -16,7 +18,7 @@ const DEV_STORES_MOCK = [
   { id: 'tienda-5', businessName: 'Calzados Argentinos' },
 ];
 
-const DEV_PRODUCTS_MOCK = [
+const BACKUP_PRODUCTS = [
   { id: 'prod-1', name: 'Campera de Abrigo Impermeable', storeName: 'Palermo Outlets' },
   { id: 'prod-2', name: 'Sweater de Hilo Invierno', storeName: 'Palermo Outlets' },
   { id: 'prod-3', name: 'Zapatillas Deportivas Run', storeName: 'Urban Sport' },
@@ -26,6 +28,17 @@ const DEV_PRODUCTS_MOCK = [
 ];
 
 type AspectRatioMode = '3:1' | '16:9' | '1:1' | 'FREE';
+
+interface StoreOption {
+  id: string;
+  businessName: string;
+}
+
+interface ProductOption {
+  id: string;
+  name: string;
+  storeName?: string;
+}
 
 export function BannerFormPage() {
   const navigate = useNavigate();
@@ -45,11 +58,55 @@ export function BannerFormPage() {
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [loadingBanner, setLoadingBanner] = useState(isEditing);
 
+  // Dynamic Store and Product Lists
+  const [availableStores, setAvailableStores] = useState<StoreOption[]>(BACKUP_STORES);
+  const [availableProducts, setAvailableProducts] = useState<ProductOption[]>(BACKUP_PRODUCTS);
+
   // Search Filter State
   const [storeSearch, setStoreSearch] = useState('');
   const [productSearch, setProductSearch] = useState('');
   const [saving, setSaving] = useState(false);
 
+  // Cargar lista real de tiendas y productos
+  useEffect(() => {
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const [sellersRes, productsRes] = await Promise.allSettled([
+          fetchSellerAccounts({ page: 0, size: 100 }),
+          fetchAdminProducts({ page: 0, size: 100 }),
+        ]);
+
+        if (cancelled) return;
+
+        if (sellersRes.status === 'fulfilled' && sellersRes.value?.content?.length > 0) {
+          const loadedStores: StoreOption[] = sellersRes.value.content.map((s) => ({
+            id: s.store?.id || s.id,
+            businessName: s.store?.businessName || s.email,
+          }));
+          setAvailableStores(loadedStores);
+        }
+
+        if (productsRes.status === 'fulfilled' && productsRes.value?.content?.length > 0) {
+          const loadedProducts: ProductOption[] = productsRes.value.content.map((p) => ({
+            id: p.id,
+            name: p.name,
+            storeName: p.store?.businessName,
+          }));
+          setAvailableProducts(loadedProducts);
+        }
+      } catch (e) {
+        console.warn('Usando lista de respaldo para tiendas/productos:', e);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Cargar datos del banner en modo edición
   useEffect(() => {
     if (id) {
       setLoadingBanner(true);
@@ -60,7 +117,9 @@ export function BannerFormPage() {
             setDescription(b.description || '');
             setBadgeText(b.badgeText || '');
             setImageUrl(b.imageUrl || '');
-            setType(b.type || 'CAMPAIGN');
+            const bannerType = (b.type || 'CAMPAIGN') as 'CAMPAIGN' | 'STORE' | 'PRODUCT';
+            setType(bannerType);
+
             if (b.startDate) {
               const d = new Date(b.startDate);
               setStartDate(!isNaN(d.getTime()) ? d.toISOString().slice(0, 16) : '');
@@ -68,6 +127,23 @@ export function BannerFormPage() {
             if (b.endDate) {
               const d = new Date(b.endDate);
               setEndDate(!isNaN(d.getTime()) ? d.toISOString().slice(0, 16) : '');
+            }
+
+            // Precargar selecciones
+            if (b.storeIds && b.storeIds.length > 0) {
+              setSelectedStoreIds(b.storeIds);
+            } else if (b.targetStoreId) {
+              setSelectedStoreIds([b.targetStoreId]);
+            } else if (b.stores && b.stores.length > 0) {
+              setSelectedStoreIds(b.stores.map((s) => s.id));
+            }
+
+            if (b.productIds && b.productIds.length > 0) {
+              setSelectedProductIds(b.productIds);
+            } else if (b.targetProductId) {
+              setSelectedProductIds([b.targetProductId]);
+            } else if (b.products && b.products.length > 0) {
+              setSelectedProductIds(b.products.map((p) => p.id));
             }
           }
         })
@@ -79,13 +155,27 @@ export function BannerFormPage() {
           setLoadingBanner(false);
         });
     }
-  }, [id]);
+  }, [id, showToastError]);
+
+  // Manejador del cambio de tipo de banner (STORE, PRODUCT, CAMPAIGN)
+  const handleTypeChange = (newType: 'CAMPAIGN' | 'STORE' | 'PRODUCT') => {
+    setType(newType);
+    if (newType === 'STORE') {
+      // Dejar solo 1 tienda seleccionada y vaciar productos
+      setSelectedStoreIds((prev) => (prev.length > 0 && prev[0] ? [prev[0]] : []));
+      setSelectedProductIds([]);
+    } else if (newType === 'PRODUCT') {
+      // Dejar solo 1 producto seleccionado y vaciar tiendas
+      setSelectedProductIds((prev) => (prev.length > 0 && prev[0] ? [prev[0]] : []));
+      setSelectedStoreIds([]);
+    }
+  };
 
   // Crop State
   const [rawImageSrc, setRawImageSrc] = useState<string | null>(null);
   const [showCropModal, setShowCropModal] = useState(false);
   const [aspectMode, setAspectMode] = useState<AspectRatioMode>('3:1');
-  
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
 
@@ -100,25 +190,42 @@ export function BannerFormPage() {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
-  // Filtrado de tiendas y productos
-  const filteredStores = DEV_STORES_MOCK.filter((s) =>
+  // Filtrado interactivo de tiendas y productos
+  const filteredStores = availableStores.filter((s) =>
     s.businessName.toLowerCase().includes(storeSearch.toLowerCase())
   );
 
-  const filteredProducts = DEV_PRODUCTS_MOCK.filter((p) =>
-    p.name.toLowerCase().includes(productSearch.toLowerCase())
+  const filteredProducts = availableProducts.filter((p) =>
+    p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
+    (p.storeName && p.storeName.toLowerCase().includes(productSearch.toLowerCase()))
   );
 
-  const handleStoreToggle = (id: string) => {
-    setSelectedStoreIds((prev) =>
-      prev.includes(id) ? prev.filter((sid) => sid !== id) : [...prev, id]
-    );
+  // Manejo interactivo de selección de tienda
+  const handleStoreSelect = (storeId: string) => {
+    if (type === 'STORE') {
+      // Tipo STORE: Selección Única (Radio)
+      setSelectedStoreIds([storeId]);
+      setSelectedProductIds([]);
+    } else {
+      // Tipo CAMPAIGN: Selección Múltiple (Checkbox)
+      setSelectedStoreIds((prev) =>
+        prev.includes(storeId) ? prev.filter((sid) => sid !== storeId) : [...prev, storeId]
+      );
+    }
   };
 
-  const handleProductToggle = (id: string) => {
-    setSelectedProductIds((prev) =>
-      prev.includes(id) ? prev.filter((pid) => pid !== id) : [...prev, id]
-    );
+  // Manejo interactivo de selección de producto
+  const handleProductSelect = (productId: string) => {
+    if (type === 'PRODUCT') {
+      // Tipo PRODUCT: Selección Única (Radio)
+      setSelectedProductIds([productId]);
+      setSelectedStoreIds([]);
+    } else {
+      // Tipo CAMPAIGN: Selección Múltiple (Checkbox)
+      setSelectedProductIds((prev) =>
+        prev.includes(productId) ? prev.filter((pid) => pid !== productId) : [...prev, productId]
+      );
+    }
   };
 
   // Carga de la imagen original para encuadres
@@ -160,20 +267,7 @@ export function BannerFormPage() {
     }
   };
 
-  // Renderizado interactivo en el Canvas
-  useEffect(() => {
-    if (!showCropModal || !rawImageSrc) return;
-
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.src = rawImageSrc;
-    img.onload = () => {
-      imageRef.current = img;
-      drawCanvas();
-    };
-  }, [showCropModal, rawImageSrc, cropX, cropY, cropW, cropH, aspectMode]);
-
-  const drawCanvas = () => {
+  const drawCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     const img = imageRef.current;
     if (!canvas || !img) return;
@@ -198,14 +292,10 @@ export function BannerFormPage() {
     canvas.width = w;
     canvas.height = h;
 
-    // Imagen base
     ctx.drawImage(img, 0, 0, w, h);
-
-    // Máscara oscura
     ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
     ctx.fillRect(0, 0, w, h);
 
-    // Recorte claro
     const rx = (cropX / 100) * w;
     const ry = (cropY / 100) * h;
     const rw = (cropW / 100) * w;
@@ -223,19 +313,29 @@ export function BannerFormPage() {
       rh
     );
 
-    // Borde de selección
     ctx.strokeStyle = '#2B8FD4';
     ctx.lineWidth = 2.5;
     ctx.strokeRect(rx, ry, rw, rh);
 
-    // Esquinas táctiles
     ctx.fillStyle = '#2B8FD4';
     const sz = 8;
     ctx.fillRect(rx - sz / 2, ry - sz / 2, sz, sz);
     ctx.fillRect(rx + rw - sz / 2, ry - sz / 2, sz, sz);
     ctx.fillRect(rx - sz / 2, ry + rh - sz / 2, sz, sz);
     ctx.fillRect(rx + rw - sz / 2, ry + rh - sz / 2, sz, sz);
-  };
+  }, [cropX, cropY, cropW, cropH]);
+
+  useEffect(() => {
+    if (!showCropModal || !rawImageSrc) return;
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.src = rawImageSrc;
+    img.onload = () => {
+      imageRef.current = img;
+      drawCanvas();
+    };
+  }, [showCropModal, rawImageSrc, drawCanvas]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -283,7 +383,6 @@ export function BannerFormPage() {
     setIsDragging(false);
   };
 
-  // Convierte DataURL a File para subirlo al backend
   const dataUrlToFile = (dataUrl: string, filename: string): File => {
     const parts = dataUrl.split(',');
     const header = parts[0] ?? '';
@@ -297,7 +396,6 @@ export function BannerFormPage() {
     return new File([bytes], filename, { type: mime });
   };
 
-  // Recorte en alta definición y subida al backend para obtener URL real
   const handleApplyCrop = async () => {
     const img = imageRef.current;
     if (!img) return;
@@ -317,7 +415,6 @@ export function BannerFormPage() {
     ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
     const croppedDataUrl = cropCanvas.toDataURL('image/jpeg', 0.92);
 
-    // Subir la imagen recortada al backend y obtener una URL real
     setUploadingCrop(true);
     try {
       const file = dataUrlToFile(croppedDataUrl, `banner-${Date.now()}.jpg`);
@@ -332,7 +429,6 @@ export function BannerFormPage() {
         throw new Error('URL no recibida del servidor.');
       }
     } catch {
-      // Fallback: usar la base64 temporalmente si el upload falla
       setImageUrl(croppedDataUrl);
       setShowCropModal(false);
       showToastSuccess('Banner encuadrado localmente (sin subida al servidor).');
@@ -357,12 +453,20 @@ export function BannerFormPage() {
       return;
     }
 
+    // Validaciones estrictas por tipo de banner
+    if (type === 'STORE' && selectedStoreIds.length === 0) {
+      showToastError('Debés seleccionar exactamente 1 tienda para el banner de tipo STORE.');
+      return;
+    }
+    if (type === 'PRODUCT' && selectedProductIds.length === 0) {
+      showToastError('Debés seleccionar exactamente 1 producto para el banner de tipo PRODUCT.');
+      return;
+    }
+
     setSaving(true);
     try {
       let finalImageUrl = imageUrl;
 
-      // Si la imagen aún es un DataURL Base64 (la subida falló durante el encuadre),
-      // intentar subirla ahora antes de enviar el formulario
       if (finalImageUrl.startsWith('data:')) {
         showToastError('La imagen no se pudo subir al servidor. Intentando nuevamente...');
         try {
@@ -390,11 +494,10 @@ export function BannerFormPage() {
         imageUrl: finalImageUrl,
         type,
         badgeText: badgeText.trim() || undefined,
-        // Jackson LocalDateTime no acepta el sufijo Z de UTC — enviamos sin timezone
         startDate: new Date(startDate).toISOString().replace('Z', '').split('.')[0],
         endDate: new Date(endDate).toISOString().replace('Z', '').split('.')[0],
-        storeIds: selectedStoreIds,
-        productIds: selectedProductIds,
+        storeIds: type === 'PRODUCT' ? [] : selectedStoreIds,
+        productIds: type === 'STORE' ? [] : selectedProductIds,
       };
 
       if (isEditing && id) {
@@ -437,7 +540,7 @@ export function BannerFormPage() {
             {isEditing ? 'Editar Banner Promocional' : 'Nuevo Banner Promocional'}
           </h1>
           <p className="text-sm text-[var(--text-muted)]">
-            {isEditing ? 'Modificá los datos y la gráfica del banner.' : 'Asociá múltiples tiendas y productos a una campaña.'}
+            Configurá la redirección interactiva a Tienda, Producto o Campaña multitienda.
           </p>
         </div>
       </header>
@@ -446,7 +549,7 @@ export function BannerFormPage() {
         {/* Datos Básicos */}
         <section className="space-y-4">
           <h3 className="font-display text-base font-semibold text-[var(--text-primary)]">Datos del Banner</h3>
-          
+
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="block text-xs font-semibold text-[var(--text-secondary)] uppercase">Título</label>
@@ -459,17 +562,17 @@ export function BannerFormPage() {
                 required
               />
             </div>
-            
+
             <div>
               <label className="block text-xs font-semibold text-[var(--text-secondary)] uppercase">Tipo de Banner</label>
               <select
                 value={type}
-                onChange={(e) => setType(e.target.value as any)}
-                className="mt-2 h-10 w-full rounded-lg border border-[var(--border)] bg-[var(--bg-input)] px-3 text-sm text-[var(--text-primary)] outline-none focus:border-brand"
+                onChange={(e) => handleTypeChange(e.target.value as any)}
+                className="mt-2 h-10 w-full rounded-lg border border-[var(--border)] bg-[var(--bg-input)] px-3 text-sm font-semibold text-[var(--text-primary)] outline-none focus:border-brand"
               >
                 <option value="CAMPAIGN">Campaña Multitienda (CAMPAIGN)</option>
-                <option value="STORE">Redirección a Tienda (STORE)</option>
-                <option value="PRODUCT">Redirección a Producto (PRODUCT)</option>
+                <option value="STORE">Redirección a 1 Tienda (STORE)</option>
+                <option value="PRODUCT">Redirección a 1 Producto (PRODUCT)</option>
               </select>
             </div>
           </div>
@@ -539,66 +642,185 @@ export function BannerFormPage() {
           />
         </section>
 
-        {/* Selección Muchos a Muchos */}
-        <section className="grid gap-6 md:grid-cols-2">
-          {/* Selector de Tiendas */}
-          <div className="space-y-3">
-            <h4 className="font-display text-sm font-semibold text-[var(--text-primary)]">Asociar Tiendas</h4>
-            <div className="relative">
-              <Search className="absolute left-3 top-2.5 size-4 text-[var(--text-muted)]" />
-              <input
-                type="text"
-                placeholder="Buscar tienda..."
-                value={storeSearch}
-                onChange={(e) => setStoreSearch(e.target.value)}
-                className="h-9 w-full rounded-lg border border-[var(--border)] bg-[var(--bg-input)] pl-9 pr-3 text-xs text-[var(--text-primary)] outline-none"
-              />
-            </div>
-            <div className="max-h-48 overflow-y-auto border border-[var(--border)] rounded-lg divide-y divide-[var(--border)]">
-              {filteredStores.map((store) => (
-                <label key={store.id} className="flex items-center gap-3 px-3 py-2 hover:bg-[var(--bg-surface)] cursor-pointer text-xs">
-                  <input
-                    type="checkbox"
-                    checked={selectedStoreIds.includes(store.id)}
-                    onChange={() => handleStoreToggle(store.id)}
-                    className="size-4 rounded text-brand focus:ring-brand"
-                  />
-                  <span className="text-[var(--text-primary)] font-medium">{store.businessName}</span>
-                </label>
-              ))}
-            </div>
-          </div>
+        {/* SECCIÓN INTERACTIVA DE ASOCIACIÓN SEGÚN TIPO DE BANNER */}
+        <section className="space-y-4 border-t border-[var(--border)] pt-6">
+          {type === 'STORE' && (
+            <div className="space-y-3 rounded-xl border border-brand/40 bg-brand/5 p-4">
+              <div className="flex items-center gap-2 text-brand">
+                <StoreIcon className="size-5" />
+                <h4 className="font-display text-sm font-bold">Seleccionar 1 Tienda Destino</h4>
+              </div>
+              <p className="text-xs text-[var(--text-muted)]">
+                Al hacer clic en este banner, los usuarios irán directamente al perfil de esta tienda.
+              </p>
 
-          {/* Selector de Productos */}
-          <div className="space-y-3">
-            <h4 className="font-display text-sm font-semibold text-[var(--text-primary)]">Asociar Productos</h4>
-            <div className="relative">
-              <Search className="absolute left-3 top-2.5 size-4 text-[var(--text-muted)]" />
-              <input
-                type="text"
-                placeholder="Buscar producto..."
-                value={productSearch}
-                onChange={(e) => setProductSearch(e.target.value)}
-                className="h-9 w-full rounded-lg border border-[var(--border)] bg-[var(--bg-input)] pl-9 pr-3 text-xs text-[var(--text-primary)] outline-none"
-              />
+              <div className="relative">
+                <Search className="absolute left-3 top-2.5 size-4 text-[var(--text-muted)]" />
+                <input
+                  type="text"
+                  placeholder="Buscar tienda..."
+                  value={storeSearch}
+                  onChange={(e) => setStoreSearch(e.target.value)}
+                  className="h-9 w-full rounded-lg border border-[var(--border)] bg-[var(--bg-card)] pl-9 pr-3 text-xs text-[var(--text-primary)] outline-none"
+                />
+              </div>
+
+              <div className="max-h-56 overflow-y-auto rounded-lg border border-[var(--border)] bg-[var(--bg-card)] divide-y divide-[var(--border)]">
+                {filteredStores.map((store) => {
+                  const isSelected = selectedStoreIds.includes(store.id);
+                  return (
+                    <label
+                      key={store.id}
+                      className={`flex items-center justify-between px-3 py-2.5 cursor-pointer text-xs transition ${
+                        isSelected ? 'bg-brand/10 font-semibold text-brand' : 'hover:bg-[var(--bg-surface)]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <input
+                          type="radio"
+                          name="bannerStoreSelection"
+                          checked={isSelected}
+                          onChange={() => handleStoreSelect(store.id)}
+                          className="size-4 text-brand focus:ring-brand"
+                        />
+                        <span className="text-[var(--text-primary)]">{store.businessName}</span>
+                      </div>
+                      {isSelected ? <span className="text-[10px] font-bold text-brand uppercase">Seleccionada</span> : null}
+                    </label>
+                  );
+                })}
+              </div>
             </div>
-            <div className="max-h-48 overflow-y-auto border border-[var(--border)] rounded-lg divide-y divide-[var(--border)]">
-              {filteredProducts.map((product) => (
-                <label key={product.id} className="flex items-center gap-3 px-3 py-2 hover:bg-[var(--bg-surface)] cursor-pointer text-xs">
-                  <input
-                    type="checkbox"
-                    checked={selectedProductIds.includes(product.id)}
-                    onChange={() => handleProductToggle(product.id)}
-                    className="size-4 rounded text-brand focus:ring-brand"
-                  />
-                  <div>
-                    <span className="text-[var(--text-primary)] font-medium block">{product.name}</span>
-                    <span className="text-[10px] text-[var(--text-muted)]">{product.storeName}</span>
+          )}
+
+          {type === 'PRODUCT' && (
+            <div className="space-y-3 rounded-xl border border-emerald-500/40 bg-emerald-500/5 p-4">
+              <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+                <Package className="size-5" />
+                <h4 className="font-display text-sm font-bold">Seleccionar 1 Producto Destino</h4>
+              </div>
+              <p className="text-xs text-[var(--text-muted)]">
+                Al hacer clic en este banner, los usuarios irán directamente a la página de compra de este producto.
+              </p>
+
+              <div className="relative">
+                <Search className="absolute left-3 top-2.5 size-4 text-[var(--text-muted)]" />
+                <input
+                  type="text"
+                  placeholder="Buscar producto..."
+                  value={productSearch}
+                  onChange={(e) => setProductSearch(e.target.value)}
+                  className="h-9 w-full rounded-lg border border-[var(--border)] bg-[var(--bg-card)] pl-9 pr-3 text-xs text-[var(--text-primary)] outline-none"
+                />
+              </div>
+
+              <div className="max-h-56 overflow-y-auto rounded-lg border border-[var(--border)] bg-[var(--bg-card)] divide-y divide-[var(--border)]">
+                {filteredProducts.map((product) => {
+                  const isSelected = selectedProductIds.includes(product.id);
+                  return (
+                    <label
+                      key={product.id}
+                      className={`flex items-center justify-between px-3 py-2.5 cursor-pointer text-xs transition ${
+                        isSelected ? 'bg-emerald-500/10 font-semibold text-emerald-600 dark:text-emerald-400' : 'hover:bg-[var(--bg-surface)]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <input
+                          type="radio"
+                          name="bannerProductSelection"
+                          checked={isSelected}
+                          onChange={() => handleProductSelect(product.id)}
+                          className="size-4 text-emerald-600 focus:ring-emerald-500"
+                        />
+                        <div>
+                          <span className="text-[var(--text-primary)] block font-medium">{product.name}</span>
+                          {product.storeName ? (
+                            <span className="text-[10px] text-[var(--text-muted)]">{product.storeName}</span>
+                          ) : null}
+                        </div>
+                      </div>
+                      {isSelected ? <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase">Seleccionado</span> : null}
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {type === 'CAMPAIGN' && (
+            <div className="space-y-4">
+              <div className="rounded-lg bg-blue-500/10 p-3 text-xs text-blue-600 dark:text-blue-400 font-medium">
+                💡 <strong>Campaña Multitienda:</strong> Podés seleccionar múltiples tiendas y/o productos participantes que se mostrarán dentro de la vista de la campaña.
+              </div>
+
+              <div className="grid gap-6 md:grid-cols-2">
+                {/* Selector Múltiple de Tiendas */}
+                <div className="space-y-3">
+                  <h4 className="font-display text-sm font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
+                    <StoreIcon className="size-4 text-brand" /> Tiendas Participantes ({selectedStoreIds.length})
+                  </h4>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-2.5 size-4 text-[var(--text-muted)]" />
+                    <input
+                      type="text"
+                      placeholder="Buscar tienda..."
+                      value={storeSearch}
+                      onChange={(e) => setStoreSearch(e.target.value)}
+                      className="h-9 w-full rounded-lg border border-[var(--border)] bg-[var(--bg-input)] pl-9 pr-3 text-xs text-[var(--text-primary)] outline-none"
+                    />
                   </div>
-                </label>
-              ))}
+                  <div className="max-h-48 overflow-y-auto border border-[var(--border)] rounded-lg divide-y divide-[var(--border)]">
+                    {filteredStores.map((store) => (
+                      <label key={store.id} className="flex items-center gap-3 px-3 py-2 hover:bg-[var(--bg-surface)] cursor-pointer text-xs">
+                        <input
+                          type="checkbox"
+                          checked={selectedStoreIds.includes(store.id)}
+                          onChange={() => handleStoreSelect(store.id)}
+                          className="size-4 rounded text-brand focus:ring-brand"
+                        />
+                        <span className="text-[var(--text-primary)] font-medium">{store.businessName}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Selector Múltiple de Productos */}
+                <div className="space-y-3">
+                  <h4 className="font-display text-sm font-semibold text-[var(--text-primary)] flex items-center gap-1.5">
+                    <Package className="size-4 text-brand" /> Productos en Campaña ({selectedProductIds.length})
+                  </h4>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-2.5 size-4 text-[var(--text-muted)]" />
+                    <input
+                      type="text"
+                      placeholder="Buscar producto..."
+                      value={productSearch}
+                      onChange={(e) => setProductSearch(e.target.value)}
+                      className="h-9 w-full rounded-lg border border-[var(--border)] bg-[var(--bg-input)] pl-9 pr-3 text-xs text-[var(--text-primary)] outline-none"
+                    />
+                  </div>
+                  <div className="max-h-48 overflow-y-auto border border-[var(--border)] rounded-lg divide-y divide-[var(--border)]">
+                    {filteredProducts.map((product) => (
+                      <label key={product.id} className="flex items-center gap-3 px-3 py-2 hover:bg-[var(--bg-surface)] cursor-pointer text-xs">
+                        <input
+                          type="checkbox"
+                          checked={selectedProductIds.includes(product.id)}
+                          onChange={() => handleProductSelect(product.id)}
+                          className="size-4 rounded text-brand focus:ring-brand"
+                        />
+                        <div>
+                          <span className="text-[var(--text-primary)] font-medium block">{product.name}</span>
+                          {product.storeName ? (
+                            <span className="text-[10px] text-[var(--text-muted)]">{product.storeName}</span>
+                          ) : null}
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
         </section>
 
         {/* Acciones del Formulario */}
@@ -648,7 +870,6 @@ export function BannerFormPage() {
               Arrastrá la caja azul sobre tu imagen. El área se mantiene fijada en la proporción ideal para que nunca se deforme en la App.
             </p>
 
-            {/* Canvas Interactivo */}
             <div className="flex justify-center bg-slate-950/60 rounded-xl p-3 border border-[var(--border)] overflow-hidden">
               <canvas
                 ref={canvasRef}
@@ -660,7 +881,6 @@ export function BannerFormPage() {
               />
             </div>
 
-            {/* Preajustes de Aspecto */}
             <div className="flex flex-wrap items-center justify-between gap-3 bg-[var(--bg-surface)] p-3.5 rounded-xl border border-[var(--border)]">
               <div className="space-y-1.5">
                 <span className="block text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">

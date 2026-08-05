@@ -11,6 +11,12 @@ export interface AdminBanner {
   startDate?: string;
   endDate?: string;
   createdAt?: string;
+  targetStoreId?: string | null;
+  targetProductId?: string | null;
+  storeIds?: string[];
+  productIds?: string[];
+  stores?: Array<{ id: string; businessName: string }>;
+  products?: Array<{ id: string; name: string }>;
 }
 
 export interface CreateBannerRequest {
