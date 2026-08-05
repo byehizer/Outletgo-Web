@@ -7,6 +7,7 @@ export interface AdminBanner {
   imageUrl: string;
   type: 'CAMPAIGN' | 'STORE' | 'PRODUCT';
   status: 'ACTIVE' | 'PAUSED' | 'EXPIRED';
+  badgeText?: string | null;
   startDate?: string;
   endDate?: string;
   createdAt?: string;
@@ -17,6 +18,7 @@ export interface CreateBannerRequest {
   description: string;
   imageUrl: string;
   type: 'CAMPAIGN' | 'STORE' | 'PRODUCT';
+  badgeText?: string | null;
   startDate?: string;
   endDate?: string;
   storeIds?: string[];

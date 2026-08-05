@@ -36,6 +36,7 @@ export function BannerFormPage() {
   // Form State
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [badgeText, setBadgeText] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [type, setType] = useState<'CAMPAIGN' | 'STORE' | 'PRODUCT'>('CAMPAIGN');
   const [startDate, setStartDate] = useState('');
@@ -57,6 +58,7 @@ export function BannerFormPage() {
           if (b) {
             setTitle(b.title || '');
             setDescription(b.description || '');
+            setBadgeText(b.badgeText || '');
             setImageUrl(b.imageUrl || '');
             setType(b.type || 'CAMPAIGN');
             if (b.startDate) {
@@ -387,6 +389,7 @@ export function BannerFormPage() {
         description,
         imageUrl: finalImageUrl,
         type,
+        badgeText: badgeText.trim() || undefined,
         // Jackson LocalDateTime no acepta el sufijo Z de UTC — enviamos sin timezone
         startDate: new Date(startDate).toISOString().replace('Z', '').split('.')[0],
         endDate: new Date(endDate).toISOString().replace('Z', '').split('.')[0],
@@ -469,6 +472,22 @@ export function BannerFormPage() {
                 <option value="PRODUCT">Redirección a Producto (PRODUCT)</option>
               </select>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-[var(--text-secondary)] uppercase">
+              Etiqueta / Badge (Opcional)
+            </label>
+            <input
+              type="text"
+              value={badgeText}
+              onChange={(e) => setBadgeText(e.target.value)}
+              placeholder="Ej. HOT SALE, 50% OFF, LIQUIDACIÓN, NUEVO"
+              className="mt-2 h-10 w-full rounded-lg border border-[var(--border)] bg-[var(--bg-input)] px-3 text-sm text-[var(--text-primary)] outline-none focus:border-brand"
+            />
+            <p className="mt-1 text-[11px] text-[var(--text-muted)]">
+              Si ingresás un texto, se mostrará como insignia roja en la App Mobile. Si lo dejás vacío, la gráfica se verá limpia sin insignia.
+            </p>
           </div>
 
           <div>

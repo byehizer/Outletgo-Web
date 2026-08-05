@@ -252,6 +252,11 @@ export function BannersListPage() {
                           <span className="text-xs text-[var(--text-muted)] block max-w-xs truncate">
                             {banner.description || 'Sin descripción'}
                           </span>
+                          {banner.badgeText ? (
+                            <span className="inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] font-extrabold bg-red-500/10 text-red-500 border border-red-500/20">
+                              🏷️ {banner.badgeText}
+                            </span>
+                          ) : null}
                         </div>
                       </div>
                     </td>
