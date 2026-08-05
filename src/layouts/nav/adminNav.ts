@@ -9,7 +9,7 @@ export const adminNavItems: ShellNavItem[] = [
   { to: ROUTES.adminRoot, label: 'Resumen', icon: LayoutDashboard },
   { to: '/admin/banners', label: 'Banners y Campañas', icon: Image },
   { to: ROUTES.adminBlogs, label: 'Gestión de Blogs', icon: BookOpen },
-  { to: ROUTES.adminProducts, label: 'Moderación', icon: Shield },
+  { to: ROUTES.adminProducts, label: 'Buscador de Productos', icon: Shield },
   { to: ROUTES.adminReviews, label: 'Reseñas', icon: Star },
   { to: ROUTES.adminReports, label: 'Reportes', icon: Flag },
   { to: ROUTES.adminOrders, label: 'Todos los Pedidos', icon: ShoppingCart },

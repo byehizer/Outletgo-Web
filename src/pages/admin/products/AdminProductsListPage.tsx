@@ -1,4 +1,4 @@
-import { Eye, Loader2, Search, X } from 'lucide-react';
+import { Ban, CheckCircle2, Eye, Loader2, Search, X } from 'lucide-react';
 import {
   useCallback,
   useEffect,
@@ -624,19 +624,51 @@ export function AdminProductsListPage() {
         header: 'Acciones',
         align: 'right',
         cell: (row) => (
-          <button
-            type="button"
-            title="Ver detalle"
-            aria-label="Ver detalle del producto"
-            className="rounded-lg p-2 text-[var(--text-muted)] transition hover:bg-[var(--bg-hover)] hover:text-brand"
-            onClick={(e) => {
-              e.stopPropagation();
-              openProduct(row.id);
-            }}
-          >
-            <Eye className="size-4" aria-hidden />
-            <span className="sr-only">Ver detalle</span>
-          </button>
+          <div className="flex items-center justify-end gap-2">
+            {row.status === PRODUCT_STATUS.ACTIVE || row.status === PRODUCT_STATUS.PAUSED_BY_SELLER ? (
+              <button
+                type="button"
+                className="inline-flex items-center gap-1 rounded-lg border border-danger/35 bg-danger/10 px-2.5 py-1 text-xs font-semibold text-danger hover:bg-danger/15 transition"
+                title="Inhabilitar producto"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openProduct(row.id);
+                }}
+              >
+                <Ban className="size-3.5" aria-hidden />
+                Inhabilitar
+              </button>
+            ) : null}
+
+            {row.status === PRODUCT_STATUS.DISABLED_BY_ADMIN ? (
+              <button
+                type="button"
+                className="inline-flex items-center gap-1 rounded-lg border border-success/35 bg-success/10 px-2.5 py-1 text-xs font-semibold text-success hover:bg-success/15 transition"
+                title="Reactivar producto"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openProduct(row.id);
+                }}
+              >
+                <CheckCircle2 className="size-3.5" aria-hidden />
+                Reactivar
+              </button>
+            ) : null}
+
+            <button
+              type="button"
+              title="Ver detalle"
+              aria-label="Ver detalle del producto"
+              className="rounded-lg p-2 text-[var(--text-muted)] transition hover:bg-[var(--bg-hover)] hover:text-brand"
+              onClick={(e) => {
+                e.stopPropagation();
+                openProduct(row.id);
+              }}
+            >
+              <Eye className="size-4" aria-hidden />
+              <span className="sr-only">Ver detalle</span>
+            </button>
+          </div>
         ),
       },
     ],
@@ -647,13 +679,16 @@ export function AdminProductsListPage() {
     <div className="-m-6 flex flex-col p-6">
       <header className="shrink-0">
           <h1 className="font-display text-display-md text-[var(--text-primary)]">
-            Moderación de productos
+            Buscador y Moderación de Productos
             {data != null ? (
               <span className="ml-2 text-lg font-semibold text-[var(--text-muted)]">
                 ({data.totalElements})
               </span>
             ) : null}
           </h1>
+          <p className="mt-1 text-xs text-[var(--text-muted)]">
+            Buscá productos por nombre, tienda o estado e inhabilitá o reactivá con 1 clic en toda la plataforma.
+          </p>
         </header>
 
         <div className="mt-4 shrink-0 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-4">

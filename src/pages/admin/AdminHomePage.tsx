@@ -9,6 +9,7 @@ import {
   CreditCard,
   MessageSquare,
   Flag,
+  Shield,
   Eye,
   ChevronRight,
   TrendingUp,
@@ -393,6 +394,23 @@ export function AdminHomePage() {
               <span className="text-lg font-bold text-[var(--text-primary)] tabular-nums">
                 {stats.pendingReportsCount}
               </span>
+            </div>
+
+            {/* Buscador y Moderación de Productos */}
+            <div
+              className="p-3.5 rounded-xl border border-[var(--border)] bg-[var(--bg-surface)] flex items-center justify-between gap-3 cursor-pointer hover:bg-[var(--bg-hover)] transition"
+              onClick={() => navigate('/admin/products')}
+            >
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-indigo-500/10 p-2 text-indigo-500">
+                  <Shield className="size-5" />
+                </div>
+                <div>
+                  <span className="text-xs font-semibold text-[var(--text-secondary)] block">Buscador de Productos</span>
+                  <span className="text-xs text-[var(--text-muted)]">Buscar e inhabilitar productos</span>
+                </div>
+              </div>
+              <ChevronRight className="size-5 text-[var(--text-muted)]" />
             </div>
           </div>
         </div>
