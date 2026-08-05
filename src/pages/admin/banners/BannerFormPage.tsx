@@ -488,14 +488,23 @@ export function BannerFormPage() {
         }
       }
 
+      const formatIsoDate = (val: string) => {
+        if (!val) return '';
+        let s = val.trim();
+        if (s.length === 16) s = `${s}:00`;
+        const d = new Date(s);
+        if (isNaN(d.getTime())) return s;
+        return d.toISOString().replace('Z', '').split('.')[0];
+      };
+
       const bannerPayload = {
         title,
         description,
         imageUrl: finalImageUrl,
         type,
         badgeText: badgeText.trim() || undefined,
-        startDate: new Date(startDate).toISOString().replace('Z', '').split('.')[0],
-        endDate: new Date(endDate).toISOString().replace('Z', '').split('.')[0],
+        startDate: formatIsoDate(startDate),
+        endDate: formatIsoDate(endDate),
         storeIds: type === 'PRODUCT' ? [] : selectedStoreIds,
         productIds: type === 'STORE' ? [] : selectedProductIds,
       };
