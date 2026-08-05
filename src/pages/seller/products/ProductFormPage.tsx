@@ -118,7 +118,11 @@ export function ProductFormPage() {
           return;
         }
         await updateSellerProduct(productId!, payload);
-        setSaveBanner({ variant: 'success', text: 'Cambios guardados.' });
+        navigate(ROUTES.sellerProducts, {
+          replace: true,
+          state: { sellerFlash: 'product-updated' } satisfies SellerProductsListLocationState,
+        });
+        return;
       } catch (error: unknown) {
         if (error instanceof ApiError) {
           setSaveBanner({ variant: 'error', text: error.message });

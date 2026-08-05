@@ -110,10 +110,14 @@ export function ProductsListPage() {
 
   useEffect(() => {
     const state = location.state as SellerProductsListLocationState | null | undefined;
-    if (state?.sellerFlash !== 'product-created') {
+    if (!state?.sellerFlash) {
       return;
     }
-    setCreatedFlash('Producto creado con éxito.');
+    if (state.sellerFlash === 'product-created') {
+      setCreatedFlash('Producto creado con éxito.');
+    } else if (state.sellerFlash === 'product-updated') {
+      setCreatedFlash('Cambios guardados con éxito.');
+    }
     navigate(
       { pathname: location.pathname, search: location.search },
       { replace: true, state: null },
