@@ -156,6 +156,7 @@ export type AdminOrder = {
   serviceFee?: number;
   totalArs: number;
   mpPreferenceId: string;
+  mpPaymentId?: string | null;
   buyer: OrderBuyer & { id: string };
   stores: AdminOrderStore[];
   shippingMethod?: 'RETIRO_EN_PUNTO' | 'ENVIO_CORREO' | null;

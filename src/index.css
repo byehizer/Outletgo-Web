@@ -8,7 +8,6 @@
   color-scheme: light dark;
 }
 
-/* Modo oscuro por defecto (panel); el bloque media light lo sobreescribe. */
 :root {
   --bg-base: #0a0a0a;
   --bg-surface: #111111;

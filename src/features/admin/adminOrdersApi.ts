@@ -106,6 +106,7 @@ export function coerceAdminOrder(payload: JsonRecord): AdminOrder | undefined {
   const serviceFee = payload.serviceFee !== undefined ? pickNumber(payload.serviceFee) : undefined;
   const totalArs = pickNumber(payload.totalArs ?? payload.total_ars ?? payload.total);
   const mpPreferenceId = pickString(payload.mpPreferenceId ?? payload.mp_preference_id) ?? '';
+  const mpPaymentId = pickString(payload.mpPaymentId ?? payload.mp_payment_id) ?? null;
   const buyerRaw =
     typeof payload.buyer === 'object' && payload.buyer !== null
       ? (payload.buyer as JsonRecord)
@@ -142,6 +143,7 @@ export function coerceAdminOrder(payload: JsonRecord): AdminOrder | undefined {
     serviceFee,
     totalArs,
     mpPreferenceId,
+    mpPaymentId,
     buyer: { id: buyerId, displayName: buyerDisplayName, email: buyerEmail },
     stores,
   };
@@ -835,6 +837,55 @@ export async function refundSlice(data: RefundSliceDTO): Promise<RefundResult> {
     mpRefundId: pickString(root.mpRefundId ?? root.mp_refund_id) ?? null,
     refundedAmount: pickNumber(root.refundedAmount ?? root.refunded_amount),
     message: pickString(root.message) ?? 'Operación completada.',
+  };
+}
+
+export async function refundTotalOrder(orderId: string, reason?: string): Promise<RefundResult> {
+  const id = orderId.trim();
+  if (!id) {
+    throw new ApiError(400, null, 'ID de orden inválido.');
+  }
+
+  if (import.meta.env.DEV) {
+    await devDelay(undefined, 280);
+    const order = DEV_ORDERS[id];
+    if (!order) {
+      throw new ApiError(404, null, `No hay orden «${id}» en desarrollo.`);
+    }
+
+    devRefundCounter += 1;
+    const mpRefundId = `MP-REF-FULL-${String(devRefundCounter)}`;
+    const updatedStores = order.stores.map((slice) => ({
+      ...slice,
+      status: ORDER_STORE_STATUS.CANCELED,
+      refund: { mpRefundId, refundedAmount: slice.subtotalArs },
+    }));
+
+    const updatedOrder: AdminOrder = {
+      ...order,
+      status: ORDER_STATUS.CANCELED,
+      stores: updatedStores,
+    };
+    DEV_ORDERS[id] = updatedOrder;
+
+    return {
+      success: true,
+      mpRefundId,
+      refundedAmount: order.totalArs,
+      message: 'Reembolso total de la orden procesado correctamente en Mercado Pago.',
+    };
+  }
+
+  const raw = await apiClient.post<unknown>(
+    `${ADMIN_ORDERS_API_PATH}/${encodeURIComponent(id)}/refund-total`,
+    { reason: reason || 'Reembolso total del pedido' },
+  );
+  const root = typeof raw === 'object' && raw !== null ? (raw as JsonRecord) : {};
+  return {
+    success: root.success === true,
+    mpRefundId: pickString(root.mpRefundId ?? root.mp_refund_id) ?? null,
+    refundedAmount: pickNumber(root.refundedAmount ?? root.refunded_amount),
+    message: pickString(root.message) ?? 'Reembolso total procesado correctamente.',
   };
 }
 
