@@ -306,14 +306,18 @@ function coerceSellerDashboardPayload(payload: unknown): SellerDashboardData {
 }
 
 export async function fetchSellerDashboard(): Promise<SellerDashboardData> {
+  try {
+    const raw = await apiClient.get<unknown>(SELLER_DASHBOARD_API_PATH);
+    const data = coerceSellerDashboardPayload(raw);
+    if (data && data.kpis) {
+      return data;
+    }
+  } catch (err) {
+    console.warn('Backend dashboard error, falling back to mock:', err);
+  }
+
   if (import.meta.env.DEV) {
     return devDelay(mockClone(DEV_DASHBOARD));
   }
-
-  const raw = await apiClient.get<unknown>(SELLER_DASHBOARD_API_PATH);
-  const data = coerceSellerDashboardPayload(raw);
-  if (!data.kpis) {
-    throw new ApiError(500, raw, 'El servidor no devolvió un dashboard válido.');
-  }
-  return data;
+  throw new ApiError(500, null, 'El servidor no devolvió un dashboard válido.');
 }

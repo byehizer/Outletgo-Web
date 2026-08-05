@@ -372,23 +372,27 @@ export async function fetchStoreReviews(params: FetchStoreReviewsParams): Promis
     size,
   };
 
-  if (import.meta.env.DEV) {
-    return devDelay(buildDevStoreReviewsPage(body));
-  }
+  try {
+    const qs = new URLSearchParams();
+    qs.set('page', String(body.page));
+    qs.set('size', String(size));
+    if (typeof body.rating === 'number' && body.rating >= 1 && body.rating <= 5) {
+      qs.set('rating', String(body.rating));
+    }
+    qs.set(
+      'sortCreatedAt',
+      body.createdAtSort === 'asc' ? 'ASC' : 'DESC',
+    );
 
-  const qs = new URLSearchParams();
-  qs.set('page', String(body.page));
-  qs.set('size', String(size));
-  if (typeof body.rating === 'number' && body.rating >= 1 && body.rating <= 5) {
-    qs.set('rating', String(body.rating));
+    const raw = await apiClient.get<unknown>(`${SELLER_STORE_REVIEWS_API_PATH}?${qs.toString()}`);
+    return coerceSellerReviewsPage(raw, size);
+  } catch (err) {
+    console.warn('Backend store reviews error, falling back to mock:', err);
+    if (import.meta.env.DEV) {
+      return devDelay(buildDevStoreReviewsPage(body));
+    }
+    return { content: [], totalElements: 0, number: body.page, size };
   }
-  qs.set(
-    'sortCreatedAt',
-    body.createdAtSort === 'asc' ? 'ASC' : 'DESC',
-  );
-
-  const raw = await apiClient.get<unknown>(`${SELLER_STORE_REVIEWS_API_PATH}?${qs.toString()}`);
-  return coerceSellerReviewsPage(raw, size);
 }
 
 export async function fetchProductReviews(params: FetchProductReviewsParams): Promise<Page<SellerReview>> {
@@ -399,29 +403,33 @@ export async function fetchProductReviews(params: FetchProductReviewsParams): Pr
     size,
   };
 
-  if (import.meta.env.DEV) {
-    return devDelay(buildDevProductReviewsPage(body));
-  }
+  try {
+    const qs = new URLSearchParams();
+    qs.set('page', String(body.page));
+    qs.set('size', String(size));
+    if (typeof body.rating === 'number' && body.rating >= 1 && body.rating <= 5) {
+      qs.set('rating', String(body.rating));
+    }
+    const pid = body.productId?.trim();
+    if (pid && pid.length > 0) {
+      qs.set('productId', pid);
+    }
+    qs.set(
+      'sortCreatedAt',
+      body.createdAtSort === 'asc' ? 'ASC' : 'DESC',
+    );
+    const s = body.search?.trim();
+    if (s && s.length > 0) {
+      qs.set('search', s);
+    }
 
-  const qs = new URLSearchParams();
-  qs.set('page', String(body.page));
-  qs.set('size', String(size));
-  if (typeof body.rating === 'number' && body.rating >= 1 && body.rating <= 5) {
-    qs.set('rating', String(body.rating));
+    const raw = await apiClient.get<unknown>(`${SELLER_PRODUCT_REVIEWS_API_PATH}?${qs.toString()}`);
+    return coerceSellerReviewsPage(raw, size);
+  } catch (err) {
+    console.warn('Backend product reviews error, falling back to mock:', err);
+    if (import.meta.env.DEV) {
+      return devDelay(buildDevProductReviewsPage(body));
+    }
+    return { content: [], totalElements: 0, number: body.page, size };
   }
-  const pid = body.productId?.trim();
-  if (pid && pid.length > 0) {
-    qs.set('productId', pid);
-  }
-  qs.set(
-    'sortCreatedAt',
-    body.createdAtSort === 'asc' ? 'ASC' : 'DESC',
-  );
-  const s = body.search?.trim();
-  if (s && s.length > 0) {
-    qs.set('search', s);
-  }
-
-  const raw = await apiClient.get<unknown>(`${SELLER_PRODUCT_REVIEWS_API_PATH}?${qs.toString()}`, { skipAuth: true });
-  return coerceSellerReviewsPage(raw, size);
 }
