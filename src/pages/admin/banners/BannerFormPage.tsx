@@ -108,54 +108,66 @@ export function BannerFormPage() {
 
   // Cargar datos del banner en modo edición
   useEffect(() => {
-    if (id) {
-      setLoadingBanner(true);
-      getAdminBannerById(id)
-        .then((b) => {
-          if (b) {
-            setTitle(b.title || '');
-            setDescription(b.description || '');
-            setBadgeText(b.badgeText || '');
-            setImageUrl(b.imageUrl || '');
-            const bannerType = (b.type || 'CAMPAIGN') as 'CAMPAIGN' | 'STORE' | 'PRODUCT';
-            setType(bannerType);
+    if (!id) return;
 
-            if (b.startDate) {
-              const d = new Date(b.startDate);
-              setStartDate(!isNaN(d.getTime()) ? d.toISOString().slice(0, 16) : '');
-            }
-            if (b.endDate) {
-              const d = new Date(b.endDate);
-              setEndDate(!isNaN(d.getTime()) ? d.toISOString().slice(0, 16) : '');
-            }
+    let isMounted = true;
+    setLoadingBanner(true);
 
-            // Precargar selecciones
-            if (b.storeIds && b.storeIds.length > 0) {
-              setSelectedStoreIds(b.storeIds);
-            } else if (b.targetStoreId) {
-              setSelectedStoreIds([b.targetStoreId]);
-            } else if (b.stores && b.stores.length > 0) {
-              setSelectedStoreIds(b.stores.map((s) => s.id));
-            }
+    getAdminBannerById(id)
+      .then((b) => {
+        if (!isMounted) return;
+        if (b) {
+          setTitle(b.title || '');
+          setDescription(b.description || '');
+          setBadgeText(b.badgeText || '');
+          setImageUrl(b.imageUrl || '');
+          const bannerType = (b.type || 'CAMPAIGN') as 'CAMPAIGN' | 'STORE' | 'PRODUCT';
+          setType(bannerType);
 
-            if (b.productIds && b.productIds.length > 0) {
-              setSelectedProductIds(b.productIds);
-            } else if (b.targetProductId) {
-              setSelectedProductIds([b.targetProductId]);
-            } else if (b.products && b.products.length > 0) {
-              setSelectedProductIds(b.products.map((p) => p.id));
-            }
+          if (b.startDate) {
+            const d = new Date(b.startDate);
+            setStartDate(!isNaN(d.getTime()) ? d.toISOString().slice(0, 16) : '');
           }
-        })
-        .catch((err) => {
-          console.error('Error al cargar datos del banner:', err);
-          showToastError('No se pudieron cargar los datos de la campaña.');
-        })
-        .finally(() => {
+          if (b.endDate) {
+            const d = new Date(b.endDate);
+            setEndDate(!isNaN(d.getTime()) ? d.toISOString().slice(0, 16) : '');
+          }
+
+          // Precargar selecciones
+          if (b.storeIds && b.storeIds.length > 0) {
+            setSelectedStoreIds(b.storeIds);
+          } else if (b.targetStoreId) {
+            setSelectedStoreIds([b.targetStoreId]);
+          } else if (b.stores && b.stores.length > 0) {
+            setSelectedStoreIds(b.stores.map((s) => s.id));
+          }
+
+          if (b.productIds && b.productIds.length > 0) {
+            setSelectedProductIds(b.productIds);
+          } else if (b.targetProductId) {
+            setSelectedProductIds([b.targetProductId]);
+          } else if (b.products && b.products.length > 0) {
+            setSelectedProductIds(b.products.map((p) => p.id));
+          }
+        } else {
+          showToastError('No se encontró la campaña o banner solicitado.');
+        }
+      })
+      .catch((err) => {
+        if (!isMounted) return;
+        console.error('Error al cargar datos del banner:', err);
+        showToastError('No se pudieron cargar los datos de la campaña.');
+      })
+      .finally(() => {
+        if (isMounted) {
           setLoadingBanner(false);
-        });
-    }
-  }, [id, showToastError]);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id]);
 
   // Manejador del cambio de tipo de banner (STORE, PRODUCT, CAMPAIGN)
   const handleTypeChange = (newType: 'CAMPAIGN' | 'STORE' | 'PRODUCT') => {

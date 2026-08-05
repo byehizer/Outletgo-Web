@@ -62,8 +62,14 @@ export async function createAdminBanner(req: CreateBannerRequest): Promise<Admin
   return apiClient.post<AdminBanner>('/api/admin/banners', req);
 }
 
-export async function getAdminBannerById(id: string): Promise<AdminBanner> {
-  return apiClient.get<AdminBanner>(`/api/admin/banners/${id}`);
+export async function getAdminBannerById(id: string): Promise<AdminBanner | null> {
+  try {
+    const res = await apiClient.get<AdminBanner>(`/api/admin/banners/${id}`);
+    return res || null;
+  } catch (err) {
+    console.error('Error al obtener el banner por ID:', err);
+    return null;
+  }
 }
 
 export async function updateAdminBanner(id: string, req: CreateBannerRequest): Promise<AdminBanner> {
