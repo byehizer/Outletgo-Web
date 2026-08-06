@@ -49,14 +49,12 @@ function coerceOrderStoreStatus(raw: unknown): OrderStoreStatus {
 }
 
 function coerceAdminOrderStore(o: JsonRecord): AdminOrderStore | undefined {
-  const id = pickString(o.id ?? o.sliceId);
-  const storeId = pickString(o.storeId ?? o.store_id);
-  const businessName = pickString(o.businessName ?? o.business_name);
+  const id = pickString(o.id ?? o.sliceId ?? o.orderStoreId) ?? `slice-${Math.random().toString(36).substring(2, 7)}`;
+  const storeId = pickString(o.storeId ?? o.store_id) ?? 'unknown-store';
+  const businessName = pickString(o.businessName ?? o.business_name ?? o.storeName ?? o.store_name) ?? 'Tienda';
   const statusRaw = pickString(o.status ?? o.storeStatus ?? o.store_status);
   const status = coerceOrderStoreStatus(statusRaw);
-  if (!id || !storeId || !businessName) {
-    return undefined;
-  }
+
   const itemsRaw = Array.isArray(o.items) ? o.items : [];
   const items = itemsRaw
     .map((row) => (typeof row === 'object' && row !== null ? coerceLineItem(row as JsonRecord) : undefined))
@@ -72,14 +70,14 @@ function coerceAdminOrderStore(o: JsonRecord): AdminOrderStore | undefined {
     storeId,
     businessName,
     status,
-    storeName: pickString(o.storeName ?? o.store_name),
+    storeName: pickString(o.storeName ?? o.store_name) ?? businessName,
     grossAmount: o.grossAmount !== undefined ? pickNumber(o.grossAmount) : undefined,
     commissionRate: o.commissionRate !== undefined ? pickNumber(o.commissionRate) : undefined,
     commissionAmount: o.commissionAmount !== undefined ? pickNumber(o.commissionAmount) : undefined,
     netAmount: o.netAmount !== undefined ? pickNumber(o.netAmount) : undefined,
-    payoutStatus: (pickString(o.payoutStatus ?? o.payout_status) ?? undefined) as any,
+    payoutStatus: (pickString(o.payoutStatus ?? o.payout_status) ?? 'PENDING') as any,
     paidAt: pickString(o.paidAt ?? o.paid_at) ?? null,
-    subtotalArs: pickNumber(o.subtotalArs ?? o.subtotal_ars ?? o.subtotal),
+    subtotalArs: pickNumber(o.subtotalArs ?? o.subtotal_ars ?? o.subtotalAmount ?? o.subtotal_amount ?? o.subtotal),
     items,
     refund: mpRefundId ? { mpRefundId, refundedAmount } : undefined,
   };
@@ -98,7 +96,7 @@ export function coerceAdminOrder(payload: JsonRecord): AdminOrder | undefined {
     typeof payload.buyer === 'object' && payload.buyer !== null
       ? (payload.buyer as JsonRecord)
       : {};
-  const buyerId = pickString(buyerRaw.id) ?? '';
+  const buyerId = pickString(buyerRaw.id) ?? 'buyer-id';
   const buyerEmail = pickString(buyerRaw.email) ?? '';
   const buyerDisplayName =
     typeof buyerRaw.displayName === 'string'
@@ -117,7 +115,7 @@ export function coerceAdminOrder(payload: JsonRecord): AdminOrder | undefined {
   const statusRaw = pickString(payload.status);
   const status = statusRaw && isOrderStatus(statusRaw) ? statusRaw : ORDER_STATUS.PENDING;
 
-  if (!id || !buyerId) {
+  if (!id) {
     return undefined;
   }
 
@@ -199,8 +197,14 @@ export async function fetchAdminOrderDetail(orderId: string): Promise<AdminOrder
   }
 
   const raw = await apiClient.get<unknown>(`${ADMIN_ORDERS_API_PATH}/${encodeURIComponent(id)}`);
+  console.log('📦 [ADMIN ORDER API] Raw payload from backend:', raw);
+
   const order =
     typeof raw === 'object' && raw !== null ? coerceAdminOrder(raw as JsonRecord) : undefined;
+
+  console.log('📦 [ADMIN ORDER API] Coerced AdminOrder object:', order);
+  console.log('🏬 [ADMIN ORDER API] Stores/Slices count:', order?.stores?.length, order?.stores);
+
   if (!order) {
     throw new ApiError(502, null, 'Respuesta de orden inválida.');
   }

@@ -125,6 +125,8 @@ export function AdminOrderDetailPage() {
     setErrorMessage(null);
     try {
       const data = await fetchAdminOrderDetail(orderId);
+      console.log('🔍 [ADMIN ORDER DETAIL PAGE] Order loaded:', data);
+      console.log('🔍 [ADMIN ORDER DETAIL PAGE] Slices (order.stores):', data?.stores);
       setOrder(data);
     } catch (err: unknown) {
       setOrder(null);
