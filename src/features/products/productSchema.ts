@@ -5,14 +5,23 @@ import type { SellerProductDetail } from '../../types/product';
 
 import type { SellerProductSavePayload } from './productDetailApi';
 
-export const PRODUCT_FORM_CATEGORIES = [
-  { id: 'ropa', label: 'Ropa' },
-  { id: 'calzado', label: 'Calzado' },
-  { id: 'accesorios', label: 'Accesorios' },
-  { id: 'otros', label: 'Otros' },
-] as const;
+/**
+ * Categorías estáticas de fallback — se usan si el backend no responde.
+ * Los IDs son los UUIDs reales de la tabla `categories` en Supabase/PostgreSQL.
+ */
+export const PRODUCT_FORM_CATEGORIES_FALLBACK: { id: string; label: string }[] = [
+  { id: '020edddc-61a1-4038-ba32-40a0dcee1dbf', label: 'Ropa' },
+  { id: '4a04d538-4228-4efc-8b89-322ea1f6186b', label: 'Calzado' },
+  { id: 'e3f3eb7a-59f0-4d65-aff9-3d48531a853b', label: 'Abrigos' },
+  { id: '9e1ba1e7-caf1-4b54-9973-111bdcd337ad', label: 'Accesorios' },
+];
 
-export type ProductFormCategoryId = (typeof PRODUCT_FORM_CATEGORIES)[number]['id'];
+/**
+ * @deprecated Usar `PRODUCT_FORM_CATEGORIES_FALLBACK` o las categorías dinámicas cargadas desde el backend.
+ */
+export const PRODUCT_FORM_CATEGORIES = PRODUCT_FORM_CATEGORIES_FALLBACK;
+
+export type ProductFormCategoryId = string;
 
 export const variationRowSchema = z.object({
   size: z.string().min(1, 'Indicá el talle o medida.'),
@@ -41,7 +50,7 @@ export function productFormDefaults(): ProductFormValues {
   return {
     name: '',
     description: '',
-    categoryId: PRODUCT_FORM_CATEGORIES[0].id,
+    categoryId: PRODUCT_FORM_CATEGORIES[0]?.id ?? '',
     tags: '',
     basePrice: 0,
     imageUrls: [],
@@ -62,10 +71,7 @@ export function detailToFormValues(detail: SellerProductDetail): ProductFormValu
   return {
     name: detail.name,
     description: detail.description,
-    categoryId:
-      PRODUCT_FORM_CATEGORIES.some((c) => c.id === detail.categoryId) ?
-        (detail.categoryId as ProductFormCategoryId)
-      : PRODUCT_FORM_CATEGORIES[0].id,
+    categoryId: detail.categoryId || (PRODUCT_FORM_CATEGORIES[0]?.id ?? ''),
     tags: detail.tags.join(', '),
     basePrice: detail.basePrice,
     imageUrls: [...detail.imageUrls],

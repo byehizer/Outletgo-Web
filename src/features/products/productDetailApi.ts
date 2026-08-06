@@ -108,7 +108,10 @@ export function coerceSellerProductDetail(raw: unknown): SellerProductDetail {
     id,
     name: pickString(o.name ?? o.title) ?? '',
     description: pickString(o.description ?? o.body ?? o.detail) ?? '',
-    categoryId: pickString(o.categoryId ?? o.category_id ?? o.category)?.toLowerCase() ?? 'ropa',
+    categoryId: pickString(
+      (typeof o.category === 'object' && o.category !== null ? (o.category as JsonRecord).id : undefined)
+      ?? o.categoryId ?? o.category_id ?? o.category
+    ) ?? '',
     tags: pickTags(o),
     basePrice: pickNumber(o.basePrice ?? o.base_price ?? o.price ?? o.amount),
     imageUrls: pickImageUrls(o),

@@ -5,6 +5,8 @@ import { FormProvider, useForm } from 'react-hook-form';
 import type { FieldErrors } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
+import { apiClient } from '../../../lib/http/apiClient';
+
 import { ImagesField } from '../../../features/products/ImagesField';
 import {
   createSellerProduct,
@@ -12,7 +14,7 @@ import {
   updateSellerProduct,
 } from '../../../features/products/productDetailApi';
 import {
-  PRODUCT_FORM_CATEGORIES,
+  PRODUCT_FORM_CATEGORIES_FALLBACK,
   detailToFormValues,
   productFormDefaults,
   productFormSchema,
@@ -38,6 +40,8 @@ function newStagingSession(): string {
     : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+type CategoryOption = { id: string; label: string };
+
 export function ProductFormPage() {
   const navigate = useNavigate();
   const { productId } = useParams<{ productId?: string }>();
@@ -48,6 +52,28 @@ export function ProductFormPage() {
   const [detailLoading, setDetailLoading] = useState(!isCreate);
   /** Solo edición / errores en el mismo paso de guardado (el alta navega al listado). */
   const [saveBanner, setSaveBanner] = useState<{ variant: 'success' | 'error'; text: string } | null>(null);
+
+  /** Categorías cargadas dinámicamente desde el backend. */
+  const [categories, setCategories] = useState<CategoryOption[]>(PRODUCT_FORM_CATEGORIES_FALLBACK);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const raw = await apiClient.get<unknown>('/api/buyer/catalog/categories', { skipAuth: true });
+        if (cancelled || !Array.isArray(raw)) return;
+        const mapped: CategoryOption[] = raw
+          .filter((c: any) => c && typeof c.id === 'string' && typeof c.name === 'string')
+          .map((c: any) => ({ id: c.id, label: c.name }));
+        if (mapped.length > 0) {
+          setCategories(mapped);
+        }
+      } catch {
+        // Fallback a categorías estáticas si el backend no responde
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const methods = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
@@ -246,7 +272,7 @@ export function ProductFormPage() {
                     className="h-11 w-full rounded-lg border border-[var(--border)] bg-[var(--bg-input)] px-3 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--border-focus)]"
                     {...register('categoryId')}
                   >
-                    {PRODUCT_FORM_CATEGORIES.map((c) => (
+                    {categories.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.label}
                       </option>
