@@ -467,7 +467,7 @@ export function AdminOrdersListPage() {
       startDate: queryKey.startDate,
       endDate: queryKey.endDate,
     })
-      .then((page) => {
+      .then((page: Page<AdminOrder>) => {
         if (!cancelled) {
           dispatch({ type: 'FETCH_OK', payload: page });
         }

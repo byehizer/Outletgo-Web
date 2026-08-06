@@ -1,6 +1,6 @@
 import { ADMIN_DASHBOARD_API_PATH } from '../../lib/constants';
 import { apiClient } from '../../lib/http/apiClient';
-import { DEV_ORDERS, coerceAdminOrder } from './adminOrdersApi';
+import { coerceAdminOrder } from './adminOrdersApi';
 import type { AdminOrder } from '../../types/order';
 
 export type AdminDashboardStats = {
@@ -68,80 +68,7 @@ function coerceAdminDashboardStats(payload: unknown): AdminDashboardStats {
   };
 }
 
-function devDelay<T>(value: T, ms = 220): Promise<T> {
-  return new Promise((resolve) => {
-    window.setTimeout(() => resolve(value), ms);
-  });
-}
-
-function mockClone<T>(v: T): T {
-  if (typeof structuredClone === 'function') {
-    return structuredClone(v);
-  }
-  return JSON.parse(JSON.stringify(v)) as T;
-}
-
 export async function fetchAdminDashboardStats(): Promise<AdminDashboardStats> {
-  if (import.meta.env.DEV) {
-    // Asegurarnos de que DEV_ORDERS está definido
-    if (!DEV_ORDERS) {
-      console.error('DEV_ORDERS no está definido. Posible dependencia circular.');
-      throw new Error('No se pudieron cargar los datos mockeados.');
-    }
-
-    const orders = Object.values(DEV_ORDERS);
-
-    // Métricas financieras basadas en órdenes activas (no canceladas)
-    const activeOrders = orders.filter((o) => o.status !== 'CANCELED');
-    const totalGmv = activeOrders.reduce((sum, o) => sum + o.totalArs, 0);
-    const totalServiceFees = activeOrders.reduce((sum, o) => sum + (o.serviceFee ?? 0), 0);
-
-    // Sumar comisiones de todos los slices no cancelados
-    let totalCommissions = 0;
-    for (const order of activeOrders) {
-      for (const slice of order.stores) {
-        if (slice.status !== 'CANCELED') {
-          totalCommissions += slice.commissionAmount ?? 0;
-        }
-      }
-    }
-
-    // Alertas operacionales dinámicas
-    const stockIssuesCount = orders.reduce(
-      (sum, o) => sum + o.stores.filter((s) => s.status === 'STOCK_ISSUE').length,
-      0,
-    );
-    const pendingRefundsCount = orders.reduce(
-      (sum, o) => sum + o.stores.filter((s) => s.status === 'CANCELED' && !s.refund).length,
-      0,
-    );
-
-    // Métricas estáticas / mockeadas complementarias
-    const activeStoresCount = 5;
-    const pendingReportsCount = 3;
-    const unreadSupportConversationsCount = 2;
-
-    // Obtener los 5 pedidos más recientes
-    const recentOrders = [...orders]
-      .sort((a, b) => Date.parse(b.orderDate) - Date.parse(a.orderDate))
-      .slice(0, 5)
-      .map((o) => mockClone(o));
-
-    return devDelay({
-      totalGmv,
-      totalCommissions,
-      totalServiceFees,
-      totalOrdersCount: orders.length,
-      activeStoresCount,
-      pendingReportsCount,
-      pendingRefundsCount,
-      stockIssuesCount,
-      unreadSupportConversationsCount,
-      recentOrders,
-    });
-  }
-
-  // Integración real con endpoints del backend en producción
   const raw = await apiClient.get<unknown>(ADMIN_DASHBOARD_API_PATH);
   return coerceAdminDashboardStats(raw);
 }
