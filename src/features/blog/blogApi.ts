@@ -146,19 +146,29 @@ export async function fetchBlogById(id: string): Promise<BlogArticle | null> {
 }
 
 export async function createBlog(data: Omit<BlogArticle, 'id'>): Promise<BlogArticle> {
-  const newBlog: BlogArticle = {
+  const payload = {
     ...data,
-    id: `blog-${Date.now()}`,
     status: data.status || 'PUBLISHED',
   };
   try {
-    await apiClient.post('/api/admin/blogs', newBlog);
-  } catch {
-    const blogs = getStoredBlogs();
-    const updated = [newBlog, ...blogs];
-    saveStoredBlogs(updated);
+    const created = await apiClient.post<BlogArticle>('/api/admin/blogs', payload);
+    if (created && created.id) {
+      return created;
+    }
+  } catch (err) {
+    console.warn('Error en API al crear blog, guardando en respaldo local:', err);
   }
-  return newBlog;
+  const fallbackId =
+    typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `00000000-0000-4000-8000-${String(Date.now()).padStart(12, '0')}`;
+  const localBlog: BlogArticle = {
+    ...payload,
+    id: fallbackId,
+  };
+  const blogs = getStoredBlogs();
+  saveStoredBlogs([localBlog, ...blogs]);
+  return localBlog;
 }
 
 export async function updateBlog(id: string, data: Partial<BlogArticle>): Promise<BlogArticle> {

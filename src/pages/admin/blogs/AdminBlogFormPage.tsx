@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, Upload, Image as ImageIcon, Loader2, X } from 'lucide-react';
 
 import {
   createBlog,
@@ -9,6 +9,7 @@ import {
   updateBlog,
   BlogCategory,
 } from '../../../features/blog/blogApi';
+import { backendImageUploader } from '../../../lib/uploads/backendImageUploader';
 import { ROUTES } from '../../../lib/constants';
 import { useToast } from '../../../hooks/useToast';
 
@@ -29,10 +30,11 @@ export function AdminBlogFormPage() {
       year: 'numeric',
     })
   );
-  const [image, setImage] = useState('/review_oversize_tee.png');
+  const [image, setImage] = useState('');
   const [color, setColor] = useState('#2B8FD4');
   const [contentRaw, setContentRaw] = useState('');
   const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -59,6 +61,30 @@ export function AdminBlogFormPage() {
     }
     load();
   }, [id]);
+
+  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      error('El archivo seleccionado debe ser una imagen (JPG, PNG, WEBP, etc.).');
+      return;
+    }
+
+    try {
+      setUploadingImage(true);
+      const res = await backendImageUploader.upload(file);
+      if (res && res.url) {
+        setImage(res.url);
+        success('Imagen subida a Supabase con éxito.');
+      }
+    } catch (err) {
+      console.error('Error al subir imagen a Supabase:', err);
+      error('No se pudo subir la imagen. Reintentá o ingresá una URL manualmente.');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -173,32 +199,89 @@ export function AdminBlogFormPage() {
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
-                URL de Imagen de Portada *
-              </label>
-              <input
-                type="text"
-                value={image}
-                onChange={(e) => setImage(e.target.value)}
-                placeholder="/review_oversize_tee.png o URL https://..."
-                className="w-full h-11 px-4 rounded-lg border border-[var(--border)] bg-[var(--bg-input)] text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] outline-none transition focus:border-[var(--border-focus)]"
-              />
-            </div>
+          <div className="space-y-3">
+            <label className="block text-xs font-semibold text-[var(--text-secondary)]">
+              Imagen de Portada *
+            </label>
+            <div className="grid gap-4 sm:grid-cols-2 items-start">
+              {/* UPLOAD / SELECTOR DE ARCHIVO */}
+              <div className="space-y-2">
+                <div className="relative border-2 border-dashed border-[var(--border)] hover:border-brand/50 rounded-xl bg-[var(--bg-input)] p-4 text-center transition">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageFileChange}
+                    disabled={uploadingImage}
+                    className="absolute inset-0 size-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                  />
+                  <div className="flex flex-col items-center justify-center space-y-2 pointer-events-none">
+                    {uploadingImage ? (
+                      <>
+                        <Loader2 className="size-6 animate-spin text-brand" />
+                        <span className="text-xs font-medium text-brand">Subiendo imagen a Supabase...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="size-6 text-[var(--text-muted)]" />
+                        <span className="text-xs font-semibold text-[var(--text-primary)]">
+                          Hacé clic o arrastrá una imagen
+                        </span>
+                        <span className="text-[11px] text-[var(--text-muted)]">
+                          Formatos JPG, PNG, WEBP (se almacena automáticamente en Supabase)
+                        </span>
+                      </>
+                    )}
+                  </div>
+                </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-[var(--text-secondary)] mb-1">
-                Color Temático de Insignia
-              </label>
-              <div className="flex items-center gap-3">
-                <input
-                  type="color"
-                  value={color}
-                  onChange={(e) => setColor(e.target.value)}
-                  className="size-10 rounded-lg cursor-pointer border border-[var(--border)] bg-[var(--bg-input)] p-1"
-                />
-                <span className="text-xs font-mono text-[var(--text-muted)]">{color}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-[var(--text-muted)] shrink-0">o ingresar URL externa:</span>
+                  <input
+                    type="text"
+                    value={image}
+                    onChange={(e) => setImage(e.target.value)}
+                    placeholder="https://ejemplo.com/imagen.jpg"
+                    className="w-full h-8 px-2.5 rounded-lg border border-[var(--border)] bg-[var(--bg-input)] text-[11px] text-[var(--text-primary)] outline-none focus:border-[var(--border-focus)]"
+                  />
+                </div>
+              </div>
+
+              {/* VISTA PREVIA Y COLOR */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-[var(--text-secondary)]">Vista Previa</span>
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs text-[var(--text-muted)]">Color:</label>
+                    <input
+                      type="color"
+                      value={color}
+                      onChange={(e) => setColor(e.target.value)}
+                      className="size-6 rounded cursor-pointer border border-[var(--border)] bg-[var(--bg-input)] p-0.5"
+                    />
+                    <span className="text-xs font-mono text-[var(--text-muted)]">{color}</span>
+                  </div>
+                </div>
+
+                <div className="relative aspect-video w-full rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--bg-surface)] flex items-center justify-center">
+                  {image ? (
+                    <>
+                      <img src={image} alt="Vista previa blog" className="size-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setImage('')}
+                        className="absolute top-2 right-2 p-1 rounded-full bg-black/60 text-white hover:bg-black transition"
+                        title="Quitar imagen"
+                      >
+                        <X className="size-3.5" />
+                      </button>
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center gap-1.5 p-4 text-center text-[var(--text-muted)]">
+                      <ImageIcon className="size-8 stroke-1" />
+                      <span className="text-xs">Sin imagen seleccionada</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
