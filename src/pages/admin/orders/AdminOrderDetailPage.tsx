@@ -412,7 +412,7 @@ export function AdminOrderDetailPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[var(--border)]">
-                        {slice.items.map((item) => {
+                        {(slice.items ?? []).map((item) => {
                           const hasIssue = hasStockIssueForItem(slice, item.id);
                           const lineSubtotal = item.quantity * item.unitPrice;
                           return (

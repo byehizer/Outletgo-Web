@@ -681,9 +681,9 @@ export function AdminOrdersListPage() {
           className="h-10 min-w-[10rem] rounded-lg border border-[var(--border)] bg-[var(--bg-input)] px-3 text-sm outline-none focus:border-[var(--border-focus)]"
           aria-label="Filtrar por estado"
         >
-          <option value="all">Todos</option>
-          <option value={ORDER_STATUS.PENDING}>Pendientes</option>
-          <option value={ORDER_STATUS.PREPARING}>Preparando</option>
+          <option value="all">Todos los estados</option>
+          <option value={ORDER_STATUS.PENDING}>Pendientes de pago</option>
+          <option value={ORDER_STATUS.PREPARING}>En proceso / Preparando</option>
           <option value={ORDER_STATUS.READY_FOR_PICKUP}>Listo para retiro</option>
           <option value={ORDER_STATUS.DELIVERED}>Entregados</option>
           <option value={ORDER_STATUS.CANCELED}>Cancelados</option>
