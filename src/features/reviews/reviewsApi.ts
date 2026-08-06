@@ -287,10 +287,12 @@ function coerceSellerReview(raw: unknown): SellerReview | null {
   }
   const o = raw as Record<string, unknown>;
   const id = pickString(o.id);
-  const authorName = pickString(o.authorName ?? o.author_name);
+  const authorName =
+    pickString(o.authorName ?? o.author_name ?? o.authorDisplayName ?? o.author_display_name) ??
+    'Cliente';
   const rating = pickNumber(o.rating);
   const commentRaw = typeof o.comment === 'string' ? o.comment : '';
-  const storeId = pickString(o.storeId ?? o.store_id);
+  const storeId = pickString(o.storeId ?? o.store_id) ?? 'seller-store';
   const productRaw = o.product;
   const productNested =
     typeof productRaw === 'object' && productRaw !== null ? (productRaw as Record<string, unknown>) : null;
@@ -299,8 +301,9 @@ function coerceSellerReview(raw: unknown): SellerReview | null {
     pickNullableString(productNested?.id ?? productNested?.productId);
   const productName =
     pickNullableString(o.productName ?? o.product_name) ?? pickNullableString(productNested?.name);
-  const createdAt = pickString(o.createdAt ?? o.created_at);
-  if (!id || !authorName || rating === undefined || rating < 1 || rating > 5 || !storeId || !createdAt) {
+  const createdAt = pickString(o.createdAt ?? o.created_at) ?? new Date().toISOString();
+
+  if (!id || rating === undefined || rating < 1 || rating > 5) {
     return null;
   }
 
